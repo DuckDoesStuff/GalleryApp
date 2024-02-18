@@ -9,6 +9,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.GridView;
+import android.widget.Toast;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -62,10 +65,9 @@ public class PicutresFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_picutres, container, false);
 
-        RecyclerView recyclerView = view.findViewById(R.id.photo_grid);
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
-        recyclerView.setAdapter(new FrameAdapter(getContext(), 17)); // Sử dụng adapter mới
-
+        GridView gridView = view.findViewById(R.id.photo_grid);
+        gridView.setAdapter(new FrameAdapter(getContext(), 90)); // Sử dụng adapter mới
+        gridView.setOnItemClickListener((parent, view1, position, id) -> Toast.makeText(getContext(), "ITEM CLICKED AT " + position, Toast.LENGTH_SHORT).show());
         return view;
     }
 }

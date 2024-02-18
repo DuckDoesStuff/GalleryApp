@@ -7,6 +7,8 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.GridView;
+import android.widget.Toast;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -58,7 +60,11 @@ public class AlbumsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_albums, container, false);
+        View view = inflater.inflate(R.layout.fragment_albums, container, false);
+
+        GridView gridView = view.findViewById(R.id.album_grid);
+        gridView.setAdapter(new AlbumFrameAdapter(getContext(), 9)); // Sử dụng adapter mới
+        gridView.setOnItemClickListener((parent, view1, position, id) -> Toast.makeText(getContext(), "ITEM CLICKED AT " + position, Toast.LENGTH_SHORT).show());
+        return view;
     }
 }

@@ -66,8 +66,14 @@ public class PicutresFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_picutres, container, false);
 
         GridView gridView = view.findViewById(R.id.photo_grid);
-        gridView.setAdapter(new FrameAdapter(getContext(), 90)); // Sử dụng adapter mới
-        gridView.setOnItemClickListener((parent, view1, position, id) -> Toast.makeText(getContext(), "ITEM CLICKED AT " + position, Toast.LENGTH_SHORT).show());
+        gridView.setAdapter(new FrameAdapter(getContext(), 20)); // Sử dụng adapter mới
+        gridView.setOnItemClickListener((parent, view1, position, id) ->
+                Toast.makeText(getContext(), "ITEM CLICKED AT " + position, Toast.LENGTH_SHORT).show()
+        );
+        gridView.setOnItemLongClickListener((parent, view12, position, id) -> {
+            Toast.makeText(getContext(), "LONG CLICKED AT " + position, Toast.LENGTH_LONG).show();
+            return false;
+        });
         return view;
     }
 }

@@ -2,23 +2,32 @@ package com.example.gallery.component;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.ImageView;
+import android.view.LayoutInflater;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-public class ImageFrame extends androidx.appcompat.widget.AppCompatImageButton {
+import com.example.gallery.R;
+
+public class ImageFrame extends FrameLayout {
 
     public ImageFrame(@NonNull Context context) {
         super(context);
+        applyStyle(context);
     }
 
     public ImageFrame(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        applyStyle(context);
     }
 
     public ImageFrame(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        applyStyle(context);
     }
 
+    private void applyStyle(Context context) {
+        LayoutInflater.from(context).inflate(R.layout.item_frame, this, true);
+    }
 }

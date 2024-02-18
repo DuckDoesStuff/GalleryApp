@@ -45,13 +45,10 @@ public class FrameAdapter extends BaseAdapter {
         ImageFrame imageFrame;
         if (convertView == null) {
             imageFrame = new ImageFrame(mContext);
-            imageFrame.setLayoutParams(new GridView.LayoutParams(200, 200)); // adjust size as needed
-            imageFrame.setScaleType(ImageView.ScaleType.CENTER_CROP);
+//            imageFrame.setLayoutParams(new GridView.LayoutParams(300, 300)); // adjust size as needed
         } else {
             imageFrame = (ImageFrame) convertView;
         }
-
-        imageFrame.setImageResource(R.drawable.place_holder_image);
         return imageFrame;
     }
 }

@@ -4,20 +4,18 @@
     <item
         android:id="@+id/pictures"
         android:icon="@drawable/pictures"
-        android:title="Pictures" />
+        android:title="Pictures"
+        android:iconTint="#ffffff"/>
     <item
         android:id="@+id/albums"
-
         android:icon="@drawable/albums"
         android:title="Albums" />
     <item
         android:id="@+id/home"
-
         android:icon="@drawable/home"
         android:title="Home" />
     <item
         android:id="@+id/profile"
-
         android:icon="@drawable/profile"
         android:title="Profile" />
 </menu>

@@ -9,19 +9,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.GridView;
-import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.example.gallery.component.ImageFrameAdapter;
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link PicutresFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PicutresFragment extends Fragment implements FrameAdapter.OnItemClickListener {
+public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -69,19 +68,19 @@ public class PicutresFragment extends Fragment implements FrameAdapter.OnItemCli
         View view = inflater.inflate(R.layout.fragment_picutres, container, false);
 
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        int imgSize = screenWidth / 2;
-        int spanCount = screenWidth / imgSize;
+        int spanCount = 3;
+        int imgSize = screenWidth / spanCount;
 
         RecyclerView recyclerView = view.findViewById(R.id.photo_grid);
-        FrameAdapter frameAdapter = new FrameAdapter(getContext(), 20, imgSize, this);
+        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(getContext(), 20, imgSize, this);
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
-        recyclerView.setAdapter(frameAdapter);
+        recyclerView.setAdapter(imageFrameAdapter);
         return view;
     }
 
     @Override
     public void onItemClick(int position) {
-        Toast.makeText(getContext(), "Image clicked at" + position, Toast.LENGTH_SHORT).show();
+        Snackbar.make(requireContext(), requireView(), "Image clicked at " + position, Snackbar.LENGTH_SHORT).show();
     }
 }

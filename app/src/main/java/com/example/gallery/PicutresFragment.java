@@ -13,12 +13,15 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link PicutresFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PicutresFragment extends Fragment {
+public class PicutresFragment extends Fragment implements FrameAdapter.OnItemClickListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -65,15 +68,20 @@ public class PicutresFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_picutres, container, false);
 
-        GridView gridView = view.findViewById(R.id.photo_grid);
-        gridView.setAdapter(new FrameAdapter(getContext(), 20)); // Sử dụng adapter mới
-        gridView.setOnItemClickListener((parent, view1, position, id) ->
-                Toast.makeText(getContext(), "ITEM CLICKED AT " + position, Toast.LENGTH_SHORT).show()
-        );
-        gridView.setOnItemLongClickListener((parent, view12, position, id) -> {
-            Toast.makeText(getContext(), "LONG CLICKED AT " + position, Toast.LENGTH_LONG).show();
-            return false;
-        });
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        int imgSize = screenWidth / 2;
+        int spanCount = screenWidth / imgSize;
+
+        RecyclerView recyclerView = view.findViewById(R.id.photo_grid);
+        FrameAdapter frameAdapter = new FrameAdapter(getContext(), 20, imgSize, this);
+
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
+        recyclerView.setAdapter(frameAdapter);
         return view;
+    }
+
+    @Override
+    public void onItemClick(int position) {
+        Toast.makeText(getContext(), "Image clicked at" + position, Toast.LENGTH_SHORT).show();
     }
 }

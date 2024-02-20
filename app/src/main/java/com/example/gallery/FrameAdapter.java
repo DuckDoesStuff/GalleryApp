@@ -1,54 +1,73 @@
 package com.example.gallery;
 
 import android.content.Context;
+import android.media.Image;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.GridView;
+import android.widget.AdapterView;
 import android.widget.ImageView;
-
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.gallery.R;
-import com.example.gallery.component.ImageFrame;
+import java.util.List;
 
-public class FrameAdapter extends BaseAdapter {
+public class FrameAdapter extends RecyclerView.Adapter<FrameAdapter.FrameViewHolder> {
+    private Context context;
+    private int imgCount;
+    private int imgSize;
 
-    private Context mContext;
-    private int mItemCount;
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+    private OnItemClickListener onClickCallBack;
+
+    public FrameAdapter(Context context, int imgCount, int imgSize, OnItemClickListener onClickCallback) {
+        this.context = context;
+        this.imgCount = imgCount;
+        this.imgSize = imgSize;
+        this.onClickCallBack = onClickCallback;
+    }
 
 
-    public FrameAdapter(Context context, int num) {
-        mContext = context;
-        mItemCount = num;
+    @NonNull
+    @Override
+    public FrameAdapter.FrameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_frame, parent, false);
+
+        return new FrameViewHolder(view, onClickCallBack);
     }
 
     @Override
-    public int getCount() {
-        return mItemCount;
+    public void onBindViewHolder(@NonNull FrameAdapter.FrameViewHolder holder, int position) {
+        holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
     }
 
     @Override
-    public Object getItem(int position) {
-        return null;
+    public int getItemCount() {
+        return imgCount;
     }
 
-    @Override
-    public long getItemId(int position) {
-        return 0;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ImageFrame imageFrame;
-        if (convertView == null) {
-            imageFrame = new ImageFrame(mContext);
-            imageFrame.setLayoutParams(new GridView.LayoutParams(200, 200)); // adjust size as needed
-        } else {
-            imageFrame = (ImageFrame) convertView;
+    static class FrameViewHolder extends RecyclerView.ViewHolder {
+        ImageView imageView;
+        public FrameViewHolder(View itemView, OnItemClickListener listener) {
+            super(itemView);
+            imageView = itemView.findViewById(R.id.frame);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(listener != null) {
+                        int pos = getAdapterPosition();
+                        if(pos != RecyclerView.NO_POSITION) {
+                            listener.onItemClick(pos);
+                        }
+                    }
+                    Toast.makeText(imageView.getContext(), "Image clicked", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
-        return imageFrame;
     }
 }

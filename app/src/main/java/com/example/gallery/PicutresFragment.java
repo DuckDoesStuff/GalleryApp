@@ -1,17 +1,24 @@
 package com.example.gallery;
 
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import android.Manifest;
 
 import com.example.gallery.component.ImageFrameAdapter;
 import com.google.android.material.snackbar.Snackbar;
@@ -33,7 +40,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     // TODO: Rename and change types of parameters
 //    private String mParam1;
 //    private String mParam2;
-
+    private ArrayList<String> images;
     public PicutresFragment() {
         // Required empty public constructor
     }
@@ -63,7 +70,62 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 //            mParam2 = getArguments().getString(ARG_PARAM2);
 //        }
 
-        ArrayList<String> images = new ArrayList<>();
+        ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+            if(isGranted) {
+                loadImages();
+            }
+        });
+
+        if (ContextCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED) {
+            // You can use the API that requires the permission.
+            loadImages();
+        } else if (ActivityCompat.shouldShowRequestPermissionRationale(
+                requireActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            // In an educational UI, explain to the user why your app requires this
+            // permission for a specific feature to behave as expected, and what
+            // features are disabled if it's declined. In this UI, include a
+            // "cancel" or "no thanks" button that lets the user continue
+            // using your app without granting the permission.
+        } else {
+            // You can directly ask for the permission.
+            // The registered ActivityResultCallback gets the result of this request.
+            requestPermissionLauncher.launch(
+                    Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_picutres, container, false);
+
+        int spanCount = 3; // Change this to change the number of columns
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        int imgSize = screenWidth / spanCount;
+
+        RecyclerView recyclerView = view.findViewById(R.id.photo_grid);
+        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, this);
+
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
+        recyclerView.setAdapter(imageFrameAdapter);
+
+        return view;
+    }
+
+    @Override
+    public void onItemClick(int position) {
+        Snackbar.make(requireContext(), requireView(), "Image clicked at " + position, Snackbar.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onItemLongClick(int position) {
+        Snackbar.make(requireContext(), requireView(), "Image long clicked at " + position, Snackbar.LENGTH_SHORT).show();
+    }
+
+    public void loadImages() {
+        images = new ArrayList<>();
 
         // Choose which column to query
         String[] projection = new String[] {
@@ -74,11 +136,11 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         Cursor cursor = requireContext().
                 getContentResolver().
                 query(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    projection,
-                    null,
-                    null,
-                    MediaStore.Images.Media.DATE_ADDED + " DESC");
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        projection,
+                        null,
+                        null,
+                        MediaStore.Images.Media.DATE_ADDED + " DESC");
 
         if (cursor != null) {
             try {
@@ -94,32 +156,5 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         for(String path : images) {
             Log.d("Media", path);
         }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_picutres, container, false);
-
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        int spanCount = 3;
-        int imgSize = screenWidth / spanCount;
-
-        RecyclerView recyclerView = view.findViewById(R.id.photo_grid);
-        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(getContext(), 20, imgSize, this);
-
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
-        recyclerView.setAdapter(imageFrameAdapter);
-        return view;
-    }
-
-    @Override
-    public void onItemClick(int position) {
-        Snackbar.make(requireContext(), requireView(), "Image clicked at " + position, Snackbar.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onItemLongClick(int position) {
-        Snackbar.make(requireContext(), requireView(), "Image long clicked at " + position, Snackbar.LENGTH_SHORT).show();
     }
 }

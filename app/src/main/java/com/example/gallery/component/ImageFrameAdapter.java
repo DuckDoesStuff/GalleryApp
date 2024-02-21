@@ -1,21 +1,29 @@
 package com.example.gallery.component;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import android.Manifest;
 import com.example.gallery.R;
+
+import java.util.ArrayList;
 
 public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.FrameViewHolder> {
     private final Context context;
-    private final int imgCount;
     private final int imgSize;
 
     public interface ImageFrameListener {
@@ -23,12 +31,19 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         void onItemLongClick(int position);
     }
     private final ImageFrameListener onClickCallBack;
+    private final ArrayList<String> images;
 
-    public ImageFrameAdapter(Context context, int imgCount, int imgSize, ImageFrameListener onClickCallback) {
+    public ImageFrameAdapter(Context context, int imgSize, ArrayList<String> images, ImageFrameListener onClickCallback) {
         this.context = context;
-        this.imgCount = imgCount;
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
+
+        if (images == null || images.isEmpty()) {
+            this.images = new ArrayList<>();
+            Toast.makeText(context, "No images", Toast.LENGTH_SHORT).show();
+        }else {
+            this.images = images;
+        }
     }
 
 
@@ -43,20 +58,21 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     @Override
     public void onBindViewHolder(@NonNull ImageFrameAdapter.FrameViewHolder holder, int position) {
         holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
+        holder.bind(images.get(position));
     }
 
     @Override
     public int getItemCount() {
-        return imgCount;
+        return images.size();
     }
 
     static class FrameViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
+        String filePath;
         public FrameViewHolder(View itemView, ImageFrameListener listener) {
             super(itemView);
             imageView = itemView.findViewById(R.id.frame);
-
-            Glide.with(itemView).load(R.drawable.colorful).centerCrop().into(imageView);
+            Glide.with(itemView).load(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
             itemView.setOnClickListener(v -> {
                 if(listener != null) {
                     int pos = getAdapterPosition();
@@ -75,6 +91,11 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                 }
                 return true;
             });
+        }
+
+        public void bind(String filePath) {
+            this.filePath = filePath;
+            Glide.with(itemView).load(filePath).placeholder(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
         }
     }
 }

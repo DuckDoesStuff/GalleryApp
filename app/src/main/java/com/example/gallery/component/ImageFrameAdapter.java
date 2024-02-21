@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.gallery.R;
 
 public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.FrameViewHolder> {
@@ -19,6 +20,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
     public interface ImageFrameListener {
         void onItemClick(int position);
+        void onItemLongClick(int position);
     }
     private final ImageFrameListener onClickCallBack;
 
@@ -53,6 +55,8 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         public FrameViewHolder(View itemView, ImageFrameListener listener) {
             super(itemView);
             imageView = itemView.findViewById(R.id.frame);
+
+            Glide.with(itemView).load(R.drawable.colorful).centerCrop().into(imageView);
             itemView.setOnClickListener(v -> {
                 if(listener != null) {
                     int pos = getAdapterPosition();
@@ -60,6 +64,16 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                         listener.onItemClick(pos);
                     }
                 }
+            });
+
+            itemView.setOnLongClickListener(v -> {
+                if(listener != null) {
+                    int pos = getAdapterPosition();
+                    if(pos != RecyclerView.NO_POSITION) {
+                        listener.onItemLongClick(pos);
+                    }
+                }
+                return true;
             });
         }
     }

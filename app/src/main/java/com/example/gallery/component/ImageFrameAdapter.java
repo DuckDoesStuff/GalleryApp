@@ -1,10 +1,8 @@
 package com.example.gallery.component;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,11 +11,10 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import android.Manifest;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.gallery.R;
 
 import java.util.ArrayList;
@@ -40,6 +37,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
         if (images == null || images.isEmpty()) {
             this.images = new ArrayList<>();
+            // Remember to remove this
             Toast.makeText(context, "No images", Toast.LENGTH_SHORT).show();
         }else {
             this.images = images;
@@ -95,7 +93,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
         public void bind(String filePath) {
             this.filePath = filePath;
-            Glide.with(itemView).load(filePath).placeholder(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
+            Glide.with(itemView).load(filePath).transition(DrawableTransitionOptions.withCrossFade(200)).placeholder(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
         }
     }
 }

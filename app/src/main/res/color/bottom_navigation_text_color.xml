@@ -3,3 +3,4 @@
     <item android:color="@color/selected_bottom_navigation_text_color" android:state_checked="true"/>
     <item android:color="@color/unselected_bottom_navigation_text_color"/>
 </selector>
+

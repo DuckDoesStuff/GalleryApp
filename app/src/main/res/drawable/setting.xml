@@ -2,7 +2,8 @@
     android:width="35dp"
     android:height="35dp"
     android:viewportWidth="35"
-    android:viewportHeight="35">
+    android:viewportHeight="35"
+    android:tint="?attr/toolbarIconColor">
   <path
       android:pathData="M17.5,18.958C18.305,18.958 18.958,18.305 18.958,17.5C18.958,16.695 18.305,16.042 17.5,16.042C16.695,16.042 16.042,16.695 16.042,17.5C16.042,18.305 16.695,18.958 17.5,18.958Z"
       android:fillColor="#000000"/>

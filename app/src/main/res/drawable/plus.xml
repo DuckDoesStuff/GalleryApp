@@ -2,7 +2,8 @@
     android:width="40dp"
     android:height="40dp"
     android:viewportWidth="40"
-    android:viewportHeight="40">
+    android:viewportHeight="40"
+    android:tint="?attr/toolbarIconColor">
   <path
       android:pathData="M20,8.333V31.667M8.333,20H31.667"
       android:strokeLineJoin="round"

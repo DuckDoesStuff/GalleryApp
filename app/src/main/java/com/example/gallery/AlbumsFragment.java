@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.example.gallery.component.AlbumFrame;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link AlbumsFragment#newInstance} factory method to
@@ -63,7 +65,7 @@ public class AlbumsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_albums, container, false);
 
         GridView gridView = view.findViewById(R.id.album_grid);
-        gridView.setAdapter(new AlbumFrameAdapter(getContext(), 9)); // Sử dụng adapter mới
+        gridView.setAdapter(new AlbumFrame.AlbumFrameAdapter(getContext(), 9)); // Sử dụng adapter mới
         gridView.setOnItemClickListener((parent, view1, position, id) -> Toast.makeText(getContext(), "ITEM CLICKED AT " + position, Toast.LENGTH_SHORT).show());
         return view;
     }

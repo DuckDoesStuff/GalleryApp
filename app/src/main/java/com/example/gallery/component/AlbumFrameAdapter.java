@@ -1,4 +1,4 @@
-package com.example.gallery;
+package com.example.gallery.component;
 
 import android.content.Context;
 import android.view.LayoutInflater;

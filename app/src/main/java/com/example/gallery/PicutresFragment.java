@@ -70,7 +70,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 //        }
 
 
-
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PermissionUtils.requestPermission(
                     this,

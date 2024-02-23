@@ -42,5 +42,8 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.replace(R.id.frame_layout,fragment);
         fragmentTransaction.commit();
     }
+    public void setBottomNavigationViewVisibility(int visibility) {
+        binding.bottomNavigationView.setVisibility(visibility);
+    }
 
 }

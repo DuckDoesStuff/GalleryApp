@@ -7,37 +7,14 @@
 
     <ImageButton
         android:id="@+id/imageButton2"
-        android:layout_width="88dp"
-        android:layout_height="112dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintCircleRadius="10dp"
-        tools:layout_editor_absoluteX="5dp"
-        tools:layout_editor_absoluteY="6dp"
-        tools:srcCompat="@tools:sample/backgrounds/scenic" />
+        android:padding="10dp"
+        android:background="#FFFFFF"
 
-    <TextView
-        android:id="@+id/album_numOfImg"
-        android:layout_width="88dp"
-        android:layout_height="25dp"
-        android:background="#DBDBDB"
-        android:gravity="center"
-        android:text="30"
-        android:textSize="10sp"
-        android:textStyle="normal"
-        app:layout_constraintEnd_toEndOf="@+id/album_name"
-        app:layout_constraintStart_toStartOf="@+id/album_name"
-        tools:layout_editor_absoluteY="154dp" />
+        android:src="@drawable/albumss"/>
 
-    <TextView
-        android:id="@+id/album_name"
-        android:layout_width="88dp"
-        android:layout_height="36dp"
-        android:background="#DBDBDB"
-        android:gravity="center"
-        android:text="Album"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="@+id/imageButton2"
-        app:layout_constraintStart_toStartOf="@+id/imageButton2"
-        tools:layout_editor_absoluteY="118dp" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

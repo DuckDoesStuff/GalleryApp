@@ -5,7 +5,17 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -18,6 +28,12 @@ import com.example.gallery.utils.PermissionUtils;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import android.widget.AdapterView;
+import android.widget.GridView;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
+import android.widget.SearchView;
+import android.widget.Toast;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -65,6 +81,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 //            mParam1 = getArguments().getString(ARG_PARAM1);
 //            mParam2 = getArguments().getString(ARG_PARAM2);
 //        }
+
 
 
         PermissionUtils.requestPermission(

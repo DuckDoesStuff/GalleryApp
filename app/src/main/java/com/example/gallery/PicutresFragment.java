@@ -2,6 +2,7 @@ package com.example.gallery;
 
 import android.Manifest;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -84,27 +85,50 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
 
 
-        PermissionUtils.requestPermission(
-            this,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            new PermissionUtils.PermissionCallback() {
-                @Override
-                public void onGranted() {
-                    // Access granted, load images
-                    loadImages();
-                }
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PermissionUtils.requestPermission(
+                    this,
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    new PermissionUtils.PermissionCallback() {
+                        @Override
+                        public void onGranted() {
+                            // Access granted, load images
+                            loadImages();
+                        }
 
-                @Override
-                public void onDenied() {
-                    // Do nothing for now
-                }
+                        @Override
+                        public void onDenied() {
+                            // Do nothing for now
+                        }
 
-                @Override
-                public void showRationale() {
-                    // Do nothing for now
-                }
-            });
+                        @Override
+                        public void showRationale() {
+                            // Do nothing for now
+                        }
+                    });
+        }
+        else {
+            PermissionUtils.requestPermission(
+                    this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    new PermissionUtils.PermissionCallback() {
+                        @Override
+                        public void onGranted() {
+                            // Access granted, load images
+                            loadImages();
+                        }
 
+                        @Override
+                        public void onDenied() {
+                            // Do nothing for now
+                        }
+
+                        @Override
+                        public void showRationale() {
+                            // Do nothing for now
+                        }
+                    });
+        }
     }
 
     @Override

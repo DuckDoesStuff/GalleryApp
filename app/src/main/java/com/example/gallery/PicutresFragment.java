@@ -6,19 +6,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -29,12 +21,6 @@ import com.example.gallery.utils.PermissionUtils;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
-import android.widget.AdapterView;
-import android.widget.GridView;
-import android.widget.ImageButton;
-import android.widget.PopupMenu;
-import android.widget.SearchView;
-import android.widget.Toast;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -144,6 +130,26 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
         recyclerView.setAdapter(imageFrameAdapter);
+        ImageButton dropdownButton = view.findViewById(R.id.settings);
+        dropdownButton.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(getContext(), v);
+            popupMenu.getMenuInflater().inflate(R.menu.setting_dropdown, popupMenu.getMenu());
+
+            popupMenu.setOnMenuItemClickListener(item -> {
+                // Handle menu item click
+                if(item.getItemId() == R.id.choice1) {
+                    return true;
+                }else if (item.getItemId() == R.id.choice2) {
+                    return true;
+                }else if (item.getItemId() == R.id.choice3) {
+                    return true;}
+
+                return true;
+
+            });
+
+            popupMenu.show();
+        });
 
         return view;
     }

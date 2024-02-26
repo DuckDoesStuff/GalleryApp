@@ -3,18 +3,24 @@ package com.example.gallery;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.component.ImageFrameAdapter;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -57,6 +63,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     private ArrayList<String> images;
 
+    BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
+    LinearLayout bottomSheet;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -82,6 +91,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
         recyclerView.setAdapter(imageFrameAdapter);
         ImageButton dropdownButton = view.findViewById(R.id.settings);
+
         dropdownButton.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(getContext(), v);
             popupMenu.getMenuInflater().inflate(R.menu.setting_dropdown, popupMenu.getMenu());
@@ -101,18 +111,43 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
             popupMenu.show();
         });
-
         return view;
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        bottomSheet = requireView().findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+
+        onHideBottomSheet();
+    }
+
+
+    @Override
     public void onItemClick(int position) {
-        Snackbar.make(requireContext(), requireView(), "Clicked: " + images.get(position), Snackbar.LENGTH_SHORT).show();
+        ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.VISIBLE);
+        onHideBottomSheet();
     }
 
     @Override
     public void onItemLongClick(int position) {
-        Snackbar.make(requireContext(), requireView(), "Long clicked: " + images.get(position) + position, Snackbar.LENGTH_SHORT).show();
+        ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.GONE);
+        onShowBottomSheet();
+    }
+
+    public void onHideBottomSheet() {
+        if(bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+            bottomSheetBehavior.setHideable(true);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }
+    }
+
+    public void onShowBottomSheet() {
+        if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
+            bottomSheetBehavior.setHideable(false);
+        }
+
     }
 
     public void loadImages() {

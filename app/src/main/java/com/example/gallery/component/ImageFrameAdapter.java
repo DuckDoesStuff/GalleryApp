@@ -3,9 +3,11 @@ package com.example.gallery.component;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -16,19 +18,34 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.gallery.R;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.FrameViewHolder> {
     private final Context context;
     private final int imgSize;
+    public boolean selectionModeEnabled = false;
 
     public interface ImageFrameListener {
-        void onItemClick(int position);
-        void onItemLongClick(int position);
+        default void onItemClick(int position) {}
+        default void onItemLongClick(int position) {}
     }
+
+    private class FrameModel {
+        private String filePath;
+        private boolean isSelected;
+
+        public FrameModel(String filePath) {
+            this.filePath = filePath;
+            isSelected = false;
+        }
+    }
+
+    private ArrayList<FrameModel> frameModels;
+
     private final ImageFrameListener onClickCallBack;
-    private final ArrayList<String> images;
 
     public ImageFrameAdapter(Context context, int imgSize, ArrayList<String> images, ImageFrameListener onClickCallback) {
         this.context = context;
@@ -36,12 +53,16 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         this.onClickCallBack = onClickCallback;
 
         if (images == null || images.isEmpty()) {
-            this.images = new ArrayList<>();
+            frameModels = new ArrayList<>();
             // Remember to remove this
             Toast.makeText(context, "No images", Toast.LENGTH_SHORT).show();
         }else {
-            this.images = images;
+            frameModels = new ArrayList<>();
+            for(String image:images) {
+                frameModels.add(new FrameModel(image));
+            }
         }
+
     }
 
 
@@ -64,44 +85,52 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     @Override
     public void onBindViewHolder(@NonNull ImageFrameAdapter.FrameViewHolder holder, int position) {
         holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
-        holder.bind(images.get(position));
+        holder.bind(frameModels.get(position));
+
+        holder.checkBox.setVisibility(selectionModeEnabled ? View.VISIBLE : View.GONE);
+        holder.itemView.setOnLongClickListener(v -> {
+            selectionModeEnabled = true;
+            frameModels.get(position).isSelected = true;
+            notifyDataSetChanged();
+            return true;
+        });
     }
 
     @Override
     public int getItemCount() {
-        return images.size();
+        return frameModels.size();
     }
 
     static class FrameViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
-        String filePath;
+        CheckBox checkBox;
+
+        FrameModel frameModel;
         public FrameViewHolder(View itemView, ImageFrameListener listener) {
             super(itemView);
             imageView = itemView.findViewById(R.id.frame);
+            checkBox = itemView.findViewById(R.id.select_box);
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                frameModel.isSelected = isChecked;
+            });
+
             Glide.with(itemView).load(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
             itemView.setOnClickListener(v -> {
-                if(listener != null) {
-                    int pos = getAdapterPosition();
-                    if(pos != RecyclerView.NO_POSITION) {
-                        listener.onItemClick(pos);
-                    }
-                }
+                frameModel.isSelected = !frameModel.isSelected;
+                checkBox.setChecked(frameModel.isSelected);
+                listener.onItemClick(getAdapterPosition());
             });
 
             itemView.setOnLongClickListener(v -> {
-                if(listener != null) {
-                    int pos = getAdapterPosition();
-                    if(pos != RecyclerView.NO_POSITION) {
-                        listener.onItemLongClick(pos);
-                    }
-                }
+                listener.onItemLongClick(getAdapterPosition());
                 return true;
             });
         }
 
-        public void bind(String filePath) {
-            this.filePath = filePath;
-            Glide.with(itemView).load(filePath).transition(DrawableTransitionOptions.withCrossFade(200)).placeholder(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
+        public void bind(FrameModel frameModel) {
+            this.frameModel = frameModel;
+            checkBox.setChecked(frameModel.isSelected);
+            Glide.with(itemView).load(frameModel.filePath).transition(DrawableTransitionOptions.withCrossFade(200)).placeholder(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
         }
     }
 }

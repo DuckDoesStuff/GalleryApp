@@ -73,6 +73,12 @@ public class MainActivity extends AppCompatActivity {
         currentFragment = fragment;
     }
     public void setBottomNavigationViewVisibility(int visibility) {
+//        TransitionSet transitionSet = new TransitionSet()
+//                .addTransition(new Fade())
+//                .addTransition(new ChangeBounds())
+//                .setDuration(300);
+//
+//        TransitionManager.beginDelayedTransition(binding.bottomNavigationView, transitionSet);
         binding.bottomNavigationView.setVisibility(visibility);
     }
 

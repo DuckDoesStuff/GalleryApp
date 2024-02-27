@@ -2,6 +2,7 @@ package com.example.gallery;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -120,34 +121,32 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         bottomSheet = requireView().findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
 
-        onHideBottomSheet();
+        bottomSheetBehavior.setDraggable(true);
+        bottomSheetBehavior.setHideable(true);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
     }
 
 
     @Override
     public void onItemClick(int position) {
-        ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.VISIBLE);
-        onHideBottomSheet();
+        if(bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+            bottomSheetBehavior.setHideable(true);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            new Handler().postDelayed(() -> {
+                ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.VISIBLE);
+            }, 100);
+        }
     }
 
     @Override
     public void onItemLongClick(int position) {
-        ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.GONE);
-        onShowBottomSheet();
-    }
-
-    public void onHideBottomSheet() {
-        if(bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
-            bottomSheetBehavior.setHideable(true);
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
+            ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.GONE);
+            new Handler().postDelayed(() -> {
+                bottomSheetBehavior.setHideable(false);
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }, 100);
         }
-    }
-
-    public void onShowBottomSheet() {
-        if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
-            bottomSheetBehavior.setHideable(false);
-        }
-
     }
 
     public void loadImages() {

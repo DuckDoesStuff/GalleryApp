@@ -4,12 +4,10 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -21,7 +19,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.component.ImageFrameAdapter;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -65,6 +62,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     private ArrayList<String> images;
 
+    private ArrayList<String> selectedImages;
+
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
 
@@ -76,6 +75,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 //            mParam1 = getArguments().getString(ARG_PARAM1);
 //            mParam2 = getArguments().getString(ARG_PARAM2);
 //        }
+        selectedImages = new ArrayList<>();
         loadImages();
     }
 
@@ -88,7 +88,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         int imgSize = screenWidth / spanCount;
 
         RecyclerView recyclerView = view.findViewById(R.id.photo_grid);
-        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, this);
+        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
         recyclerView.setAdapter(imageFrameAdapter);
@@ -101,6 +101,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             popupMenu.setOnMenuItemClickListener(item -> {
                 // Handle menu item click
                 if(item.getItemId() == R.id.choice1) {
+                    Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
                     return true;
                 }else if (item.getItemId() == R.id.choice2) {
                     return true;
@@ -130,24 +131,36 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     @Override
     public void onItemClick(int position) {
-        if(bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
-            bottomSheetBehavior.setHideable(true);
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-            new Handler().postDelayed(() -> {
-                ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.VISIBLE);
-            }, 100);
+        Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
+        if(selectedImages.isEmpty()) {
+            if(bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+                onHideBottomSheet();
+            }
         }
     }
 
     @Override
     public void onItemLongClick(int position) {
+        Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
         if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
-            ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.GONE);
-            new Handler().postDelayed(() -> {
-                bottomSheetBehavior.setHideable(false);
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            }, 100);
+            onShowBottomSheet();
         }
+    }
+
+    void onShowBottomSheet() {
+        ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.GONE);
+        new Handler().postDelayed(() -> {
+            bottomSheetBehavior.setHideable(false);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }, 100);
+    }
+
+    void onHideBottomSheet() {
+        bottomSheetBehavior.setHideable(true);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        new Handler().postDelayed(() -> {
+            ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.VISIBLE);
+        }, 100);
     }
 
     public void loadImages() {

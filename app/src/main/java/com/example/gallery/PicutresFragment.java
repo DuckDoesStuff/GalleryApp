@@ -132,6 +132,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     @Override
     public void onItemClick(int position) {
         Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
+        // Hide bottom sheet if not selecting any images
         if(selectedImages.isEmpty()) {
             if(bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
                 onHideBottomSheet();

@@ -92,11 +92,14 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             if(selectionModeEnabled) {
                 frameModel.isSelected = !frameModel.isSelected;
                 holder.checkBox.setChecked(frameModel.isSelected);
+
+
                 if(frameModel.isSelected)
                     selectedImages.add(frameModel.filePath);
                 else
                     selectedImages.remove(frameModel.filePath);
 
+                // Turn off selection mode if not selecting any images
                 if(selectedImages.isEmpty()) {
                     selectionModeEnabled = false;
                     notifyDataSetChanged();

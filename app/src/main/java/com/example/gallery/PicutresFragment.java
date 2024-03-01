@@ -92,6 +92,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
         recyclerView.setAdapter(imageFrameAdapter);
+
+
+
         ImageButton dropdownButton = view.findViewById(R.id.settings);
 
         dropdownButton.setOnClickListener(v -> {
@@ -113,6 +116,16 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             });
 
             popupMenu.show();
+        });
+
+        ImageButton searchButton = view.findViewById(R.id.search);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getActivity() != null && getActivity() instanceof MainActivity) {
+                    ((MainActivity) requireActivity()).replaceFragment(new SearchViewFragment());
+                }
+            }
         });
         return view;
     }

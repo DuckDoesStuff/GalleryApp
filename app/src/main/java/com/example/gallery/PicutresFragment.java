@@ -1,8 +1,6 @@
 package com.example.gallery;
 
-import android.Manifest;
 import android.database.Cursor;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -17,7 +15,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.component.ImageFrameAdapter;
-import com.example.gallery.utils.PermissionUtils;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -68,53 +65,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 //            mParam1 = getArguments().getString(ARG_PARAM1);
 //            mParam2 = getArguments().getString(ARG_PARAM2);
 //        }
-
-
-
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            PermissionUtils.requestPermission(
-                    this,
-                    Manifest.permission.READ_MEDIA_IMAGES,
-                    new PermissionUtils.PermissionCallback() {
-                        @Override
-                        public void onGranted() {
-                            // Access granted, load images
-                            loadImages();
-                        }
-
-                        @Override
-                        public void onDenied() {
-                            // Do nothing for now
-                        }
-
-                        @Override
-                        public void showRationale() {
-                            // Do nothing for now
-                        }
-                    });
-        }
-        else {
-            PermissionUtils.requestPermission(
-                    this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    new PermissionUtils.PermissionCallback() {
-                        @Override
-                        public void onGranted() {
-                            // Access granted, load images
-                            loadImages();
-                        }
-
-                        @Override
-                        public void onDenied() {
-                            // Do nothing for now
-                        }
-
-                        @Override
-                        public void showRationale() {
-                            // Do nothing for now
-                        }
-                    });
-        }
+        loadImages();
     }
 
     @Override
@@ -156,12 +107,12 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     @Override
     public void onItemClick(int position) {
-        Snackbar.make(requireContext(), requireView(), "Image clicked at " + position, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(requireContext(), requireView(), "Clicked: " + images.get(position), Snackbar.LENGTH_SHORT).show();
     }
 
     @Override
     public void onItemLongClick(int position) {
-        Snackbar.make(requireContext(), requireView(), "Image long clicked at " + position, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(requireContext(), requireView(), "Long clicked: " + images.get(position) + position, Snackbar.LENGTH_SHORT).show();
     }
 
     public void loadImages() {

@@ -1,5 +1,7 @@
 package com.example.gallery;
 
+import android.Manifest;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,10 +10,16 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.gallery.databinding.ActivityMainBinding;
+import com.example.gallery.utils.PermissionUtils;
 
 
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
+    Fragment currentFragment;
+
+
+    PermissionUtils.PermissionCallback permissionCallback = () -> replaceFragment(new PicutresFragment());
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -19,8 +27,23 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        replaceFragment(new PicutresFragment());
 
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PermissionUtils.requestMultipleActivityPermissions(
+                this,
+                new String[] {android.Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO},
+                permissionCallback,
+                PermissionUtils.READ_MEDIA_STORAGE
+            );
+        }
+        else {
+            PermissionUtils.requestActivityPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                permissionCallback,
+                PermissionUtils.READ_EXTERNAL_STORAGE
+            );
+        }
 
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -41,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout,fragment);
         fragmentTransaction.commit();
+        currentFragment = fragment;
     }
     public void setBottomNavigationViewVisibility(int visibility) {
         binding.bottomNavigationView.setVisibility(visibility);

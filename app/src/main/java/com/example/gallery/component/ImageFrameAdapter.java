@@ -48,9 +48,17 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     @NonNull
     @Override
     public ImageFrameAdapter.FrameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_frame, parent, false);
-
-        return new FrameViewHolder(view, onClickCallBack);
+        // Check if a recycled view holder is available
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_frame, parent, false);
+        FrameViewHolder holder;
+        if (itemView.getTag() != null) {
+            holder = (FrameViewHolder) itemView.getTag();
+        } else {
+            // Create a new view holder if none is available
+            holder = new FrameViewHolder(itemView, onClickCallBack);
+            itemView.setTag(holder);
+        }
+        return holder;
     }
 
     @Override

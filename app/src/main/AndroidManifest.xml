@@ -16,6 +16,8 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Gallery"
+        android:preserveLegacyExternalStorage="true"
+        android:requestLegacyExternalStorage="true"
         tools:targetApi="31">
         <meta-data
             android:name="com.google.android.actions"

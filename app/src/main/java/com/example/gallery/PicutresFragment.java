@@ -155,7 +155,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     @Override
     public void onItemLongClick(int position) {
-        Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
         if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
             onShowBottomSheet();
         }

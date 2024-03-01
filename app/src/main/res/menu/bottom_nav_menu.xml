@@ -11,11 +11,12 @@
         android:icon="@drawable/albums"
         android:title="Albums" />
     <item
-        android:id="@+id/home"
-        android:icon="@drawable/home"
-        android:title="Home" />
-    <item
         android:id="@+id/profile"
         android:icon="@drawable/profile"
         android:title="Profile" />
+    <item
+        android:id="@+id/home"
+        android:icon="@drawable/list"
+        android:title="Setting" />
+
 </menu>

@@ -1,23 +1,16 @@
 package com.example.gallery;
 
 import android.Manifest;
-import android.animation.LayoutTransition;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.transition.ChangeBounds;
-import androidx.transition.Fade;
-import androidx.transition.TransitionManager;
-import androidx.transition.TransitionSet;
 
 import com.example.gallery.databinding.ActivityMainBinding;
 import com.example.gallery.utils.PermissionUtils;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 
 public class MainActivity extends AppCompatActivity {

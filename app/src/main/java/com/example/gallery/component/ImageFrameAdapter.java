@@ -133,9 +133,6 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             super(itemView);
             imageView = itemView.findViewById(R.id.frame);
             checkBox = itemView.findViewById(R.id.select_box);
-            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                frameModel.isSelected = isChecked;
-            });
 
             Glide.with(itemView).load(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
         }

@@ -7,4 +7,6 @@
 
     <color name="icon_button_color_light">#000000</color>
     <color name="icon_button_color_night">#FFFFFF</color>
+
+    <color name="bottom_sheet_color">#575757</color>
 </resources>

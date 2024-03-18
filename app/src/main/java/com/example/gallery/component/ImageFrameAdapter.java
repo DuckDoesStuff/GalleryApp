@@ -2,6 +2,8 @@ package com.example.gallery.component;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -88,16 +90,28 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         holder.bind(frameModel);
 
         holder.checkBox.setVisibility(selectionModeEnabled ? View.VISIBLE : View.GONE);
+
         holder.itemView.setOnClickListener(v -> {
             if(selectionModeEnabled) {
                 frameModel.isSelected = !frameModel.isSelected;
                 holder.checkBox.setChecked(frameModel.isSelected);
 
 
+
                 if(frameModel.isSelected)
-                    selectedImages.add(frameModel.filePath);
-                else
-                    selectedImages.remove(frameModel.filePath);
+                {
+                    ColorMatrix colorMatrix = new ColorMatrix();
+                    colorMatrix.setScale(0.7f, 0.7f, 0.7f, 1.0f); // Scale down RGB values to reduce brightness
+
+                    // Create a ColorMatrixColorFilter with the brightness reduction ColorMatrix
+                    ColorMatrixColorFilter colorFilter = new ColorMatrixColorFilter(colorMatrix);
+
+                    // Apply the color filter to the ImageView to reduce brightness
+                    holder.imageView.setColorFilter(colorFilter);
+                    selectedImages.add(frameModel.filePath);}
+                else{
+                    holder.imageView.clearColorFilter();
+                    selectedImages.remove(frameModel.filePath);}
 
                 // Turn off selection mode if not selecting any images
                 if(selectedImages.isEmpty()) {
@@ -140,7 +154,25 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         public void bind(FrameModel frameModel) {
             this.frameModel = frameModel;
             checkBox.setChecked(frameModel.isSelected);
-            Glide.with(itemView).load(frameModel.filePath).transition(DrawableTransitionOptions.withCrossFade(200)).placeholder(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
+            if (frameModel.isSelected) {
+                // Tạo một ColorMatrix để giảm độ sáng của hình ảnh
+                ColorMatrix colorMatrix = new ColorMatrix();
+                colorMatrix.setScale(0.7f, 0.7f, 0.7f, 1.0f); // Scale down RGB values to reduce brightness
+
+                // Create a ColorMatrixColorFilter with the brightness reduction ColorMatrix
+                ColorMatrixColorFilter colorFilter = new ColorMatrixColorFilter(colorMatrix);
+
+                // Apply the color filter to the ImageView to reduce brightness
+                imageView.setColorFilter(colorFilter);
+            } else {
+                // Nếu không được chọn, hiển thị hình ảnh bình thường bằng cách xóa bỏ color filter
+                imageView.clearColorFilter();
+            }
+            Glide.with(itemView).load(frameModel.filePath)
+                    .transition(DrawableTransitionOptions
+                            .withCrossFade(200))
+                    .placeholder(new ColorDrawable(Color.GRAY))
+                    .centerCrop().into(imageView);
         }
     }
 }

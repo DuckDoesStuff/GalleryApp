@@ -1,5 +1,6 @@
-package com.example.gallery;
+package com.example.gallery.fragments;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,12 +13,16 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.gallery.R;
+import com.example.gallery.activities.ImageActivity;
+import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
@@ -67,6 +72,10 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
 
+    boolean viewMode;
+
+    MainActivity mainActivity;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,12 +85,14 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 //            mParam2 = getArguments().getString(ARG_PARAM2);
 //        }
         selectedImages = new ArrayList<>();
+        viewMode = true;
         loadImages();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_picutres, container, false);
+        mainActivity = ((MainActivity) requireActivity());
 
         int spanCount = 3; // Change this to change the number of columns
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
@@ -92,8 +103,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
         recyclerView.setAdapter(imageFrameAdapter);
-
-
 
         ImageButton dropdownButton = view.findViewById(R.id.settings);
 
@@ -107,9 +116,11 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                     Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
                     return true;
                 }else if (item.getItemId() == R.id.choice2) {
+                    mainActivity.replaceFragment(new ViewPictureFragment());
                     return true;
                 }else if (item.getItemId() == R.id.choice3) {
-                    return true;}
+                    return true;
+                }
 
                 return true;
 
@@ -123,7 +134,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             @Override
             public void onClick(View v) {
                 if (getActivity() != null && getActivity() instanceof MainActivity) {
-                    ((MainActivity) requireActivity()).replaceFragment(new SearchViewFragment());
+                    mainActivity.replaceFragment(new SearchViewFragment());
                 }
             }
         });
@@ -141,28 +152,34 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
     }
 
-
     @Override
     public void onItemClick(int position) {
-        Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
+        if (viewMode) {
+            Intent intent = new Intent(getContext(), ImageActivity.class);
+            Bundle data = new Bundle();
+            data.putStringArrayList("images", images);
+            data.putInt("initial", position);
+            intent.putExtras(data);
+            mainActivity.startActivity(intent);
+        }
+
         // Hide bottom sheet if not selecting any images
-        if(selectedImages.isEmpty()) {
-            if(bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
-                onHideBottomSheet();
-            }
+        if(selectedImages.isEmpty() && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+            onHideBottomSheet();
+            viewMode = true;
         }
     }
 
     @Override
     public void onItemLongClick(int position) {
-        Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
         if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
             onShowBottomSheet();
+            viewMode = false;
         }
     }
 
     void onShowBottomSheet() {
-        ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.GONE);
+        mainActivity.setBottomNavigationViewVisibility(View.GONE);
         new Handler().postDelayed(() -> {
             bottomSheetBehavior.setHideable(false);
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
@@ -173,7 +190,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         new Handler().postDelayed(() -> {
-            ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.VISIBLE);
+            mainActivity.setBottomNavigationViewVisibility(View.VISIBLE);
         }, 100);
     }
 
@@ -204,10 +221,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             } finally {
                 cursor.close();
             }
-        }
-
-        for(String path : images) {
-            Log.d("Media", path);
         }
     }
 }

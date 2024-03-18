@@ -1,4 +1,4 @@
-package com.example.gallery;
+package com.example.gallery.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -7,12 +7,15 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
 
+import com.example.gallery.R;
+import com.example.gallery.activities.MainActivity;
+
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link ViewPictureFragment#newInstance} factory method to
+ * Use the {@link SearchViewFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ViewPictureFragment extends Fragment {
+public class SearchViewFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -23,7 +26,7 @@ public class ViewPictureFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    public ViewPictureFragment() {
+    public SearchViewFragment() {
         // Required empty public constructor
     }
 
@@ -33,11 +36,11 @@ public class ViewPictureFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment ViewPictureFragment.
+     * @return A new instance of fragment SearchViewFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static ViewPictureFragment newInstance(String param1, String param2) {
-        ViewPictureFragment fragment = new ViewPictureFragment();
+    public static SearchViewFragment newInstance(String param1, String param2) {
+        SearchViewFragment fragment = new SearchViewFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -59,8 +62,6 @@ public class ViewPictureFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.GONE);
-
-        return inflater.inflate(R.layout.fragment_view_picture2, container, false);
-
+        return inflater.inflate(R.layout.fragment_search_view, container, false);
     }
 }

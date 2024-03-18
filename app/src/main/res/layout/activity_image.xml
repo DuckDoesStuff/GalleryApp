@@ -21,7 +21,7 @@
                 android:layout_height="match_parent"
                 android:src="@drawable/back"
                 android:background="@null"
-
+                android:id="@+id/back_button"
                />
             <FrameLayout
                 android:layout_width="0dp"
@@ -42,16 +42,11 @@
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
-    <FrameLayout
+    <androidx.viewpager2.widget.ViewPager2
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        >
-
-
-        <!-- Your content views go here -->
-
-    </FrameLayout>
+        android:id="@+id/view_pager"/>
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar3"

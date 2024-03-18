@@ -1,4 +1,4 @@
-package com.example.gallery;
+package com.example.gallery.utils;
 
 import com.bumptech.glide.module.AppGlideModule;
 

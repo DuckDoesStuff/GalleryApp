@@ -23,7 +23,7 @@ import java.util.ArrayList;
 public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.FrameViewHolder> {
     private final Context context;
     private final int imgSize;
-    public boolean selectionModeEnabled = false;
+    public boolean selectionModeEnabled;
 
     public interface ImageFrameListener {
         default void onItemClick(int position) {}

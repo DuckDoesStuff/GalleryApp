@@ -1,18 +1,23 @@
-package com.example.gallery;
+package com.example.gallery.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.GridView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import com.example.gallery.R;
+import com.example.gallery.component.AlbumFrame;
+
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link SearchViewFragment#newInstance} factory method to
+ * Use the {@link AlbumsFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class SearchViewFragment extends Fragment {
+public class AlbumsFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -23,7 +28,7 @@ public class SearchViewFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    public SearchViewFragment() {
+    public AlbumsFragment() {
         // Required empty public constructor
     }
 
@@ -33,11 +38,11 @@ public class SearchViewFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment SearchViewFragment.
+     * @return A new instance of fragment AlbumsFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static SearchViewFragment newInstance(String param1, String param2) {
-        SearchViewFragment fragment = new SearchViewFragment();
+    public static AlbumsFragment newInstance(String param1, String param2) {
+        AlbumsFragment fragment = new AlbumsFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -57,8 +62,11 @@ public class SearchViewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        ((MainActivity) requireActivity()).setBottomNavigationViewVisibility(View.GONE);
-        return inflater.inflate(R.layout.fragment_search_view, container, false);
+        View view = inflater.inflate(R.layout.fragment_albums, container, false);
+
+        GridView gridView = view.findViewById(R.id.album_grid);
+        gridView.setAdapter(new AlbumFrame.AlbumFrameAdapter(getContext(), 9)); // Sử dụng adapter mới
+        gridView.setOnItemClickListener((parent, view1, position, id) -> Toast.makeText(getContext(), "ITEM CLICKED AT " + position, Toast.LENGTH_SHORT).show());
+        return view;
     }
 }

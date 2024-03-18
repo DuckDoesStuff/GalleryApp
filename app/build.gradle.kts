@@ -38,6 +38,8 @@ dependencies {
 
     // For loading images
     implementation("com.github.bumptech.glide:glide:4.14.2")
+    implementation("androidx.navigation:navigation-fragment:2.7.6")
+    implementation("androidx.navigation:navigation-ui:2.7.6")
     // Skip this if you don't want to use integration libraries or configure Glide.
     annotationProcessor("com.github.bumptech.glide:compiler:4.14.2")
 

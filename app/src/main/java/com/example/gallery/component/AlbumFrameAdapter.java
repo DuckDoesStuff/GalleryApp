@@ -3,27 +3,32 @@ package com.example.gallery.component;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 
+import java.util.ArrayList;
+
 public class AlbumFrameAdapter extends BaseAdapter {
-
-    private Context mContext;
-    private int mItemCount;
-
-
-    public AlbumFrameAdapter(Context context, int num) {
-        mContext = context;
-        mItemCount = num;
+    private class AlbumModel {
+        String albumName;
+        int numOfImg;
+        String thumbnail;
+        public AlbumModel (String name, int n, String thumb) {
+            this.albumName = name;
+            this.numOfImg = n;
+            this.thumbnail = thumb;
+        }
     }
+    private ArrayList<AlbumModel> albums;
 
     @Override
     public int getCount() {
-        return mItemCount;
+        return albums.size();
     }
 
     @Override
-    public Object getItem(int position) {
-        return null;
+    public AlbumModel getItem(int position) {
+        return albums.get(position);
     }
 
     @Override
@@ -33,13 +38,11 @@ public class AlbumFrameAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        AlbumFrame albumFrame;
-        if (convertView == null) {
-            albumFrame = new AlbumFrame(mContext);
-//            albumFrame.setLayoutParams(new GridView.LayoutParams(300, 300)); // adjust size as needed
-        } else {
-            albumFrame = (AlbumFrame) convertView;
-        }
-        return albumFrame;
+        return null;
+    }
+
+
+    public AlbumFrameAdapter (ArrayList<AlbumModel> albums) {
+        this.albums = albums;
     }
 }

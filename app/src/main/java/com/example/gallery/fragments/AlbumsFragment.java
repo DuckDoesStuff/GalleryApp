@@ -7,10 +7,8 @@ import android.view.ViewGroup;
 import android.widget.GridView;
 
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.Fragment;
 
 import com.example.gallery.R;
-import com.example.gallery.component.AlbumFrame;
 
 public class AlbumsFragment extends Fragment {
     public AlbumsFragment() {
@@ -27,7 +25,6 @@ public class AlbumsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_albums, container, false);
 
-        GridView gridView = view.findViewById(R.id.album_grid);
         return view;
     }
 }

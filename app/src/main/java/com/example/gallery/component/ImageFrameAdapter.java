@@ -72,8 +72,8 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     @Override
     public ImageFrameAdapter.FrameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Check if a recycled view holder is available
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_frame, parent, false);
         FrameViewHolder holder;
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_frame, parent, false);
         if (itemView.getTag() != null) {
             holder = (FrameViewHolder) itemView.getTag();
         } else {
@@ -96,7 +96,6 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             if(selectionModeEnabled) {
                 frameModel.isSelected = !frameModel.isSelected;
                 holder.checkBox.setChecked(frameModel.isSelected);
-
 
 
                 if(frameModel.isSelected)

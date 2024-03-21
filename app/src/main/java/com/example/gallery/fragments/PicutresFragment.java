@@ -56,6 +56,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         super.onCreate(savedInstanceState);
         selectedImages = new ArrayList<>();
         viewMode = true;
+        loadImages();
     }
 
     @Override
@@ -68,8 +69,14 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         int imgSize = screenWidth / spanCount;
 
         recyclerView = view.findViewById(R.id.photo_grid);
-        imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
-        loadImages();
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setItemViewCacheSize(10);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
+
+
+        if(imageFrameAdapter == null)
+            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
         recyclerView.setAdapter(imageFrameAdapter);
@@ -194,8 +201,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                         cursor.close();
                     }
                 }
-                imageFrameAdapter.initFrameModels(images);
-                imageFrameAdapter.notifyDataSetChanged();
+                if(imageFrameAdapter != null) {
+                    imageFrameAdapter.initFrameModels(images);
+                }
             }
         });
         threadLoadImage.start();

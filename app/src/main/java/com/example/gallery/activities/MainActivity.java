@@ -23,6 +23,11 @@ public class MainActivity extends AppCompatActivity {
     Fragment currentFragment;
     PermissionUtils.PermissionCallback permissionCallback = () -> replaceFragment(new PicutresFragment());
 
+    PicutresFragment picutresFragment;
+    HomeFragment homeFragment;
+    AlbumsFragment albumsFragment;
+    ProfileFragment profileFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,13 +55,25 @@ public class MainActivity extends AppCompatActivity {
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if(itemId == R.id.home) {
-                replaceFragment(new HomeFragment());
+                if (homeFragment == null) {
+                    homeFragment = new HomeFragment();
+                }
+                replaceFragment(homeFragment);
             }else if (itemId == R.id.pictures) {
-                replaceFragment(new PicutresFragment());
+                if (picutresFragment == null) {
+                    picutresFragment = new PicutresFragment();
+                }
+                replaceFragment(picutresFragment);
             }else if (itemId == R.id.albums) {
-                replaceFragment(new AlbumsFragment());
+                if(albumsFragment == null) {
+                    albumsFragment = new AlbumsFragment();
+                }
+                replaceFragment(albumsFragment);
             }else if (itemId == R.id.profile) {
-                replaceFragment(new ProfileFragment());
+                if(profileFragment == null) {
+                    profileFragment = new ProfileFragment();
+                }
+                replaceFragment(profileFragment);
             }
             return true;
         });

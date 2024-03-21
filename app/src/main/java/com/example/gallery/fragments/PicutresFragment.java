@@ -34,57 +34,28 @@ import java.util.ArrayList;
  */
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-//    private static final String ARG_PARAM1 = "param1";
-//    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-//    private String mParam1;
-//    private String mParam2;
     public PicutresFragment() {
         // Required empty public constructor
     }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     * param1 Parameter 1.
-     * param2 Parameter 2.
-     * @return A new instance of fragment PicutresFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static PicutresFragment newInstance() {
         PicutresFragment fragment = new PicutresFragment();
-//        Bundle args = new Bundle();
-//        args.putString(ARG_PARAM1, param1);
-//        args.putString(ARG_PARAM2, param2);
-//        fragment.setArguments(args);
         return fragment;
     }
 
     private ArrayList<String> images;
-
     private ArrayList<String> selectedImages;
-
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
-
     boolean viewMode;
-
     MainActivity mainActivity;
-
+    ImageFrameAdapter imageFrameAdapter;
+    RecyclerView recyclerView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
-//        }
         selectedImages = new ArrayList<>();
         viewMode = true;
-        loadImages();
     }
 
     @Override
@@ -96,8 +67,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int imgSize = screenWidth / spanCount;
 
-        RecyclerView recyclerView = view.findViewById(R.id.photo_grid);
-        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
+        recyclerView = view.findViewById(R.id.photo_grid);
+        imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
+        loadImages();
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
         recyclerView.setAdapter(imageFrameAdapter);
@@ -114,7 +86,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                     Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
                     return true;
                 }else if (item.getItemId() == R.id.choice2) {
-                    mainActivity.replaceFragment(new ViewPictureFragment());
                     return true;
                 }else if (item.getItemId() == R.id.choice3) {
                     return true;
@@ -193,32 +164,40 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     }
 
     public void loadImages() {
-        images = new ArrayList<>();
+        Thread threadLoadImage = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                images = new ArrayList<>();
 
-        // Choose which column to query
-        String[] projection = new String[] {
-                MediaStore.Images.Media.DATE_ADDED,
-                MediaStore.Images.Media.DATA,
-        };
+                // Choose which column to query
+                String[] projection = new String[] {
+                        MediaStore.Images.Media.DATE_ADDED,
+                        MediaStore.Images.Media.DATA,
+                };
 
-        Cursor cursor = requireContext().
-                getContentResolver().
-                query(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        projection,
-                        null,
-                        null,
-                        MediaStore.Images.Media.DATE_ADDED + " DESC");
+                Cursor cursor = requireContext().
+                        getContentResolver().
+                        query(
+                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                projection,
+                                null,
+                                null,
+                                MediaStore.Images.Media.DATE_ADDED + " DESC");
 
-        if (cursor != null) {
-            try {
-                while(cursor.moveToNext()) {
-                    String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-                    images.add(imagePath);
+                if (cursor != null) {
+                    try {
+                        while(cursor.moveToNext()) {
+                            String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                            images.add(imagePath);
+                        }
+                    } finally {
+                        cursor.close();
+                    }
                 }
-            } finally {
-                cursor.close();
+                imageFrameAdapter.initFrameModels(images);
+                imageFrameAdapter.notifyDataSetChanged();
             }
-        }
+        });
+        threadLoadImage.start();
     }
 }

@@ -52,10 +52,13 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
         this.selectedImages = selectedImages;
+        initFrameModels(images);
+    }
 
+    public void initFrameModels(ArrayList<String> images) {
         if (images == null || images.isEmpty()) {
             frameModels = new ArrayList<>();
-            // Remember to remove this
+            // TODO: Remember to remove this
             Toast.makeText(context, "No images", Toast.LENGTH_SHORT).show();
         }else {
             frameModels = new ArrayList<>();
@@ -63,9 +66,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                 frameModels.add(new FrameModel(image));
             }
         }
-
     }
-
 
     @NonNull
     @Override

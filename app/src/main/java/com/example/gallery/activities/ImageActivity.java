@@ -34,7 +34,7 @@ public class ImageActivity extends AppCompatActivity {
         imageButton.setOnClickListener(v -> finish());
 
         ViewPager2 viewPager2 = findViewById(R.id.view_pager);
-        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(images);
+        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(images, this);
         viewPager2.setAdapter(viewPagerAdapter);
         viewPager2.setOffscreenPageLimit(5);
         viewPager2.setCurrentItem(position, false);

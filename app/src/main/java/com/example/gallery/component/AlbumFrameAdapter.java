@@ -7,7 +7,7 @@ import android.widget.BaseAdapter;
 import java.util.ArrayList;
 
 public class AlbumFrameAdapter extends BaseAdapter {
-    private class AlbumModel {
+    public static class AlbumModel {
         String albumName;
         int numOfImg;
         String thumbnail;
@@ -38,7 +38,6 @@ public class AlbumFrameAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         return null;
     }
-
 
     public AlbumFrameAdapter (ArrayList<AlbumModel> albums) {
         this.albums = albums;

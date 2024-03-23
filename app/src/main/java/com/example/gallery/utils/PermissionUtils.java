@@ -14,27 +14,9 @@ import java.util.Map;
 
 public class PermissionUtils {
 
-    public interface PermissionCallback {
-        // Runs once the user press "Allow"
-        void onGranted();
-
-        // Runs once the user press "Deny", we then show some UI to "convince" the user
-        default void onDenied() {
-            Log.d("PermissionUtils", "Permission denied");
-        }
-
-        default void showRationale() {
-            Log.d("PermissionUtils", "Show rationale called");
-        }
-    }
-
     // Request code to use in requesting permissions in activity
     public static int READ_EXTERNAL_STORAGE = 1;
     public static int READ_MEDIA_STORAGE = 1;
-
-    /*
-    * Use these to check and request for permission, require PermissionCallback to be implemented
-    */
 
     public static void requestActivityPermission(AppCompatActivity activity, String permission, PermissionCallback callback, int requestCode) {
         if (ContextCompat.checkSelfPermission(activity, permission)
@@ -48,6 +30,10 @@ public class PermissionUtils {
                     requestCode);
         }
     }
+
+    /*
+     * Use these to check and request for permission, require PermissionCallback to be implemented
+     */
 
     public static void requestMultipleActivityPermissions(AppCompatActivity activity, String[] permissions, PermissionCallback callback, int requestCode) {
         // Check if all permissions are already granted
@@ -126,6 +112,20 @@ public class PermissionUtils {
         } else {
             // Request permissions
             launcher.launch(permissions);
+        }
+    }
+
+    public interface PermissionCallback {
+        // Runs once the user press "Allow"
+        void onGranted();
+
+        // Runs once the user press "Deny", we then show some UI to "convince" the user
+        default void onDenied() {
+            Log.d("PermissionUtils", "Permission denied");
+        }
+
+        default void showRationale() {
+            Log.d("PermissionUtils", "Show rationale called");
         }
     }
 }

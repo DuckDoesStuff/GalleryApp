@@ -3,7 +3,6 @@ package com.example.gallery.fragments;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,22 +33,22 @@ import java.util.ArrayList;
  */
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener {
 
-    public PicutresFragment() {
-        // Required empty public constructor
-    }
-    public static PicutresFragment newInstance() {
-        PicutresFragment fragment = new PicutresFragment();
-        return fragment;
-    }
-
-    private ArrayList<String> images;
-    private ArrayList<String> selectedImages;
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
     boolean viewMode;
     MainActivity mainActivity;
     ImageFrameAdapter imageFrameAdapter;
     RecyclerView recyclerView;
+    private ArrayList<String> images;
+    private ArrayList<String> selectedImages;
+    public PicutresFragment() {
+        // Required empty public constructor
+    }
+
+    public static PicutresFragment newInstance() {
+        PicutresFragment fragment = new PicutresFragment();
+        return fragment;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -75,7 +74,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
 
 
-        if(imageFrameAdapter == null)
+        if (imageFrameAdapter == null)
             imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
@@ -89,12 +88,12 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
             popupMenu.setOnMenuItemClickListener(item -> {
                 // Handle menu item click
-                if(item.getItemId() == R.id.choice1) {
+                if (item.getItemId() == R.id.choice1) {
                     Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
                     return true;
-                }else if (item.getItemId() == R.id.choice2) {
+                } else if (item.getItemId() == R.id.choice2) {
                     return true;
-                }else if (item.getItemId() == R.id.choice3) {
+                } else if (item.getItemId() == R.id.choice3) {
                     return true;
                 }
 
@@ -140,7 +139,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         }
 
         // Hide bottom sheet if not selecting any images
-        if(selectedImages.isEmpty() && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+        if (selectedImages.isEmpty() && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
             onHideBottomSheet();
             viewMode = true;
         }
@@ -156,18 +155,18 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     void onShowBottomSheet() {
         mainActivity.setBottomNavigationViewVisibility(View.GONE);
-        new Handler().postDelayed(() -> {
+        requireView().post(() -> {
             bottomSheetBehavior.setHideable(false);
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        }, 100);
+        });
     }
 
     void onHideBottomSheet() {
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        new Handler().postDelayed(() -> {
+        requireView().post(() -> {
             mainActivity.setBottomNavigationViewVisibility(View.VISIBLE);
-        }, 100);
+        });
     }
 
     public void loadImages() {
@@ -177,7 +176,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                 images = new ArrayList<>();
 
                 // Choose which column to query
-                String[] projection = new String[] {
+                String[] projection = new String[]{
                         MediaStore.Images.Media.DATE_ADDED,
                         MediaStore.Images.Media.DATA,
                 };
@@ -193,7 +192,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
                 if (cursor != null) {
                     try {
-                        while(cursor.moveToNext()) {
+                        while (cursor.moveToNext()) {
                             String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
                             images.add(imagePath);
                         }
@@ -201,7 +200,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                         cursor.close();
                     }
                 }
-                if(imageFrameAdapter != null) {
+                if (imageFrameAdapter != null) {
                     imageFrameAdapter.initFrameModels(images);
                 }
             }

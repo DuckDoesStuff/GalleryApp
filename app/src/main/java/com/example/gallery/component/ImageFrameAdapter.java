@@ -25,28 +25,10 @@ import java.util.ArrayList;
 public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.FrameViewHolder> {
     private final Context context;
     private final int imgSize;
+    private final ImageFrameListener onClickCallBack;
     public boolean selectionModeEnabled;
-
-    public interface ImageFrameListener {
-        default void onItemClick(int position) {}
-        default void onItemLongClick(int position) {}
-    }
-
-    private class FrameModel {
-        private String filePath;
-        private boolean isSelected;
-
-        public FrameModel(String filePath) {
-            this.filePath = filePath;
-            isSelected = false;
-        }
-    }
-
     private ArrayList<FrameModel> frameModels;
     private ArrayList<String> selectedImages;
-
-    private final ImageFrameListener onClickCallBack;
-
     public ImageFrameAdapter(Context context, int imgSize, ArrayList<String> images, ArrayList<String> selectedImages, ImageFrameListener onClickCallback) {
         this.context = context;
         this.imgSize = imgSize;
@@ -60,9 +42,9 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             frameModels = new ArrayList<>();
             // TODO: Remember to remove this
             Toast.makeText(context, "No images", Toast.LENGTH_SHORT).show();
-        }else {
+        } else {
             frameModels = new ArrayList<>();
-            for(String image:images) {
+            for (String image : images) {
                 frameModels.add(new FrameModel(image));
             }
         }
@@ -93,13 +75,12 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         holder.checkBox.setVisibility(selectionModeEnabled ? View.VISIBLE : View.GONE);
 
         holder.itemView.setOnClickListener(v -> {
-            if(selectionModeEnabled) {
+            if (selectionModeEnabled) {
                 frameModel.isSelected = !frameModel.isSelected;
                 holder.checkBox.setChecked(frameModel.isSelected);
 
 
-                if(frameModel.isSelected)
-                {
+                if (frameModel.isSelected) {
                     ColorMatrix colorMatrix = new ColorMatrix();
                     colorMatrix.setScale(0.7f, 0.7f, 0.7f, 1.0f); // Scale down RGB values to reduce brightness
 
@@ -108,13 +89,14 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
                     // Apply the color filter to the ImageView to reduce brightness
                     holder.imageView.setColorFilter(colorFilter);
-                    selectedImages.add(frameModel.filePath);}
-                else{
+                    selectedImages.add(frameModel.filePath);
+                } else {
                     holder.imageView.clearColorFilter();
-                    selectedImages.remove(frameModel.filePath);}
+                    selectedImages.remove(frameModel.filePath);
+                }
 
                 // Turn off selection mode if not selecting any images
-                if(selectedImages.isEmpty()) {
+                if (selectedImages.isEmpty()) {
                     selectionModeEnabled = false;
                     notifyDataSetChanged();
                 }
@@ -138,11 +120,20 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         return frameModels.size();
     }
 
+    public interface ImageFrameListener {
+        default void onItemClick(int position) {
+        }
+
+        default void onItemLongClick(int position) {
+        }
+    }
+
     static class FrameViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         CheckBox checkBox;
 
         FrameModel frameModel;
+
         public FrameViewHolder(View itemView, ImageFrameListener listener) {
             super(itemView);
             imageView = itemView.findViewById(R.id.frame);
@@ -173,6 +164,16 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                             .withCrossFade(200))
                     .placeholder(new ColorDrawable(Color.GRAY))
                     .centerCrop().into(imageView);
+        }
+    }
+
+    private class FrameModel {
+        private String filePath;
+        private boolean isSelected;
+
+        public FrameModel(String filePath) {
+            this.filePath = filePath;
+            isSelected = false;
         }
     }
 }

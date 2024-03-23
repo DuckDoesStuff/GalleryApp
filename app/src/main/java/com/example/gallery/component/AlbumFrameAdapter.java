@@ -7,17 +7,11 @@ import android.widget.BaseAdapter;
 import java.util.ArrayList;
 
 public class AlbumFrameAdapter extends BaseAdapter {
-    private class AlbumModel {
-        String albumName;
-        int numOfImg;
-        String thumbnail;
-        public AlbumModel (String name, int n, String thumb) {
-            this.albumName = name;
-            this.numOfImg = n;
-            this.thumbnail = thumb;
-        }
-    }
     private ArrayList<AlbumModel> albums;
+
+    public AlbumFrameAdapter(ArrayList<AlbumModel> albums) {
+        this.albums = albums;
+    }
 
     @Override
     public int getCount() {
@@ -39,8 +33,15 @@ public class AlbumFrameAdapter extends BaseAdapter {
         return null;
     }
 
+    private class AlbumModel {
+        String albumName;
+        int numOfImg;
+        String thumbnail;
 
-    public AlbumFrameAdapter (ArrayList<AlbumModel> albums) {
-        this.albums = albums;
+        public AlbumModel(String name, int n, String thumb) {
+            this.albumName = name;
+            this.numOfImg = n;
+            this.thumbnail = thumb;
+        }
     }
 }

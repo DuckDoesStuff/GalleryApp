@@ -26,11 +26,10 @@ public class ImageActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Bundle data = intent.getExtras();
         final int position;
-        if(data != null) {
+        if (data != null) {
             images = data.getStringArrayList("images");
             position = data.getInt("initial");
-        }
-        else {
+        } else {
             images = new ArrayList<>();
             position = -1;
         }

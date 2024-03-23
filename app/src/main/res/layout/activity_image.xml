@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
 
@@ -12,17 +12,19 @@
         android:layout_height="wrap_content"
         android:background="#000000"
         android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme" >
+        android:theme="?attr/actionBarTheme">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
             <ImageButton
+                android:id="@+id/back_button"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:src="@drawable/back"
                 android:background="@null"
-                android:id="@+id/back_button"
-               />
+                android:src="@drawable/back" />
+
             <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -33,10 +35,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
 
-                android:src="@drawable/setting"
-                app:tint="#FFFFFF"
                 android:background="@null"
-                />
+                android:src="@drawable/setting"
+                app:tint="#FFFFFF" />
 
 
         </LinearLayout>
@@ -56,47 +57,47 @@
         android:background="#000000"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
-        app:contentInsetStart="0dp"
-        app:contentInsetLeft="0dp">
+        app:contentInsetLeft="0dp"
+        app:contentInsetStart="0dp">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
+            android:layout_marginLeft="0dp"
             android:gravity="center_vertical"
-            android:layout_marginLeft="0dp">
+            android:orientation="horizontal">
 
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:src="@drawable/edit"
                 android:layout_weight="1"
                 android:background="@null"
-                />
+                android:src="@drawable/edit" />
 
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:src="@drawable/delete"
-                android:background="@null"
-
-                android:layout_weight="1" />
-
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:src="@drawable/share"
-                android:background="@null"
-
-
-                android:layout_weight="1" />
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:src="@drawable/favorite"
-                android:background="@null"
-
                 android:layout_weight="1"
-                />
+                android:background="@null"
+
+                android:src="@drawable/delete" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+
+
+                android:src="@drawable/share" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+
+                android:src="@drawable/favorite" />
 
         </LinearLayout>
 

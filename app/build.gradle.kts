@@ -42,6 +42,10 @@ dependencies {
     implementation("androidx.navigation:navigation-ui:2.7.6")
 
 
+    implementation("com.github.saket:telephoto:0.8.0")
+    implementation("me.saket.telephoto:zoomable-image-glide:0.8.0")
+
+
     // Skip this if you don't want to use integration libraries or configure Glide.
     annotationProcessor("com.github.bumptech.glide:compiler:4.14.2")
 

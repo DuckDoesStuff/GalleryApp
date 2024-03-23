@@ -20,6 +20,8 @@ import com.example.gallery.activities.ImageActivity;
 
 import java.util.ArrayList;
 
+//import me.saket.telephoto.zoomable.glide.ZoomableGlideImageKt;
+
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewPagerViewHolder> {
     static ImageActivity imageActivity;
@@ -42,7 +44,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
     @Override
     public void onBindViewHolder(@NonNull ViewPagerAdapter.ViewPagerViewHolder holder, int position) {
         String image = images.get(position);
-        Glide.with(holder.itemView).load(image).centerInside().into(holder.imageView);
+        //ZoomableGlideImageKt.glide(Glide.with(holder.itemView).load(image).centerInside().into(holder.imageView));
     }
 
     @Override

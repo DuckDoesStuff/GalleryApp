@@ -41,8 +41,8 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     implementation("androidx.navigation:navigation-ui:2.7.7")
 
-    implementation("io.github.panpf.zoomimage:zoomimage-view-glide:1.0.2")
-    implementation("io.github.panpf.zoomimage:zoomimage-compose-glide:1.0.2")
+//    implementation("io.github.panpf.zoomimage:zoomimage-view-glide:1.0.2")
+//    implementation("io.github.panpf.zoomimage:zoomimage-compose-glide:1.0.2")
 
 
     // Skip this if you don't want to use integration libraries or configure Glide.

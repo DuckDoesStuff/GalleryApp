@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
-import com.github.panpf.zoomimage.GlideZoomImageView;
 
 import java.util.ArrayList;
 
@@ -44,7 +44,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         String image = images.get(position);
 
         // Just trying to run this line cause the error, commenting it works just fine
-        GlideZoomImageView glideZoomImageView = new GlideZoomImageView(holder.imageView.getContext());
+//        GlideZoomImageView glideZoomImageView = new GlideZoomImageView(holder.imageView.getContext());
 
 
         Glide.with(holder.itemView).load(image).into(holder.imageView);
@@ -64,7 +64,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         float scaleFactor = 1.0f;
         boolean isScaling = false;
         PointF startPoint = new PointF();
-        GlideZoomImageView imageView;
+        ImageView imageView;
         ScaleGestureDetector scaleGestureDetector;
         GestureDetector gestureDetector;
 

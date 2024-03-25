@@ -9,7 +9,6 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,10 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
+import com.github.panpf.zoomimage.GlideZoomImageView;
 
 import java.util.ArrayList;
-
-//import me.saket.telephoto.zoomable.glide.ZoomableGlideImageKt;
 
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewPagerViewHolder> {
@@ -44,7 +42,12 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
     @Override
     public void onBindViewHolder(@NonNull ViewPagerAdapter.ViewPagerViewHolder holder, int position) {
         String image = images.get(position);
-        //ZoomableGlideImageKt.glide(Glide.with(holder.itemView).load(image).centerInside().into(holder.imageView));
+
+        // Just trying to run this line cause the error, commenting it works just fine
+        GlideZoomImageView glideZoomImageView = new GlideZoomImageView(holder.imageView.getContext());
+
+
+        Glide.with(holder.itemView).load(image).into(holder.imageView);
     }
 
     @Override
@@ -61,7 +64,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         float scaleFactor = 1.0f;
         boolean isScaling = false;
         PointF startPoint = new PointF();
-        ImageView imageView;
+        GlideZoomImageView imageView;
         ScaleGestureDetector scaleGestureDetector;
         GestureDetector gestureDetector;
 
@@ -81,11 +84,9 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
                 if (!isScaling && imageView.getScaleX() != 1.0f && imageView.getScaleY() != 1.0f) {
                     switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN:
-                            Log.d("Log", "Coords: " + event.getX() + " " + event.getY());
                             startPoint.set(event.getX(), event.getY());
                             break;
                         case MotionEvent.ACTION_MOVE:
-                            Log.d("Log", "Moving coords: " + event.getX() + " " + event.getY());
                             float dx = event.getX() - startPoint.x;
                             float dy = event.getY() - startPoint.y;
                             updatePan(dx, dy);
@@ -123,14 +124,20 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         }
 
         private void updatePan(float dx, float dy) {
+            Log.d("Pan", "Size: " + imageView.getWidth() + " " + imageView.getHeight());
             float currentTransX = imageView.getTranslationX();
             float currentTransY = imageView.getTranslationY();
-            float newTransX = Math.min(Math.abs(currentTransX + dx), imageView.getWidth());
-            float newTransY = Math.min(Math.abs(currentTransY + dy), imageView.getHeight());
+
+            Log.d("Pan", "Before: " + imageView.getX() + " " + imageView.getY());
 
 
-            imageView.setTranslationX(newTransX);
-            imageView.setTranslationY(newTransY);
+            float newTransX = Math.min(Math.abs(currentTransX + dx), imageView.getWidth()) * Math.signum(currentTransX + dx);
+            float newTransY = Math.min(Math.abs(currentTransY + dy), imageView.getHeight()) * Math.signum(currentTransY + dy);
+
+
+            imageView.setTranslationX(currentTransX + dx);
+            imageView.setTranslationY(currentTransY + dy);
+            Log.d("Pan", "After: " + imageView.getX() + " " + imageView.getY());
         }
 
         public class GestureListener extends GestureDetector.SimpleOnGestureListener {

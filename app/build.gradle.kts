@@ -37,17 +37,16 @@ android {
 dependencies {
 
     // For loading images
-    implementation("com.github.bumptech.glide:glide:4.14.2")
-    implementation("androidx.navigation:navigation-fragment:2.7.6")
-    implementation("androidx.navigation:navigation-ui:2.7.6")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("androidx.navigation:navigation-fragment:2.7.7")
+    implementation("androidx.navigation:navigation-ui:2.7.7")
 
-
-    implementation("com.github.saket:telephoto:0.8.0")
-    implementation("me.saket.telephoto:zoomable-image-glide:0.8.0")
+    implementation("io.github.panpf.zoomimage:zoomimage-view-glide:1.0.2")
+    implementation("io.github.panpf.zoomimage:zoomimage-compose-glide:1.0.2")
 
 
     // Skip this if you don't want to use integration libraries or configure Glide.
-    annotationProcessor("com.github.bumptech.glide:compiler:4.14.2")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")

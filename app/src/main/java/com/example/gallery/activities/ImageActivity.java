@@ -10,11 +10,12 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.gallery.R;
 import com.example.gallery.component.ViewPagerAdapter;
+import com.example.gallery.utils.MediaFetch;
 
 import java.util.ArrayList;
 
 public class ImageActivity extends AppCompatActivity {
-    ArrayList<String> images;
+    ArrayList<MediaFetch.MediaModel> images;
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
 
@@ -24,11 +25,10 @@ public class ImageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_image);
 
         Intent intent = getIntent();
-        Bundle data = intent.getExtras();
         final int position;
-        if (data != null) {
-            images = data.getStringArrayList("images");
-            position = data.getInt("initial");
+        if (intent != null) {
+            images = intent.getParcelableArrayListExtra("images");
+            position = intent.getIntExtra("initial", 0);
         } else {
             images = new ArrayList<>();
             position = -1;

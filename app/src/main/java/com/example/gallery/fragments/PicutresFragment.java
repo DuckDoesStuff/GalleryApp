@@ -1,9 +1,8 @@
 package com.example.gallery.fragments;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +20,7 @@ import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.ImageFrameAdapter;
+import com.example.gallery.utils.MediaFetch;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -39,15 +39,14 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     MainActivity mainActivity;
     ImageFrameAdapter imageFrameAdapter;
     RecyclerView recyclerView;
-    private ArrayList<String> images;
-    private ArrayList<String> selectedImages;
+    private ArrayList<MediaFetch.MediaModel> images;
+    private ArrayList<MediaFetch.MediaModel> selectedImages;
     public PicutresFragment() {
         // Required empty public constructor
     }
 
     public static PicutresFragment newInstance() {
-        PicutresFragment fragment = new PicutresFragment();
-        return fragment;
+        return new PicutresFragment();
     }
 
     @Override
@@ -55,7 +54,20 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         super.onCreate(savedInstanceState);
         selectedImages = new ArrayList<>();
         viewMode = true;
-        loadImages();
+        MediaFetch.getInstance(requireContext()).fetchMedia(new MediaFetch.onFetchListener() {
+            @Override
+            public void onComplete(ArrayList<MediaFetch.MediaModel> modelList) {
+                images = modelList;
+                if (imageFrameAdapter != null) {
+                    imageFrameAdapter.initFrameModels(images);
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+
+            }
+        });
     }
 
     @Override
@@ -131,10 +143,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     public void onItemClick(int position) {
         if (viewMode) {
             Intent intent = new Intent(getContext(), ImageActivity.class);
-            Bundle data = new Bundle();
-            data.putStringArrayList("images", images);
-            data.putInt("initial", position);
-            intent.putExtras(data);
+            intent.putExtra("images", images);
+            intent.putExtra("initial", position);
             mainActivity.startActivity(intent);
         }
 
@@ -167,44 +177,5 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         requireView().post(() -> {
             mainActivity.setBottomNavigationViewVisibility(View.VISIBLE);
         });
-    }
-
-    public void loadImages() {
-        Thread threadLoadImage = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                images = new ArrayList<>();
-
-                // Choose which column to query
-                String[] projection = new String[]{
-                        MediaStore.Images.Media.DATE_ADDED,
-                        MediaStore.Images.Media.DATA,
-                };
-
-                Cursor cursor = requireContext().
-                        getContentResolver().
-                        query(
-                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                projection,
-                                null,
-                                null,
-                                MediaStore.Images.Media.DATE_ADDED + " DESC");
-
-                if (cursor != null) {
-                    try {
-                        while (cursor.moveToNext()) {
-                            String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-                            images.add(imagePath);
-                        }
-                    } finally {
-                        cursor.close();
-                    }
-                }
-                if (imageFrameAdapter != null) {
-                    imageFrameAdapter.initFrameModels(images);
-                }
-            }
-        });
-        threadLoadImage.start();
     }
 }

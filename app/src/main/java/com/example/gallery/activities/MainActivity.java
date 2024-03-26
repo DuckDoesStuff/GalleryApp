@@ -15,7 +15,10 @@ import com.example.gallery.fragments.AlbumsFragment;
 import com.example.gallery.fragments.HomeFragment;
 import com.example.gallery.fragments.PicutresFragment;
 import com.example.gallery.fragments.ProfileFragment;
+import com.example.gallery.utils.MediaFetch;
 import com.example.gallery.utils.PermissionUtils;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -31,6 +34,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        MediaFetch.getInstance(getApplicationContext()).fetchMedia(new MediaFetch.onFetchListener() {
+            @Override
+            public void onComplete(ArrayList<MediaFetch.MediaModel> modelList) {
+
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+
+            }
+        });
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

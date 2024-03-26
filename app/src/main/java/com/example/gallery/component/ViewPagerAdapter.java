@@ -17,15 +17,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
+import com.example.gallery.utils.MediaFetch;
 
 import java.util.ArrayList;
 
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewPagerViewHolder> {
     static ImageActivity imageActivity;
-    ArrayList<String> images;
+    ArrayList<MediaFetch.MediaModel> images;
 
-    public ViewPagerAdapter(ArrayList<String> images, ImageActivity imageActivity) {
+    public ViewPagerAdapter(ArrayList<MediaFetch.MediaModel> images, ImageActivity imageActivity) {
         this.images = images;
         ViewPagerAdapter.imageActivity = imageActivity;
     }
@@ -41,7 +42,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull ViewPagerAdapter.ViewPagerViewHolder holder, int position) {
-        String image = images.get(position);
+        String image = images.get(position).data;
 
         // Just trying to run this line cause the error, commenting it works just fine
 //        GlideZoomImageView glideZoomImageView = new GlideZoomImageView(holder.imageView.getContext());

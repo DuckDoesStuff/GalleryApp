@@ -2,7 +2,6 @@ package com.example.gallery.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +19,7 @@ import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.ImageFrameAdapter;
+import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
  * Use the {@link PicutresFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener {
+public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, MediaContentObserver.OnMediaUpdateListener {
 
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
@@ -41,6 +41,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     RecyclerView recyclerView;
     private ArrayList<MediaFetch.MediaModel> images;
     private ArrayList<MediaFetch.MediaModel> selectedImages;
+
     public PicutresFragment() {
         // Required empty public constructor
     }
@@ -54,19 +55,22 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         super.onCreate(savedInstanceState);
         selectedImages = new ArrayList<>();
         viewMode = true;
-        MediaFetch.getInstance(requireContext()).fetchMedia(new MediaFetch.onFetchListener() {
-            @Override
-            public void onComplete(ArrayList<MediaFetch.MediaModel> modelList) {
-                images = modelList;
-                if (imageFrameAdapter != null) {
-                    imageFrameAdapter.initFrameModels(images);
-                }
-            }
+        MediaFetch.getInstance(null).registerListener(this);
+        MediaFetch.getInstance(null).fetchMedia(false);
+    }
 
-            @Override
-            public void onFailed(Exception e) {
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        MediaFetch.getInstance(null).unregisterListener(this);
+    }
 
-            }
+    @Override
+    public void onMediaUpdate(ArrayList<MediaFetch.MediaModel> modelArrayList) {
+        // Ensure running on UI thread
+        requireActivity().runOnUiThread(() -> {
+            images = modelArrayList;
+            imageFrameAdapter.initFrameModels(images);
         });
     }
 
@@ -117,12 +121,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         });
 
         ImageButton searchButton = view.findViewById(R.id.search);
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (getActivity() != null && getActivity() instanceof MainActivity) {
-                    mainActivity.replaceFragment(new SearchViewFragment());
-                }
+        searchButton.setOnClickListener(v -> {
+            if (getActivity() != null && getActivity() instanceof MainActivity) {
+                mainActivity.replaceFragment(new SearchViewFragment());
             }
         });
         return view;
@@ -163,7 +164,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         }
     }
 
-    void onShowBottomSheet() {
+    private void onShowBottomSheet() {
         mainActivity.setBottomNavigationViewVisibility(View.GONE);
         requireView().post(() -> {
             bottomSheetBehavior.setHideable(false);
@@ -171,7 +172,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         });
     }
 
-    void onHideBottomSheet() {
+    private void onHideBottomSheet() {
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         requireView().post(() -> {

@@ -27,7 +27,6 @@
         <meta-data
             android:name="com.google.android.actions"
             android:resource="@layout/activity_image" />
-
         <activity
             android:name="com.example.gallery.activities.MainActivity"
             android:exported="true">

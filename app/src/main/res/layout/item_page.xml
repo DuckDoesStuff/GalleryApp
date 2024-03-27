@@ -7,7 +7,7 @@
         android:id="@+id/page_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/colorful"/>
+        android:src="@drawable/colorful" />
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -29,6 +29,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     public boolean selectionModeEnabled;
     private ArrayList<FrameModel> frameModels;
     private ArrayList<MediaFetch.MediaModel> selectedImages;
+
     public ImageFrameAdapter(Context context, int imgSize, ArrayList<MediaFetch.MediaModel> images, ArrayList<MediaFetch.MediaModel> selectedImages, ImageFrameListener onClickCallback) {
         this.context = context;
         this.imgSize = imgSize;
@@ -41,9 +42,9 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         if (images == null || images.isEmpty()) {
             frameModels = new ArrayList<>();
             // TODO: Remember to remove this
-        }else {
+        } else {
             frameModels = new ArrayList<>();
-            for(MediaFetch.MediaModel media : images) {
+            for (MediaFetch.MediaModel media : images) {
                 frameModels.add(new FrameModel(media));
             }
             notifyDataSetChanged();

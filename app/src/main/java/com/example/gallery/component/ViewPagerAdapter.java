@@ -45,7 +45,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         String image = images.get(position).data;
 
         // Just trying to run this line cause the error, commenting it works just fine
-//        GlideZoomImageView glideZoomImageView = new GlideZoomImageView(holder.imageView.getContext());
+        //        GlideZoomImageView glideZoomImageView = new GlideZoomImageView(holder.imageView.getContext());
 
 
         Glide.with(holder.itemView).load(image).into(holder.imageView);

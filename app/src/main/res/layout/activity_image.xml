@@ -65,11 +65,13 @@
             android:layout_marginLeft="0dp">
 
             <ImageButton
+                android:id="@+id/edit_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:src="@drawable/edit"
                 android:layout_weight="1"
                 android:background="@null"
+
                 />
 
             <ImageButton
@@ -99,7 +101,10 @@
 
         </LinearLayout>
 
+
+
     </androidx.appcompat.widget.Toolbar>
+
 
 
 </LinearLayout>

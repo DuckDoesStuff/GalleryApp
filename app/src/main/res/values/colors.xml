@@ -10,4 +10,7 @@
 
     <color name="bottom_sheet_color">#333333</color>
     <color name="overlay_color">#C0C0C0</color>
+
+    <color name="background_dark">#000000</color>
+    <color name="background_light">#FFFFFF</color>
 </resources>

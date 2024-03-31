@@ -1,9 +1,12 @@
 package com.example.gallery.activities;
 
 import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -22,12 +25,14 @@ import com.example.gallery.utils.PermissionUtils;
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
     Fragment currentFragment;
-    PermissionUtils.PermissionCallback permissionCallback = () -> replaceFragment(new PicutresFragment());
-
     PicutresFragment picutresFragment;
     HomeFragment homeFragment;
     AlbumsFragment albumsFragment;
     ProfileFragment profileFragment;
+    PermissionUtils.PermissionCallback permissionCallback = () -> {
+        picutresFragment = new PicutresFragment();
+        replaceFragment(picutresFragment);
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,14 +47,14 @@ public class MainActivity extends AppCompatActivity {
                     this,
                     new String[]{android.Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO},
                     permissionCallback,
-                    PermissionUtils.READ_MEDIA_STORAGE
+                    1
             );
         } else {
-            PermissionUtils.requestActivityPermission(
+            PermissionUtils.requestMultipleActivityPermissions(
                     this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     permissionCallback,
-                    PermissionUtils.READ_EXTERNAL_STORAGE
+                    1
             );
         }
 
@@ -87,6 +92,28 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.replace(R.id.frame_layout, fragment);
         fragmentTransaction.commit();
         currentFragment = fragment;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Log.d("Debug", "onRequestPermsResult");
+        if (requestCode == 1) {
+            boolean allPermissionsGranted = true;
+            for (int grantResult : grantResults) {
+                if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                    allPermissionsGranted = false;
+                    break;
+                }
+            }
+            if (allPermissionsGranted) {
+                // All permissions granted, calling onGranted();
+                permissionCallback.onGranted();
+            } else {
+                // Permissions denied
+                // You may want to show a message or take other actions here
+            }
+        }
     }
 
 

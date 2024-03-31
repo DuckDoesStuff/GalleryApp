@@ -3,6 +3,7 @@ package com.example.gallery.utils;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -12,6 +13,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -93,6 +95,31 @@ public class MediaFetch {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    public static void deleteMediaFiles(ContentResolver contentResolver, ArrayList<MediaModel> mediaDelete) {
+        if(!mediaDelete.isEmpty()) {
+            Iterator<MediaModel> iterator = mediaDelete.iterator();
+            while (iterator.hasNext()) {
+                MediaModel mediaModel = iterator.next();
+                deleteMediaFile(contentResolver, mediaModel.data);
+                iterator.remove();
+            }
+        }
+    }
+
+
+    private static void deleteMediaFile(ContentResolver contentResolver, String filePath) {
+        Uri mediaUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        String selection = MediaStore.Images.Media.DATA + "=?";
+        String[] selectionArgs = new String[]{ filePath };
+
+        // Delete the file
+        if(contentResolver.delete(mediaUri, selection, selectionArgs) == 0){
+            mediaUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+            contentResolver.delete(mediaUri, selection, selectionArgs);
+        }
     }
 
     private void notifyMediaUpdate() {

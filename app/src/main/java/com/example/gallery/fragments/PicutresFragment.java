@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -36,7 +37,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
-    boolean viewMode;
+    boolean viewMode = true;
     MainActivity mainActivity;
     ImageFrameAdapter imageFrameAdapter;
     RecyclerView recyclerView;
@@ -55,8 +56,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         selectedImages = new ArrayList<>();
-        viewMode = true;
-        Log.d("Debug", "Pictures fragment create");
         MediaFetch.getInstance(null).registerListener(this);
         MediaFetch.getInstance(null).fetchMedia(false);
     }
@@ -69,7 +68,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     @Override
     public void onMediaUpdate(ArrayList<MediaFetch.MediaModel> modelArrayList) {
-        Log.d("Debug", "Pictures update");
         // Ensure running on UI thread
         images = modelArrayList;
         MediaFetch.sortArrayListModel(images, MediaFetch.SORT_BY_BUCKET_NAME, MediaFetch.SORT_DESC);
@@ -130,6 +128,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         bottomSheet = requireView().findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
 
+        setUpBottomSheet();
+
         bottomSheetBehavior.setDraggable(true);
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -144,31 +144,42 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
     }
 
+    private void setUpBottomSheet() {
+        Button deleteBtn = bottomSheet.findViewById(R.id.deleteBtn);
+        deleteBtn.setOnClickListener(v -> {
+            MediaFetch.deleteMediaFiles(requireActivity().getContentResolver(), selectedImages);
+            onHideBottomSheet();
+            imageFrameAdapter.selectionModeEnabled = false;
+            imageFrameAdapter.notifyDataSetChanged();
+            Log.d("Debug", "Finished delete");
+        });
+    }
+
     @Override
     public void onItemClick(int position) {
-        if (viewMode) {
+        // Hide bottom sheet if not selecting any images
+        if (selectedImages.isEmpty() && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+            onHideBottomSheet();
+            Log.d("Debug", "Hiding bottom sheet viewMode=" + viewMode + " Selecting=" + imageFrameAdapter.selectionModeEnabled);
+        }
+        else if (viewMode) {
             Intent intent = new Intent(getContext(), ImageActivity.class);
             intent.putExtra("images", images);
             intent.putExtra("initial", position);
             mainActivity.startActivity(intent);
         }
-
-        // Hide bottom sheet if not selecting any images
-        if (selectedImages.isEmpty() && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
-            onHideBottomSheet();
-            viewMode = true;
-        }
+        Log.d("Debug", "View mode in item click: " + viewMode);
     }
 
     @Override
     public void onItemLongClick(int position) {
         if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
             onShowBottomSheet();
-            viewMode = false;
         }
     }
 
     private void onShowBottomSheet() {
+        viewMode = false;
         mainActivity.setBottomNavigationViewVisibility(View.GONE);
         requireView().post(() -> {
             bottomSheetBehavior.setHideable(false);
@@ -177,6 +188,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     }
 
     private void onHideBottomSheet() {
+        viewMode = true;
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         requireView().post(() -> {

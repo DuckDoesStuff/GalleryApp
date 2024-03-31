@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +27,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     private final Context context;
     private final int imgSize;
     private final ImageFrameListener onClickCallBack;
-    public boolean selectionModeEnabled;
+    public boolean selectionModeEnabled = false;
     private ArrayList<FrameModel> frameModels;
     private ArrayList<MediaFetch.MediaModel> selectedImages;
 
@@ -103,6 +104,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                 }
             }
             onClickCallBack.onItemClick(position);
+            Log.d("Debug", "Selecting: " + selectionModeEnabled);
         });
         holder.itemView.setOnLongClickListener(v -> {
             selectionModeEnabled = true;
@@ -115,6 +117,11 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             return true;
         });
     }
+
+//    public void showCheckBoxes(boolean selectionModeEnabled) {
+//        this.selectionModeEnabled = selectionModeEnabled;
+//
+//    }
 
     @Override
     public int getItemCount() {

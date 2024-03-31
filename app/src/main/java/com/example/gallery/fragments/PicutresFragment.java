@@ -2,6 +2,7 @@ package com.example.gallery.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +56,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         super.onCreate(savedInstanceState);
         selectedImages = new ArrayList<>();
         viewMode = true;
+        Log.d("Debug", "Pictures fragment create");
         MediaFetch.getInstance(null).registerListener(this);
         MediaFetch.getInstance(null).fetchMedia(false);
     }
@@ -67,9 +69,11 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     @Override
     public void onMediaUpdate(ArrayList<MediaFetch.MediaModel> modelArrayList) {
+        Log.d("Debug", "Pictures update");
         // Ensure running on UI thread
+        images = modelArrayList;
+        MediaFetch.sortArrayListModel(images, MediaFetch.SORT_BY_BUCKET_NAME, MediaFetch.SORT_DESC);
         requireActivity().runOnUiThread(() -> {
-            images = modelArrayList;
             imageFrameAdapter.initFrameModels(images);
         });
     }
@@ -79,22 +83,12 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         View view = inflater.inflate(R.layout.fragment_picutres, container, false);
         mainActivity = ((MainActivity) requireActivity());
 
-        int spanCount = 3; // Change this to change the number of columns
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        int imgSize = screenWidth / spanCount;
-
         recyclerView = view.findViewById(R.id.photo_grid);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemViewCacheSize(10);
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
 
-
-        if (imageFrameAdapter == null)
-            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
-
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
-        recyclerView.setAdapter(imageFrameAdapter);
 
         ImageButton dropdownButton = view.findViewById(R.id.settings);
 
@@ -126,6 +120,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                 mainActivity.replaceFragment(new SearchViewFragment());
             }
         });
+
         return view;
     }
 
@@ -138,6 +133,15 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         bottomSheetBehavior.setDraggable(true);
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+        int spanCount = 3; // Change this to change the number of columns
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        int imgSize = screenWidth / spanCount;
+
+        if (imageFrameAdapter == null)
+            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
+        recyclerView.setAdapter(imageFrameAdapter);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
     }
 
     @Override

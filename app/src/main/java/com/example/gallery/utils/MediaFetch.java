@@ -16,11 +16,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class MediaFetch {
-    public static final int SORT_ASC = -1;
-    public static final int SORT_DESC = 1;
+    public static final int SORT_ASC = 1;
+    public static final int SORT_DESC = -1;
     public static final int SORT_BY_BUCKET_NAME = 1;
     public static final int SORT_BY_DATE_TAKEN = 2;
-    public static final int SORT_BY_DATE_DURATION = 3;
+    public static final int SORT_BY_DURATION = 3;
     private static MediaFetch instance;
     private final Context context;
     private final ArrayList<MediaContentObserver.OnMediaUpdateListener> listeners;
@@ -36,26 +36,31 @@ public class MediaFetch {
 
     public static synchronized MediaFetch getInstance(Context context) {
         if (instance == null && context != null) {
+            Log.d("Media", "MediaFetch is initialized");
             instance = new MediaFetch(context);
         }
         return instance;
     }
 
-    public static ArrayList<MediaModel> sortArrayListModel(@NonNull ArrayList<MediaModel> modelArrayList, int sortBy, int sortDirection) {
-        if (modelArrayList.isEmpty()) return modelArrayList;
+    public static void sortArrayListModel(@NonNull ArrayList<MediaModel> modelArrayList, int sortBy, int sortDirection) {
+        if (modelArrayList.isEmpty()) return;
         modelArrayList.sort((o1, o2) -> {
-            switch (sortBy) {
-                case SORT_BY_BUCKET_NAME:
-                    return o1.bucketName.compareTo(o2.bucketName) * sortDirection;
-                case SORT_BY_DATE_DURATION:
-                    return o1.duration.compareTo(o2.duration) * sortDirection;
-                case SORT_BY_DATE_TAKEN:
-                    return o1.dateTaken.compareTo(o2.dateTaken) * sortDirection;
-                default:
-                    return 0;
+            try {
+                switch (sortBy) {
+                    case SORT_BY_BUCKET_NAME:
+                        return o1.bucketName.compareTo(o2.bucketName) * sortDirection;
+                    case SORT_BY_DURATION:
+                        return o1.duration.compareTo(o2.duration) * sortDirection;
+                    case SORT_BY_DATE_TAKEN:
+                        return o1.dateTaken.compareTo(o2.dateTaken) * sortDirection;
+                    default:
+                        return 0;
+                }
+            }
+            catch (NullPointerException e) {
+                return 0;
             }
         });
-        return modelArrayList;
     }
 
     public static ArrayList<MediaModel> mediaFromBucketID(ArrayList<MediaModel> modelArrayList, String bucketID) {
@@ -68,10 +73,12 @@ public class MediaFetch {
 
     public void registerListener(MediaContentObserver.OnMediaUpdateListener listener) {
         listeners.add(listener);
+        Log.d("MediaListener", "Current listeners: " + listeners.size());
     }
 
     public void unregisterListener(MediaContentObserver.OnMediaUpdateListener listener) {
         listeners.remove(listener);
+        Log.d("MediaListener", "Current listeners: " + listeners.size());
     }
 
     public void fetchMedia(boolean forceFetch) {
@@ -106,30 +113,61 @@ public class MediaFetch {
                 MediaStore.MediaColumns.DURATION
         };
 
-        Cursor cursor = context.getContentResolver().query(
+        Cursor imageCursor = context.getContentResolver().query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 projection,
                 null,
                 null,
                 MediaStore.MediaColumns.BUCKET_ID + " ASC"
         );
-        if (cursor != null) {
+        if (imageCursor != null) {
             try {
-                while (cursor.moveToNext()) {
-                    String bucketName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
-                    String bucketID = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID));
-                    String data = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-                    String dateTaken = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
-                    String dateAdded = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED));
-                    String duration = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
+                while (imageCursor.moveToNext()) {
+                    String bucketName = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
+                    String bucketID = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID));
+                    String data = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                    String dateTaken = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
+                    String dateAdded = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED));
+                    String duration = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
 
                     mediaList.add(new MediaModel(bucketName, bucketID, data, dateTaken, dateAdded, duration));
                 }
             } finally {
-                cursor.close();
+                imageCursor.close();
             }
         }
+
+        Cursor videoCursor = context.getContentResolver().query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null,
+                null,
+                MediaStore.MediaColumns.BUCKET_ID + " ASC"
+        );
+        if (videoCursor != null) {
+            try {
+                while (videoCursor.moveToNext()) {
+                    String bucketName = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
+                    String bucketID = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID));
+                    String data = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                    String dateTaken = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
+                    String dateAdded = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED));
+                    String duration = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
+
+                    mediaList.add(new MediaModel(bucketName, bucketID, data, dateTaken, dateAdded, duration));
+                }
+            } finally {
+                videoCursor.close();
+            }
+        }
+
         return mediaList;
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        Log.d("Media", "MediaFetch is destroyed");
     }
 
     public static class MediaModel implements Parcelable {

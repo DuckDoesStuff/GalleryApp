@@ -2,6 +2,7 @@ package com.example.gallery.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 
@@ -39,7 +40,8 @@ public class ImageActivity extends AppCompatActivity {
         viewPager2 = findViewById(R.id.view_pager);
         viewPagerAdapter = new ViewPagerAdapter(images, this);
         viewPager2.setAdapter(viewPagerAdapter);
-        viewPager2.setOffscreenPageLimit(5);
+        viewPager2.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+        viewPager2.setOffscreenPageLimit(3);
         viewPager2.setCurrentItem(position, false);
         viewPager2.setDrawingCacheEnabled(true);
         viewPager2.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
@@ -47,5 +49,11 @@ public class ImageActivity extends AppCompatActivity {
 
     public void setViewPagerInputEnabled(boolean enabled) {
         viewPager2.setUserInputEnabled(enabled);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("Debug", "Image activity gone");
     }
 }

@@ -2,6 +2,7 @@ package com.example.gallery.component;
 
 import android.animation.ObjectAnimator;
 import android.graphics.PointF;
+import android.net.Uri;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -9,9 +10,13 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.media3.common.MediaItem;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -19,6 +24,7 @@ import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.utils.MediaFetch;
 
+import java.io.File;
 import java.util.ArrayList;
 
 
@@ -42,13 +48,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull ViewPagerAdapter.ViewPagerViewHolder holder, int position) {
-        String image = images.get(position).data;
-
-        // Just trying to run this line cause the error, commenting it works just fine
-        //        GlideZoomImageView glideZoomImageView = new GlideZoomImageView(holder.imageView.getContext());
-
-
-        Glide.with(holder.itemView).load(image).into(holder.imageView);
+        holder.onBind(images.get(position));
     }
 
     @Override
@@ -56,6 +56,32 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         return images.size();
     }
 
+    @Override
+    public void onViewRecycled(@NonNull ViewPagerViewHolder holder) {
+        super.onViewRecycled(holder);
+        if(holder.player != null) {
+            holder.player.release();
+            Log.d("Player", "View recycled and player released");
+        }
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull ViewPagerViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        if(holder.player != null) {
+            holder.setupPlayerView();
+            Log.d("Player", "View attached and player prepared");
+        }
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull ViewPagerViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        if(holder.player != null) {
+            holder.player.release();
+            Log.d("Player", "View detached and player released");
+        }
+    }
 
     public static class ViewPagerViewHolder extends RecyclerView.ViewHolder {
         final float minScale = 1.0f;
@@ -65,39 +91,74 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         float scaleFactor = 1.0f;
         boolean isScaling = false;
         PointF startPoint = new PointF();
+
+        FrameLayout frameLayout;
         ImageView imageView;
+        PlayerView playerView;
+        ExoPlayer player;
         ScaleGestureDetector scaleGestureDetector;
         GestureDetector gestureDetector;
+        MediaFetch.MediaModel mediaModel;
 
         public ViewPagerViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.page_image);
+            frameLayout = itemView.findViewById(R.id.page_media);
+        }
 
-            scaleListener = new ScaleListener();
-            scaleGestureDetector = new ScaleGestureDetector(itemView.getContext(), scaleListener);
+        public void onBind(MediaFetch.MediaModel mediaModel) {
+            this.mediaModel = mediaModel;
 
-            gestureListener = new GestureListener();
-            gestureDetector = new GestureDetector(itemView.getContext(), gestureListener);
+            // If media is an image
+            if(mediaModel.duration == null) {
+                // First inflate mediaView with the ImageView
+                imageView = new ImageView(itemView.getContext());
+                imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-            itemView.setOnTouchListener((v, event) -> {
-                gestureDetector.onTouchEvent(event);
-                scaleGestureDetector.onTouchEvent(event);
-                if (!isScaling && imageView.getScaleX() != 1.0f && imageView.getScaleY() != 1.0f) {
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            startPoint.set(event.getX(), event.getY());
-                            break;
-                        case MotionEvent.ACTION_MOVE:
-                            float dx = event.getX() - startPoint.x;
-                            float dy = event.getY() - startPoint.y;
-                            updatePan(dx, dy);
-                            startPoint.set(event.getX(), event.getY());
-                            break;
+                frameLayout.removeAllViews();
+                frameLayout.addView(imageView);
+
+                Glide.with(itemView).load(mediaModel.data).into(imageView);
+
+                scaleListener = new ScaleListener();
+                scaleGestureDetector = new ScaleGestureDetector(itemView.getContext(), scaleListener);
+
+                gestureListener = new GestureListener();
+                gestureDetector = new GestureDetector(itemView.getContext(), gestureListener);
+
+                itemView.setOnTouchListener((v, event) -> {
+                    gestureDetector.onTouchEvent(event);
+                    scaleGestureDetector.onTouchEvent(event);
+                    if (!isScaling && imageView.getScaleX() != 1.0f && imageView.getScaleY() != 1.0f) {
+                        switch (event.getAction()) {
+                            case MotionEvent.ACTION_DOWN:
+                                startPoint.set(event.getX(), event.getY());
+                                break;
+                            case MotionEvent.ACTION_MOVE:
+                                float dx = event.getX() - startPoint.x;
+                                float dy = event.getY() - startPoint.y;
+                                updatePan(dx, dy);
+                                startPoint.set(event.getX(), event.getY());
+                                break;
+                        }
                     }
-                }
-                v.performClick();
-                return true;
-            });
+                    v.performClick();
+                    return true;
+                });
+            }else {
+                setupPlayerView();
+            }
+        }
+        public void setupPlayerView() {
+            playerView = new PlayerView(imageActivity);
+            player = new ExoPlayer.Builder(imageActivity).build();
+
+            MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(new File(mediaModel.data)));
+            player.setMediaItem(mediaItem);
+            player.prepare();
+            playerView.setPlayer(player);
+
+            frameLayout.removeAllViews();
+            frameLayout.addView(playerView);
         }
 
         public void setSmoothScaleFactor(float scaleFactor) {

@@ -44,6 +44,10 @@ dependencies {
 //    implementation("io.github.panpf.zoomimage:zoomimage-view-glide:1.0.2")
 //    implementation("io.github.panpf.zoomimage:zoomimage-compose-glide:1.0.2")
 
+    implementation("androidx.media3:media3-exoplayer:1.3.0")
+    implementation("androidx.media3:media3-ui:1.3.0")
+    implementation("androidx.media3:media3-common:1.3.0")
+
 
     // Skip this if you don't want to use integration libraries or configure Glide.
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")

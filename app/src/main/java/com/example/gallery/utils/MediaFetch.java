@@ -1,7 +1,11 @@
 package com.example.gallery.utils;
 
+import static androidx.core.app.ActivityCompat.startIntentSenderForResult;
+
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.IntentSender;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
@@ -12,8 +16,11 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.example.gallery.activities.MainActivity;
+
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -27,8 +34,19 @@ public class MediaFetch {
     private final Context context;
     private final ArrayList<MediaContentObserver.OnMediaUpdateListener> listeners;
     private ArrayList<MediaModel> mediaModelArrayList;
+    public MainActivity mainActivity;
+
     private MediaFetch(@NonNull Context context) {
         this.context = context;
+        listeners = new ArrayList<>();
+        ContentResolver contentResolver = context.getContentResolver();
+        MediaContentObserver mediaContentObserver = new MediaContentObserver(new Handler());
+        contentResolver.registerContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, true, mediaContentObserver);
+        contentResolver.registerContentObserver(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, true, mediaContentObserver);
+    }
+    private MediaFetch(@NonNull Context context, MainActivity mainActivity) {
+        this.context = context;
+        this.mainActivity = mainActivity;
         listeners = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
         MediaContentObserver mediaContentObserver = new MediaContentObserver(new Handler());
@@ -40,6 +58,14 @@ public class MediaFetch {
         if (instance == null && context != null) {
             Log.d("Media", "MediaFetch is initialized");
             instance = new MediaFetch(context);
+        }
+        return instance;
+    }
+
+    public static synchronized MediaFetch getInstance(Context context, MainActivity mainActivity) {
+        if (instance == null && context != null) {
+            Log.d("Media", "MediaFetch is initialized");
+            instance = new MediaFetch(context, mainActivity);
         }
         return instance;
     }
@@ -97,17 +123,67 @@ public class MediaFetch {
         }).start();
     }
 
+    public static ArrayList<Uri> getContentUrisForFiles(Context context, List<MediaModel> mediaDelete) {
+        ContentResolver contentResolver = context.getContentResolver();
+        Uri imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        Uri videoUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+
+        String[] projectionImage = {MediaStore.Images.Media._ID};
+        String selectionImage = MediaStore.Images.Media.DATA + "=?";
+
+        String[] projectionVideo = {MediaStore.Video.Media._ID};
+        String selectionVideo = MediaStore.Video.Media.DATA + "=?";
+
+        List<String> filePaths = mediaDelete.stream().map(mediaModel -> mediaModel.data).collect(Collectors.toList());
+
+        ArrayList<Uri> contentUris = new ArrayList<>();
+        for (String filePath : filePaths) {
+            String[] selectionArgs = new String[]{filePath};
+            Cursor cursorImage = contentResolver.query(imageUri, projectionImage, selectionImage, selectionArgs, null);
+            Cursor cursorVideo = contentResolver.query(videoUri, projectionVideo, selectionVideo, selectionArgs, null);
+            try {
+                if (cursorImage != null && cursorImage.moveToFirst()) {
+                    int columnIndex = cursorImage.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
+                    long fileId = cursorImage.getLong(columnIndex);
+                    contentUris.add(Uri.withAppendedPath(imageUri, String.valueOf(fileId)));
+                }else if (cursorVideo != null && cursorVideo.moveToFirst()) {
+                    int columnIndex = cursorVideo.getColumnIndexOrThrow(MediaStore.Video.Media._ID);
+                    long fileId = cursorVideo.getLong(columnIndex);
+                    contentUris.add(Uri.withAppendedPath(videoUri, String.valueOf(fileId)));
+                }
+            } finally {
+                if (cursorImage != null) {
+                    cursorImage.close();
+                }
+                if (cursorVideo != null) {
+                    cursorVideo.close();
+                }
+            }
+        }
+        return contentUris;
+    }
+
     public static void deleteMediaFiles(ContentResolver contentResolver, ArrayList<MediaModel> mediaDelete) {
-        if(!mediaDelete.isEmpty()) {
-            Iterator<MediaModel> iterator = mediaDelete.iterator();
-            while (iterator.hasNext()) {
-                MediaModel mediaModel = iterator.next();
-                deleteMediaFile(contentResolver, mediaModel.data);
-                iterator.remove();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            ArrayList<Uri> uris = MediaFetch.getContentUrisForFiles(instance.context, mediaDelete);
+
+            PendingIntent pendingIntent = MediaStore.createDeleteRequest(contentResolver, uris);
+            try {
+                startIntentSenderForResult(instance.mainActivity, pendingIntent.getIntentSender(), 0, null, 0, 0, 0, null);
+            } catch (IntentSender.SendIntentException e) {
+                throw new RuntimeException(e);
+            }
+        }else {
+            if(!mediaDelete.isEmpty()) {
+                Iterator<MediaModel> iterator = mediaDelete.iterator();
+                while (iterator.hasNext()) {
+                    MediaFetch.MediaModel mediaModel = iterator.next();
+                    deleteMediaFile(contentResolver, mediaModel.data);
+                    iterator.remove();
+                }
             }
         }
     }
-
 
     private static void deleteMediaFile(ContentResolver contentResolver, String filePath) {
         Uri mediaUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;

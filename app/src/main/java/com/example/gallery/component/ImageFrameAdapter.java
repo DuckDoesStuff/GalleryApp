@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.ColorDrawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,15 +23,13 @@ import com.example.gallery.utils.MediaFetch;
 import java.util.ArrayList;
 
 public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.FrameViewHolder> {
-    private final Context context;
     private final int imgSize;
     private final ImageFrameListener onClickCallBack;
     public boolean selectionModeEnabled = false;
     private ArrayList<FrameModel> frameModels;
     private ArrayList<MediaFetch.MediaModel> selectedImages;
 
-    public ImageFrameAdapter(Context context, int imgSize, ArrayList<MediaFetch.MediaModel> images, ArrayList<MediaFetch.MediaModel> selectedImages, ImageFrameListener onClickCallback) {
-        this.context = context;
+    public ImageFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<MediaFetch.MediaModel> images, ArrayList<MediaFetch.MediaModel> selectedImages, ImageFrameListener onClickCallback) {
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
         this.selectedImages = selectedImages;
@@ -73,14 +70,12 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
         FrameModel frameModel = frameModels.get(position);
         holder.bind(frameModel);
-
         holder.checkBox.setVisibility(selectionModeEnabled ? View.VISIBLE : View.GONE);
 
         holder.itemView.setOnClickListener(v -> {
             if (selectionModeEnabled) {
                 frameModel.isSelected = !frameModel.isSelected;
                 holder.checkBox.setChecked(frameModel.isSelected);
-
 
                 if (frameModel.isSelected) {
                     ColorMatrix colorMatrix = new ColorMatrix();
@@ -104,7 +99,6 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                 }
             }
             onClickCallBack.onItemClick(position);
-            Log.d("Debug", "Selecting: " + selectionModeEnabled);
         });
         holder.itemView.setOnLongClickListener(v -> {
             selectionModeEnabled = true;
@@ -117,11 +111,6 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             return true;
         });
     }
-
-//    public void showCheckBoxes(boolean selectionModeEnabled) {
-//        this.selectionModeEnabled = selectionModeEnabled;
-//
-//    }
 
     @Override
     public int getItemCount() {

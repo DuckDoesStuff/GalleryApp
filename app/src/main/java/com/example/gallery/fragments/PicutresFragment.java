@@ -1,5 +1,7 @@
 package com.example.gallery.fragments;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,11 +30,6 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link PicutresFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, MediaContentObserver.OnMediaUpdateListener {
 
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
@@ -43,6 +40,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     RecyclerView recyclerView;
     private ArrayList<MediaFetch.MediaModel> images;
     private ArrayList<MediaFetch.MediaModel> selectedImages;
+    private ArrayList<Integer> selectedPositions;
 
     public PicutresFragment() {
         // Required empty public constructor
@@ -55,7 +53,12 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        selectedImages = new ArrayList<>();
+        if(selectedImages == null)
+            selectedImages = new ArrayList<>();
+
+        if(selectedPositions == null)
+            selectedPositions = new ArrayList<>();
+
         MediaFetch.getInstance(null).registerListener(this);
         MediaFetch.getInstance(null).fetchMedia(false);
     }
@@ -80,7 +83,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_picutres, container, false);
         mainActivity = ((MainActivity) requireActivity());
-
         recyclerView = view.findViewById(R.id.photo_grid);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemViewCacheSize(10);
@@ -139,7 +141,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         int imgSize = screenWidth / spanCount;
 
         if (imageFrameAdapter == null)
-            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
+            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, selectedPositions, images, selectedImages, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
     }
@@ -148,11 +150,18 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         Button deleteBtn = bottomSheet.findViewById(R.id.deleteBtn);
         deleteBtn.setOnClickListener(v -> {
             MediaFetch.deleteMediaFiles(requireActivity().getContentResolver(), selectedImages);
+        });
+    }
+
+    public void onDeleteResult(int resultCode) {
+        if (resultCode == RESULT_OK) {
+            selectedImages.clear();
             onHideBottomSheet();
             imageFrameAdapter.selectionModeEnabled = false;
-            imageFrameAdapter.notifyDataSetChanged();
-            Log.d("Debug", "Finished delete");
-        });
+//            imageFrameAdapter.notifyDataSetChanged();
+            Log.d("Debug", "Deleted images");
+            // There is a bug in here hiding but I can't produce it consistently :(
+        }
     }
 
     @Override
@@ -160,7 +169,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         // Hide bottom sheet if not selecting any images
         if (selectedImages.isEmpty() && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
             onHideBottomSheet();
-            Log.d("Debug", "Hiding bottom sheet viewMode=" + viewMode + " Selecting=" + imageFrameAdapter.selectionModeEnabled);
         }
         else if (viewMode) {
             Intent intent = new Intent(getContext(), ImageActivity.class);
@@ -168,7 +176,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             intent.putExtra("initial", position);
             mainActivity.startActivity(intent);
         }
-        Log.d("Debug", "View mode in item click: " + viewMode);
     }
 
     @Override

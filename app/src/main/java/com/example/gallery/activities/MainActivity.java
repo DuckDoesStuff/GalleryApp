@@ -1,9 +1,13 @@
 package com.example.gallery.activities;
 
 import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -15,62 +19,73 @@ import com.example.gallery.fragments.AlbumsFragment;
 import com.example.gallery.fragments.HomeFragment;
 import com.example.gallery.fragments.PicutresFragment;
 import com.example.gallery.fragments.ProfileFragment;
+import com.example.gallery.utils.MediaFetch;
 import com.example.gallery.utils.PermissionUtils;
 
 
 public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
     Fragment currentFragment;
-    PermissionUtils.PermissionCallback permissionCallback = () -> replaceFragment(new PicutresFragment());
-
     PicutresFragment picutresFragment;
     HomeFragment homeFragment;
     AlbumsFragment albumsFragment;
     ProfileFragment profileFragment;
+    PermissionUtils.PermissionCallback permissionCallback = () -> {
+        picutresFragment = new PicutresFragment();
+        replaceFragment(picutresFragment);
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        MediaFetch.getInstance(getApplicationContext(), this).fetchMedia(true);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PermissionUtils.requestMultipleActivityPermissions(
-                this,
-                new String[] {android.Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO},
-                permissionCallback,
-                PermissionUtils.READ_MEDIA_STORAGE
+                    this,
+                    new String[]
+                    {
+                        Manifest.permission.READ_MEDIA_IMAGES,
+                        Manifest.permission.READ_MEDIA_VIDEO
+                    },
+                    permissionCallback,
+                    1
             );
-        }
-        else {
-            PermissionUtils.requestActivityPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                permissionCallback,
-                PermissionUtils.READ_EXTERNAL_STORAGE
+        } else {
+            PermissionUtils.requestMultipleActivityPermissions(
+                    this,
+                    new String[]
+                    {
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    },
+                    permissionCallback,
+                    1
             );
         }
 
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if(itemId == R.id.home) {
+            if (itemId == R.id.home) {
                 if (homeFragment == null) {
                     homeFragment = new HomeFragment();
                 }
                 replaceFragment(homeFragment);
-            }else if (itemId == R.id.pictures) {
+            } else if (itemId == R.id.pictures) {
                 if (picutresFragment == null) {
                     picutresFragment = new PicutresFragment();
                 }
                 replaceFragment(picutresFragment);
-            }else if (itemId == R.id.albums) {
-                if(albumsFragment == null) {
+            } else if (itemId == R.id.albums) {
+                if (albumsFragment == null) {
                     albumsFragment = new AlbumsFragment();
                 }
                 replaceFragment(albumsFragment);
-            }else if (itemId == R.id.profile) {
-                if(profileFragment == null) {
+            } else if (itemId == R.id.profile) {
+                if (profileFragment == null) {
                     profileFragment = new ProfileFragment();
                 }
                 replaceFragment(profileFragment);
@@ -80,22 +95,51 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void replaceFragment(Fragment fragment){
+    public void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frame_layout,fragment);
+        fragmentTransaction.replace(R.id.frame_layout, fragment);
         fragmentTransaction.commit();
         currentFragment = fragment;
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            boolean allPermissionsGranted = true;
+            for (int grantResult : grantResults) {
+                if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                    allPermissionsGranted = false;
+                    break;
+                }
+            }
+            if (allPermissionsGranted) {
+                // All permissions granted, calling onGranted();
+                permissionCallback.onGranted();
+            } else {
+                // Permissions denied
+                // You may want to show a message or take other actions here
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 0) {
+            picutresFragment.onDeleteResult(resultCode);
+        }
+    }
 
     public void setBottomNavigationViewVisibility(int visibility) {
-//        TransitionSet transitionSet = new TransitionSet()
-//                .addTransition(new Fade())
-//                .addTransition(new ChangeBounds())
-//                .setDuration(300);
-//
-//        TransitionManager.beginDelayedTransition(binding.bottomNavigationView, transitionSet);
+        //        TransitionSet transitionSet = new TransitionSet()
+        //                .addTransition(new Fade())
+        //                .addTransition(new ChangeBounds())
+        //                .setDuration(300);
+        //
+        //        TransitionManager.beginDelayedTransition(binding.bottomNavigationView, transitionSet);
         binding.bottomNavigationView.setVisibility(visibility);
     }
 }

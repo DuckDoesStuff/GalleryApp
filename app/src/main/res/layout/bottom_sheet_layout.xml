@@ -31,51 +31,52 @@
                 android:orientation="horizontal">
 
                 <Button
-                    style="@style/Widget.Material3.Button.ElevatedButton.Icon"
                     android:id="@+id/addToBtn"
+                    style="@style/Widget.Material3.Button.ElevatedButton.Icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
                     android:elevation="1dp"
                     android:text="Add to"
                     app:icon="@drawable/add_to"
-                    android:layout_marginEnd="10dp"
 
                     />
+
                 <Button
-                    style="@style/Widget.Material3.Button.ElevatedButton.Icon"
                     android:id="@+id/shareBtn"
+                    style="@style/Widget.Material3.Button.ElevatedButton.Icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
                     android:elevation="1dp"
                     android:text="Share"
                     app:icon="@drawable/share"
-                    android:layout_marginEnd="10dp"
 
 
                     />
+
                 <Button
-                    style="@style/Widget.Material3.Button.ElevatedButton.Icon"
                     android:id="@+id/deleteBtn"
+                    style="@style/Widget.Material3.Button.ElevatedButton.Icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Delete"
-                    android:elevation="1dp"
-                    app:icon="@drawable/delete"
                     android:layout_marginEnd="10dp"
-
+                    android:elevation="1dp"
+                    android:text="Delete"
+                    app:icon="@drawable/delete"
 
 
                     />
+
                 <Button
-                    style="@style/Widget.Material3.Button.ElevatedButton.Icon"
                     android:id="@+id/hello_btn"
+                    style="@style/Widget.Material3.Button.ElevatedButton.Icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Delete"
-                    android:elevation="1dp"
-                    app:icon="@drawable/delete"
                     android:layout_marginEnd="10dp"
-
+                    android:elevation="1dp"
+                    android:text="Delete"
+                    app:icon="@drawable/delete"
 
 
                     />
@@ -86,8 +87,7 @@
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="5dp"
-            />
+            android:layout_marginTop="5dp" />
 
         <TextView
             android:layout_width="match_parent"

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="selected_bottom_navigation_text_color">#000000</color> <!-- Màu của văn bản khi mục được chọn -->
+    <color name="selected_bottom_navigation_text_color">#000000
+    </color> <!-- Màu của văn bản khi mục được chọn -->
     <color name="unselected_bottom_navigation_text_color">#FFFFFF</color>
 
     <color name="navigation_indicator">#FFFFFF</color>

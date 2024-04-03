@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -148,6 +149,16 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, selectedPositions, images, selectedImages, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
+        ScrollView scrollView = view.findViewById(R.id.scroll_view);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy > 0) {
+                    scrollView.scrollBy(0, dy);
+                }
+            }
+        });
     }
 
     private void setUpBottomSheet() {

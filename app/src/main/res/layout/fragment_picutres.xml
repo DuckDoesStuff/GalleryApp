@@ -5,6 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.PicutresFragment">
+    <ScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <!-- TODO: Update blank fragment layout -->
     <LinearLayout
@@ -12,6 +16,16 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="150dp"
+            android:layout_marginBottom="50dp"
+            android:gravity="center"
+            android:text="Pictures"
+            android:textSize="48sp"
+            android:textStyle="bold" />
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -47,6 +61,7 @@
             android:layout_height="wrap_content"
             android:gravity="center" />
     </LinearLayout>
+    </ScrollView>
 
     <include layout="@layout/bottom_sheet_layout" />
 

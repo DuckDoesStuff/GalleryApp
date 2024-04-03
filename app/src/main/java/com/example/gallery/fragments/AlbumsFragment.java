@@ -15,14 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.AlbumFrameAdapter;
-import com.example.gallery.component.ImageFrameAdapter;
+import com.example.gallery.utils.MediaContentObserver;
+import com.example.gallery.utils.MediaFetch;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.example.gallery.utils.MediaContentObserver;
-import com.example.gallery.utils.MediaFetch;
-import java.util.Collections;
 
 public class AlbumsFragment extends Fragment implements MediaContentObserver.OnMediaUpdateListener {
     boolean viewMode;
@@ -109,6 +106,13 @@ public class AlbumsFragment extends Fragment implements MediaContentObserver.OnM
         MediaFetch.getInstance(null).fetchMedia(false);
 
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        MediaFetch.getInstance(null).unregisterListener(this);
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

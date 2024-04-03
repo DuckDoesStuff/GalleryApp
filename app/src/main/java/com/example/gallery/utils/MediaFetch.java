@@ -132,7 +132,7 @@ public class MediaFetch {
 
     public void registerListener(MediaContentObserver.OnMediaUpdateListener listener) {
         listeners.add(listener);
-        Log.d("MediaListener", "Current listeners: " + listeners.size());
+        Log.d("Debug", "Current listeners: " + listeners.size());
     }
 
     public void unregisterListener(MediaContentObserver.OnMediaUpdateListener listener) {
@@ -141,12 +141,20 @@ public class MediaFetch {
     }
 
     public void fetchMedia(boolean forceFetch) {
+        // Get the caller's class name and method name
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        String callerClassName = stackTraceElements[3].getClassName();
+        String callerMethodName = stackTraceElements[3].getMethodName();
+
+        // Print the caller's information
+        Log.d("Caller", "Caller: " + callerClassName + "." + callerMethodName);
         new Thread(() -> {
             try {
                 if (forceFetch || mediaModelArrayList == null || mediaModelArrayList.isEmpty()) {
                     mediaModelArrayList = getMedia();
                 }
                 Log.d("Media", "Fetched new media " + mediaModelArrayList.size() + " found" + " Forcefully: " + forceFetch);
+
                 notifyMediaUpdate();
             } catch (Exception e) {
                 e.printStackTrace();

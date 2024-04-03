@@ -77,8 +77,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         images = modelArrayList;
         MediaFetch.sortArrayListModel(images, MediaFetch.SORT_BY_BUCKET_NAME, MediaFetch.SORT_DESC);
         requireActivity().runOnUiThread(() -> {
+            imageFrameAdapter.selectionModeEnabled = false;
             imageFrameAdapter.initFrameModels(images);
-            Log.d("Debug", "on media update");
+            Log.d("Debug", "on media update of picture fragment");
         });
     }
 

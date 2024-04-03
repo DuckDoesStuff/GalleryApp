@@ -18,13 +18,20 @@ import com.example.gallery.component.AlbumFrameAdapter;
 import com.example.gallery.component.ImageFrameAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class AlbumsFragment extends Fragment {
+import com.example.gallery.utils.MediaContentObserver;
+import com.example.gallery.utils.MediaFetch;
+import java.util.Collections;
+
+public class AlbumsFragment extends Fragment implements MediaContentObserver.OnMediaUpdateListener {
     boolean viewMode;
 
     private ArrayList<AlbumFrameAdapter.AlbumModel> albums;
 
     private ArrayList<AlbumFrameAdapter.AlbumModel> selectedAlbums;
+
+    AlbumFrameAdapter albumFrameAdapter;
 
     MainActivity mainActivity;
 
@@ -97,7 +104,10 @@ public class AlbumsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         selectedAlbums = new ArrayList<AlbumFrameAdapter.AlbumModel>();
         viewMode = true;
-        loadAlbums();
+        albums = new ArrayList<>();
+        MediaFetch.getInstance(null).registerListener(this);
+        MediaFetch.getInstance(null).fetchMedia(false);
+
     }
 
     @Override
@@ -110,11 +120,38 @@ public class AlbumsFragment extends Fragment {
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int albSize = screenWidth / spanCount;
 
+
+
         RecyclerView recyclerView = view.findViewById(R.id.album_grid);
-        AlbumFrameAdapter albumFrameAdapter = new AlbumFrameAdapter(albums);
+        albumFrameAdapter = new AlbumFrameAdapter(albums);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setAdapter(albumFrameAdapter);
 
         return view;
+    }
+
+    @Override
+    public void onMediaUpdate(ArrayList<MediaFetch.MediaModel> modelArrayList) {
+        albums.clear();
+        List<String> bucketIds = MediaFetch.getBucketIds(this.requireContext());
+        for (String bucketId : bucketIds) {
+            // Lấy danh sách media từ bucket ID (có thể là ảnh hoặc video)
+            ArrayList<MediaFetch.MediaModel> mediaList = MediaFetch.mediaFromBucketID(modelArrayList, bucketId);
+
+            // Kiểm tra xem album có media không
+            if (!mediaList.isEmpty()) {
+                // Lấy thông tin của album (tên album, số lượng media)
+                String albumName = mediaList.get(0).bucketName; // Lấy tên album từ media đầu tiên trong danh sách
+                int numOfMedia = mediaList.size();
+                MediaFetch.sortArrayListModel(mediaList, MediaFetch.SORT_BY_DATE_TAKEN, MediaFetch.SORT_DESC);
+                String thumbnail = mediaList.get(0).data; // Đây là nơi để lấy hình ảnh thumbnail, bạn có thể thay thế bằng logic tương ứng
+
+                // Tạo đối tượng AlbumModel và thêm vào ArrayList
+                albums.add(new AlbumFrameAdapter.AlbumModel(bucketId, albumName, numOfMedia, thumbnail));
+            }
+        }
+        requireActivity().runOnUiThread(()->{
+            albumFrameAdapter.notifyDataSetChanged();
+        });
     }
 }

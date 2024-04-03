@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.gallery.R;
 
 import java.util.ArrayList;
@@ -19,10 +20,12 @@ import java.util.ArrayList;
 
 public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.AlbumViewHolder> {
     public static class AlbumModel {
+        String id;
         String albumName;
         int numOfImg;
         String thumbnail;
-        public AlbumModel (String name, int n, String thumb) {
+        public AlbumModel (String id, String name, int n, String thumb) {
+            this.id = id;
             this.albumName = name;
             this.numOfImg = n;
             this.thumbnail = thumb;
@@ -47,6 +50,7 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
 
     public AlbumFrameAdapter() {
         super();
+
     }
 
     @NonNull
@@ -62,6 +66,14 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
     }
     @Override
     public void onBindViewHolder(@NonNull AlbumFrameAdapter.AlbumViewHolder holder, int position) {
+        ImageView thumbnail = holder.itemView.findViewById(R.id.album_thumbnail);
+        Glide.with(holder.itemView).load(albums.get(position).thumbnail).centerCrop().into(thumbnail);
+
+        TextView albumName = holder.itemView.findViewById(R.id.album_name);
+        albumName.setText(albums.get(position).albumName);
+
+        TextView albumCount = holder.itemView.findViewById(R.id.album_count);
+        albumCount.setText(String.valueOf((albums.get(position).numOfImg)));
     }
 
     @Override

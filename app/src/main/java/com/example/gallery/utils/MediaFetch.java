@@ -2,6 +2,7 @@ package com.example.gallery.utils;
 
 import static androidx.core.app.ActivityCompat.startIntentSenderForResult;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -19,9 +20,11 @@ import androidx.annotation.NonNull;
 import com.example.gallery.activities.MainActivity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MediaFetch {
@@ -36,6 +39,34 @@ public class MediaFetch {
     private ArrayList<MediaModel> mediaModelArrayList;
     public MainActivity mainActivity;
 
+    public static List<String> getBucketIds(Context context) {
+        List<String> bucketIds = new ArrayList<>();
+        ContentResolver contentResolver = context.getContentResolver();
+
+        // Truy vấn dữ liệu từ bảng MediaStore.Images.Media để lấy danh sách bucket ID.
+        Cursor cursor = contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.Media.BUCKET_ID},
+                null,
+                null,
+                null);
+
+        if (cursor != null) {
+            try {
+                // Duyệt qua tất cả các dòng trong cursor và thêm bucket ID vào danh sách.
+                while (cursor.moveToNext()) {
+                    @SuppressLint("Range") String bucketId = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_ID));
+                    bucketIds.add(bucketId);
+                }
+            } finally {
+                cursor.close(); // Đảm bảo đóng cursor sau khi sử dụng xong.
+            }
+        }
+
+        // Loại bỏ các ID trùng lặp bằng cách sử dụng một HashSet.
+        Set<String> uniqueBucketIds = new HashSet<>(bucketIds);
+        return new ArrayList<>(uniqueBucketIds);
+    }
     private MediaFetch(@NonNull Context context) {
         this.context = context;
         listeners = new ArrayList<>();
@@ -325,5 +356,6 @@ public class MediaFetch {
             dest.writeString(dateAdded);
             dest.writeString(duration);
         }
+
     }
 }

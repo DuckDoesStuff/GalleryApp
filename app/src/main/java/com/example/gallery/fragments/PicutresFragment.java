@@ -61,6 +61,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         MediaFetch.getInstance(null).registerListener(this);
         MediaFetch.getInstance(null).fetchMedia(false);
+
+        Log.d("Debug", "on create");
     }
 
     @Override
@@ -76,6 +78,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         MediaFetch.sortArrayListModel(images, MediaFetch.SORT_BY_BUCKET_NAME, MediaFetch.SORT_DESC);
         requireActivity().runOnUiThread(() -> {
             imageFrameAdapter.initFrameModels(images);
+            Log.d("Debug", "on media update");
         });
     }
 

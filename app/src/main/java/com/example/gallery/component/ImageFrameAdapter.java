@@ -45,8 +45,8 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             for (MediaFetch.MediaModel media : images) {
                 frameModels.add(new FrameModel(media));
             }
-            notifyDataSetChanged();
         }
+        notifyDataSetChanged();
     }
 
     @NonNull

@@ -15,7 +15,6 @@ import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -149,25 +148,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, selectedPositions, images, selectedImages, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
-        NestedScrollView scrollView = view.findViewById(R.id.scroll_view);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                //If scrolled to the top
-                if (!recyclerView.canScrollVertically(-1)) {
-                    scrollView.scrollBy(0, -1);
-                }
-            }
-
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if (dy > 0) {
-                    scrollView.scrollBy(0, dy);
-                }
-            }
-        });
     }
 
     private void setUpBottomSheet() {

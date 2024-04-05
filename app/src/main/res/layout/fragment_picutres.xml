@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.PicutresFragment">
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             android:gravity="center" />
     </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <include layout="@layout/bottom_sheet_layout" />
 

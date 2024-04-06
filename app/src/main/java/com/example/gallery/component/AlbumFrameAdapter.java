@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -73,7 +74,17 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
     @Override
     public void onBindViewHolder(@NonNull AlbumFrameAdapter.AlbumViewHolder holder, int position) {
         ImageView thumbnail = holder.itemView.findViewById(R.id.album_thumbnail);
-        Glide.with(holder.itemView).load(albums.get(position).thumbnail).centerCrop().into(thumbnail);
+        if(albums.get(position).thumbnail == null) {
+            ColorMatrix matrix = new ColorMatrix();
+            matrix.setSaturation(0);
+            thumbnail.setColorFilter(new ColorMatrixColorFilter(matrix));
+        } else {
+            Glide.with(holder.itemView)
+                .load(albums
+                .get(position).thumbnail)
+                .centerCrop()
+                .into(thumbnail);
+        }
 
         TextView albumName = holder.itemView.findViewById(R.id.album_name);
         albumName.setText(albums.get(position).albumName);
@@ -81,8 +92,11 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
         TextView albumCount = holder.itemView.findViewById(R.id.album_count);
         albumCount.setText(String.valueOf((albums.get(position).numOfImg)));
         holder.itemView.setOnClickListener(v -> {
+            if(albums.get(position).id != null)
+                onClickCallBack.onItemClick(position);
+            else
+                Toast.makeText(v.getContext(), "This album is empty!", Toast.LENGTH_SHORT).show();
 
-            onClickCallBack.onItemClick(position);
         });
     }
 

@@ -18,10 +18,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
 import com.example.gallery.activities.AlbumActivity;
-import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.AlbumFrameAdapter;
 import com.example.gallery.component.dialog.BottomDialog;
+import com.example.gallery.utils.GalleryDB;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
 
@@ -155,6 +155,7 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
     public void onMediaUpdate(ArrayList<MediaFetch.MediaModel> modelArrayList) {
         albums.clear();
         List<String> bucketIds = MediaFetch.getBucketIds(this.requireContext());
+        ArrayList<GalleryDB.AlbumScheme> albumSchemes = new ArrayList<>();
         this.modelArrayList= modelArrayList;
         for (String bucketId : bucketIds) {
             // Lấy danh sách media từ bucket ID (có thể là ảnh hoặc video)
@@ -170,8 +171,40 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
 
                 // Tạo đối tượng AlbumModel và thêm vào ArrayList
                 albums.add(new AlbumFrameAdapter.AlbumModel(bucketId, albumName, numOfMedia, thumbnail));
+                albumSchemes.add(new GalleryDB.AlbumScheme(albumName, bucketId, false, null));
             }
         }
+
+        // Update GalleryDB
+        new Thread(() -> {
+            try(GalleryDB db = new GalleryDB(this.requireContext())) {
+                db.updateAlbums(albumSchemes);
+            }catch (Exception e){
+                e.printStackTrace();
+                Log.d("DB", "Error updating albums");
+            }
+        }).start();
+
+        // Add the other albums which MediaStore didnt index from GalleryDB
+        try(GalleryDB db = new GalleryDB(this.requireContext())) {
+            ArrayList<GalleryDB.AlbumScheme> dbAlbums = db.getAlbums();
+            for (GalleryDB.AlbumScheme albumScheme : dbAlbums) {
+                boolean found = false;
+                for (AlbumFrameAdapter.AlbumModel album : albums) {
+                    if (album.albumName.equals(albumScheme.albumName)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    albums.add(new AlbumFrameAdapter.AlbumModel(null, albumScheme.albumName, 0, null));
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            Log.d("DB", "Error updating albums");
+        }
+
         requireActivity().runOnUiThread(()->{
             albumFrameAdapter.notifyDataSetChanged();
         });

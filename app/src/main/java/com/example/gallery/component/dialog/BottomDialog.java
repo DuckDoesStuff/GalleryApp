@@ -44,7 +44,7 @@ public class BottomDialog extends BottomSheetDialogFragment {
             if(albumNameStr.isEmpty()) {
                 Toast.makeText(getContext(), "Please enter album name", Toast.LENGTH_SHORT).show();
             }else {
-                if (AlbumManager.createNewAlbum(albumNameStr) != null) {
+                if (AlbumManager.createNewAlbum(requireContext(), albumNameStr) != null) {
                     Toast.makeText(getContext(), "Album created successfully", Toast.LENGTH_SHORT).show();
                     dismiss();
                 } else {

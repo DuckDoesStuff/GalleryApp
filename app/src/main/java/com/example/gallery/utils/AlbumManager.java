@@ -1,5 +1,9 @@
 package com.example.gallery.utils;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -32,14 +36,17 @@ public class AlbumManager {
         }
     }
 
-    public static String createNewAlbum(String albumName) {
+    public static String createNewAlbum(@NonNull Context context, String albumName) {
         File album = new File(android.os.Environment.getExternalStoragePublicDirectory(
                 android.os.Environment.DIRECTORY_DCIM), albumName);
 
         if (!album.exists()) {
             if (album.mkdirs()) {
                 // Return directory path
-                return album.getAbsolutePath();
+                String albumPath = album.getAbsolutePath();
+                GalleryDB db = new GalleryDB(context);
+                db.onAlbumCreated(albumName, albumPath);
+                return albumPath;
             }
         }
         return null; // Error occurred while creating album

@@ -37,6 +37,20 @@ public class ImageActivity extends AppCompatActivity {
         ImageButton imageButton = findViewById(R.id.back_button);
         imageButton.setOnClickListener(v -> finish());
 
+        ImageButton editButton = findViewById(R.id.edit_btn);
+        editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Thực hiện chuyển sang EditActivity
+                String currentImagePath = images.get(viewPager2.getCurrentItem()).data;
+
+                // Thực hiện chuyển sang EditActivity và truyền đường dẫn của hình ảnh
+                Intent editIntent = new Intent(ImageActivity.this, EditActivity.class);
+                editIntent.putExtra("imagePath", currentImagePath);
+                startActivity(editIntent);
+            }
+        });
+
         viewPager2 = findViewById(R.id.view_pager);
         viewPagerAdapter = new ViewPagerAdapter(images, this);
         viewPager2.setAdapter(viewPagerAdapter);
@@ -49,21 +63,6 @@ public class ImageActivity extends AppCompatActivity {
 
     public void setViewPagerInputEnabled(boolean enabled) {
         viewPager2.setUserInputEnabled(enabled);
-
-        ImageButton editButton = findViewById(R.id.edit_btn);
-        editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Thực hiện chuyển sang EditActivity
-                String currentImagePath = images.get(viewPager2.getCurrentItem());
-
-                // Thực hiện chuyển sang EditActivity và truyền đường dẫn của hình ảnh
-                Intent editIntent = new Intent(ImageActivity.this, EditActivity.class);
-                editIntent.putExtra("imagePath", currentImagePath);
-                startActivity(editIntent);
-            }
-        });
-
     }
 
     @Override

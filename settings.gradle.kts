@@ -4,6 +4,7 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
         maven("https://www.jitpack.io")
+        //noinspection JcenterRepositoryObsolete
         jcenter()
         maven("https://jitpack.io")
 
@@ -14,6 +15,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        //noinspection JcenterRepositoryObsolete
         jcenter()
         maven("https://jitpack.io")
         maven("https://www.jitpack.io")

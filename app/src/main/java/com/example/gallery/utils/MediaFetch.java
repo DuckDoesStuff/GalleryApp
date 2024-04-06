@@ -296,6 +296,47 @@ public class MediaFetch {
         return mediaList;
     }
 
+    public static String getDirectoryPathFromBucketId(String bucketId) {
+        String directoryPath = null;
+
+        // Define the columns you want to retrieve
+        String[] projection = { MediaStore.Files.FileColumns.DATA };
+
+        // Define the selection criteria
+        String selection = MediaStore.Files.FileColumns.BUCKET_ID + " = ?";
+
+        // Arguments for the selection criteria
+        String[] selectionArgs = { bucketId };
+
+        // Sort the results
+
+        // Execute the query using the content resolver
+        Cursor cursor = instance.context.getContentResolver().query(
+                MediaStore.Files.getContentUri("external"), // URI for both images and videos
+                projection,
+                selection,
+                selectionArgs,
+                null
+        );
+
+        // Check if the cursor is not null and move to the first entry
+        if (cursor != null && cursor.moveToFirst()) {
+            // Get the index of the DATA column
+            int dataIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+
+            // Get the directory path from the cursor
+            directoryPath = cursor.getString(dataIndex);
+        }
+
+        // Close the cursor
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        // Return the directory path
+        return directoryPath;
+    }
+
     @Override
     protected void finalize() throws Throwable {
         super.finalize();

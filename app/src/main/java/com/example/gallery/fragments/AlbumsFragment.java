@@ -7,7 +7,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.AlbumFrameAdapter;
+import com.example.gallery.component.dialog.BottomDialog;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
 
@@ -113,6 +117,16 @@ public class AlbumsFragment extends Fragment implements MediaContentObserver.OnM
         MediaFetch.getInstance(null).unregisterListener(this);
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        ImageButton newAlbumButton = view.findViewById(R.id.plus);
+        newAlbumButton.setOnClickListener(v -> {
+            // Show dialog to create new album
+            new BottomDialog().show(getParentFragmentManager(), "bottom_dialog");
+        });
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

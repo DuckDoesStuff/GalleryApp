@@ -8,30 +8,33 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#000000"
+        android:background="#FFFFFF"
         android:orientation="vertical">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/selected_bottom_navigation_text_color"
+            android:layout_gravity="center"
+            android:background="@color/ic_launcher_background"
+            android:clipToPadding="false"
             android:minHeight="?attr/actionBarSize"
             android:theme="?attr/actionBarTheme">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#000000"
+                android:layout_marginLeft="-20dp"
+                android:background="#FFFFFF"
                 android:orientation="horizontal">
 
                 <ImageButton
                     android:id="@+id/back_button_album"
                     android:layout_width="50dp"
                     android:layout_height="54dp"
-                    android:background="#000000"
+                    android:background="#FFFFFF"
                     android:importantForAccessibility="no"
-                    app:srcCompat="@drawable/back" />
+                    app:srcCompat="@drawable/back_black" />
 
                 <LinearLayout
                     android:layout_width="217dp"
@@ -43,7 +46,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Album"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="24sp"
                         android:textStyle="bold" />
 
@@ -53,21 +56,12 @@
                         android:orientation="horizontal">
 
                         <TextView
-                            android:id="@+id/num_of_img"
+                            android:id="@+id/album_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="photo"
-                            android:textColor="#919191"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/num_of_video"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="video"
-                            android:textColor="#919191"
+                            android:text="name"
+                            android:textColor="#000000"
                             android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -87,7 +81,7 @@
                         android:layout_marginEnd="16dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:contentDescription="TODO"
-                        android:src="@drawable/search_white" />
+                        android:src="@drawable/search" />
 
                     <ImageButton
                         android:id="@+id/settings"
@@ -97,12 +91,13 @@
                         android:layout_marginTop="16dp"
                         android:layout_marginEnd="16dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/setting_white" />
+                        android:src="@drawable/setting" />
                 </LinearLayout>
             </LinearLayout>
         </androidx.appcompat.widget.Toolbar>
+
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/photo_grid_trash"
+            android:id="@+id/photo_album_grid"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center" />

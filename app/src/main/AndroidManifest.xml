@@ -28,6 +28,9 @@
             android:name=".activities.ChangeBrightnessActivity"
             android:exported="false" />
         <activity
+            android:name=".activities.AlbumActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.EditActivity"
             android:exported="false"
             android:theme="@style/Theme.Gallery" />

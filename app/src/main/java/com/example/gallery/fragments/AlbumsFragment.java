@@ -1,5 +1,6 @@
 package com.example.gallery.fragments;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -13,6 +14,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
+import com.example.gallery.activities.AlbumActivity;
+import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.AlbumFrameAdapter;
 import com.example.gallery.utils.MediaContentObserver;
@@ -21,9 +24,9 @@ import com.example.gallery.utils.MediaFetch;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AlbumsFragment extends Fragment implements MediaContentObserver.OnMediaUpdateListener {
+public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumFrameListener, MediaContentObserver.OnMediaUpdateListener {
     boolean viewMode;
-
+    ArrayList<MediaFetch.MediaModel> modelArrayList;
     private ArrayList<AlbumFrameAdapter.AlbumModel> albums;
 
     private ArrayList<AlbumFrameAdapter.AlbumModel> selectedAlbums;
@@ -127,7 +130,7 @@ public class AlbumsFragment extends Fragment implements MediaContentObserver.OnM
 
 
         RecyclerView recyclerView = view.findViewById(R.id.album_grid);
-        albumFrameAdapter = new AlbumFrameAdapter(albums);
+        albumFrameAdapter = new AlbumFrameAdapter(this, albums);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setAdapter(albumFrameAdapter);
 
@@ -138,6 +141,7 @@ public class AlbumsFragment extends Fragment implements MediaContentObserver.OnM
     public void onMediaUpdate(ArrayList<MediaFetch.MediaModel> modelArrayList) {
         albums.clear();
         List<String> bucketIds = MediaFetch.getBucketIds(this.requireContext());
+        this.modelArrayList= modelArrayList;
         for (String bucketId : bucketIds) {
             // Lấy danh sách media từ bucket ID (có thể là ảnh hoặc video)
             ArrayList<MediaFetch.MediaModel> mediaList = MediaFetch.mediaFromBucketID(modelArrayList, bucketId);
@@ -157,5 +161,21 @@ public class AlbumsFragment extends Fragment implements MediaContentObserver.OnM
         requireActivity().runOnUiThread(()->{
             albumFrameAdapter.notifyDataSetChanged();
         });
+    }
+
+    @Override
+    public void onItemClick(int position) {
+        AlbumFrameAdapter.AlbumFrameListener.super.onItemClick(position);
+        ArrayList<MediaFetch.MediaModel> mediaList = MediaFetch.mediaFromBucketID(modelArrayList, albums.get(position).id);
+        Intent intent = new Intent(getContext(), AlbumActivity.class);
+        intent.putExtra("images", mediaList);
+        intent.putExtra("name", albums.get(position).albumName);
+        intent.putExtra("initial", position);
+        mainActivity.startActivity(intent);
+    }
+
+    @Override
+    public void onItemLongClick(int position) {
+        AlbumFrameAdapter.AlbumFrameListener.super.onItemLongClick(position);
     }
 }

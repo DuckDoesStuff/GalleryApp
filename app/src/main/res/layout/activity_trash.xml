@@ -107,7 +107,7 @@
         </androidx.appcompat.widget.Toolbar>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/photo_grid_trash"
+            android:id="@+id/photo_album_grid"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center" />

@@ -1,10 +1,10 @@
 package com.example.gallery.component;
 
-import android.util.Log;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,9 +19,10 @@ import java.util.ArrayList;
 
 
 public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.AlbumViewHolder> {
+    private final AlbumFrameAdapter.AlbumFrameListener onClickCallBack;
     public static class AlbumModel {
-        String id;
-        String albumName;
+        public String id;
+        public String albumName;
         int numOfImg;
         String thumbnail;
         public AlbumModel (String id, String name, int n, String thumb) {
@@ -29,6 +30,14 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
             this.albumName = name;
             this.numOfImg = n;
             this.thumbnail = thumb;
+        }
+    }
+    public interface AlbumFrameListener {
+        default void onItemClick(int position) {
+
+        }
+
+        default void onItemLongClick(int position) {
         }
     }
     private ArrayList<AlbumModel> albums;
@@ -48,10 +57,7 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
     }
 
 
-    public AlbumFrameAdapter() {
-        super();
 
-    }
 
     @NonNull
     @Override
@@ -74,7 +80,10 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
 
         TextView albumCount = holder.itemView.findViewById(R.id.album_count);
         albumCount.setText(String.valueOf((albums.get(position).numOfImg)));
+        holder.itemView.setOnClickListener(v -> {
 
+            onClickCallBack.onItemClick(position);
+        });
     }
 
     @Override
@@ -87,7 +96,8 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
         return albums.size();
     }
 
-    public AlbumFrameAdapter(ArrayList<AlbumModel> albums) {
+    public AlbumFrameAdapter(AlbumFrameListener onClickCallBack, ArrayList<AlbumModel> albums) {
+        this.onClickCallBack = onClickCallBack;
         this.albums = albums;
     }
 }

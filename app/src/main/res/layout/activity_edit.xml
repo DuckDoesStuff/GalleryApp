@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
 
@@ -12,19 +12,17 @@
         android:layout_height="wrap_content"
         android:background="#000000"
         android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme">
-
+        android:theme="?attr/actionBarTheme" >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
             <ImageButton
-                android:id="@+id/back_button"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:src="@drawable/back"
                 android:background="@null"
-                android:src="@drawable/back" />
-
+                android:id="@+id/back_button"
+                />
             <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -35,20 +33,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
 
-                android:background="@null"
                 android:src="@drawable/setting"
-                app:tint="#FFFFFF" />
+                app:tint="#FFFFFF"
+                android:background="@null"
+                />
 
 
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/view_pager"
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#000000" />
+        android:id="@+id/imageView"/>
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar3"
@@ -57,48 +55,49 @@
         android:background="#000000"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
-        app:contentInsetLeft="0dp"
-        app:contentInsetStart="0dp">
-
+        app:contentInsetStart="0dp"
+        app:contentInsetLeft="0dp">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginLeft="0dp"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_marginLeft="0dp">
 
             <ImageButton
                 android:id="@+id/edit_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:src="@drawable/edit"
                 android:layout_weight="1"
                 android:background="@null"
-                android:src="@drawable/edit" />
+
+                />
 
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:src="@drawable/delete"
                 android:background="@null"
 
-                android:src="@drawable/delete" />
+                android:layout_weight="1" />
 
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:src="@drawable/share"
                 android:background="@null"
 
 
-                android:src="@drawable/share" />
-
+                android:layout_weight="1" />
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:src="@drawable/favorite"
                 android:background="@null"
 
-                android:src="@drawable/favorite" />
+                android:layout_weight="1"
+                />
 
         </LinearLayout>
 

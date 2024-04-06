@@ -35,7 +35,7 @@ android {
 }
 
 dependencies {
-
+    implementation("com.theartofdev.edmodo:android-image-cropper:2.8.+")
     // For loading images
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("androidx.navigation:navigation-fragment:2.7.7")

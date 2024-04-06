@@ -1,7 +1,5 @@
 package com.example.gallery.fragments;
 
-import static android.app.Activity.RESULT_OK;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,7 +28,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 
-public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, MediaContentObserver.OnMediaUpdateListener {
+public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, MediaContentObserver.OnMediaUpdateListener, MediaFetch.onDeleteCallback {
 
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
@@ -153,19 +151,18 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     private void setUpBottomSheet() {
         Button deleteBtn = bottomSheet.findViewById(R.id.deleteBtn);
         deleteBtn.setOnClickListener(v -> {
-            MediaFetch.deleteMediaFiles(requireActivity().getContentResolver(), selectedImages);
+            MediaFetch.deleteMediaFiles(requireActivity().getContentResolver(), selectedImages, this);
         });
     }
 
-    public void onDeleteResult(int resultCode) {
-        if (resultCode == RESULT_OK) {
-            selectedImages.clear();
-            onHideBottomSheet();
-            imageFrameAdapter.selectionModeEnabled = false;
-//            imageFrameAdapter.notifyDataSetChanged();
-            Log.d("Debug", "Deleted images");
-            // There is a bug in here hiding but I can't produce it consistently :(
-        }
+    @Override
+    public void onDeleteResult() {
+        selectedImages.clear();
+        onHideBottomSheet();
+        imageFrameAdapter.selectionModeEnabled = false;
+        imageFrameAdapter.notifyDataSetChanged();
+        Log.d("Debug", "Deleted images");
+        // There is a bug in here hiding but I can't produce it consistently :(
     }
 
     @Override

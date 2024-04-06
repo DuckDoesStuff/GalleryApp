@@ -1,12 +1,8 @@
 package com.example.gallery.utils;
 
-import static androidx.core.app.ActivityCompat.startIntentSenderForResult;
-
 import android.annotation.SuppressLint;
-import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.IntentSender;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
@@ -38,6 +34,10 @@ public class MediaFetch {
     private final ArrayList<MediaContentObserver.OnMediaUpdateListener> listeners;
     private ArrayList<MediaModel> mediaModelArrayList;
     public MainActivity mainActivity;
+
+    public interface onDeleteCallback {
+        void onDeleteResult();
+    }
 
     public static List<String> getBucketIds(Context context) {
         List<String> bucketIds = new ArrayList<>();
@@ -202,25 +202,15 @@ public class MediaFetch {
         return contentUris;
     }
 
-    public static void deleteMediaFiles(ContentResolver contentResolver, ArrayList<MediaModel> mediaDelete) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            ArrayList<Uri> uris = MediaFetch.getContentUrisForFiles(instance.context, mediaDelete);
-
-            PendingIntent pendingIntent = MediaStore.createDeleteRequest(contentResolver, uris);
-            try {
-                startIntentSenderForResult(instance.mainActivity, pendingIntent.getIntentSender(), 0, null, 0, 0, 0, null);
-            } catch (IntentSender.SendIntentException e) {
-                throw new RuntimeException(e);
+    public static void deleteMediaFiles(ContentResolver contentResolver, ArrayList<MediaModel> mediaDelete, onDeleteCallback callback) {
+        if(!mediaDelete.isEmpty()) {
+            Iterator<MediaModel> iterator = mediaDelete.iterator();
+            while (iterator.hasNext()) {
+                MediaFetch.MediaModel mediaModel = iterator.next();
+                deleteMediaFile(contentResolver, mediaModel.data);
+                iterator.remove();
             }
-        }else {
-            if(!mediaDelete.isEmpty()) {
-                Iterator<MediaModel> iterator = mediaDelete.iterator();
-                while (iterator.hasNext()) {
-                    MediaFetch.MediaModel mediaModel = iterator.next();
-                    deleteMediaFile(contentResolver, mediaModel.data);
-                    iterator.remove();
-                }
-            }
+            callback.onDeleteResult();
         }
     }
 

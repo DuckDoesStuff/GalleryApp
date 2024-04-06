@@ -35,7 +35,11 @@ android {
 }
 
 dependencies {
-    implementation("com.theartofdev.edmodo:android-image-cropper:2.8.+")
+    implementation("jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1")
+
+    implementation("com.squareup.picasso:picasso:2.8")
+
+    implementation("com.github.yalantis:ucrop:2.2.8-native")
     // For loading images
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("androidx.navigation:navigation-fragment:2.7.7")

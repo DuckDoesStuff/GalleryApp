@@ -74,6 +74,7 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
 
         TextView albumCount = holder.itemView.findViewById(R.id.album_count);
         albumCount.setText(String.valueOf((albums.get(position).numOfImg)));
+
     }
 
     @Override

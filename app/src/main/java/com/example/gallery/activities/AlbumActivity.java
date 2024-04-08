@@ -1,24 +1,16 @@
 package com.example.gallery.activities;
 
-import static java.security.AccessController.getContext;
-
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
-import com.example.gallery.component.AlbumFrameAdapter;
 import com.example.gallery.component.ImageFrameAdapter;
-import com.example.gallery.component.ViewPagerAdapter;
-import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
 
 import java.util.ArrayList;

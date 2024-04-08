@@ -1,20 +1,16 @@
 package com.example.gallery.activities;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.bumptech.glide.Glide;
-import com.example.gallery.component.BrightnessTransformation;
-import com.squareup.picasso.Picasso;
-
-
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.bumptech.glide.Glide;
 import com.example.gallery.R;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 

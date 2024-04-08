@@ -2,6 +2,7 @@ package com.example.gallery.component;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+
 import com.squareup.picasso.Transformation;
 
 public class BrightnessTransformation implements Transformation {

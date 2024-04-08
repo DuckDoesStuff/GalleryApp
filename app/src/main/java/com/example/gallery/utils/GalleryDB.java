@@ -15,12 +15,14 @@ public class GalleryDB extends SQLiteOpenHelper {
     public static class AlbumScheme {
         public String albumName;
         public String albumPath;
+        public String albumThumb;
         public boolean hidden;
         public String createdAt;
 
-        public AlbumScheme(String albumName, String albumPath, @Nullable boolean hidden, @Nullable String createdAt) {
+        public AlbumScheme(String albumName, String albumPath, String albumThumb, @Nullable boolean hidden, @Nullable String createdAt) {
             this.albumName = albumName;
             this.albumPath = albumPath;
+            this.albumThumb = albumThumb;
             this.hidden = hidden;
             if (createdAt == null) {
                 this.createdAt = "CURRENT_TIMESTAMP";
@@ -34,7 +36,7 @@ public class GalleryDB extends SQLiteOpenHelper {
 
 
     public static final String DATABASE_NAME = "gallery_app.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String SQL_CREATE_TRASH_TABLE =
                     "CREATE TABLE IF NOT EXISTS trash (" +
@@ -47,6 +49,7 @@ public class GalleryDB extends SQLiteOpenHelper {
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "album_name TEXT NOT NULL," +
                     "album_path TEXT NOT NULL UNIQUE," +
+                    "album_thumbnail TEXT," +
                     "hidden BOOLEAN DEFAULT FALSE," +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 
@@ -61,10 +64,18 @@ public class GalleryDB extends SQLiteOpenHelper {
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        db.execSQL("DROP TABLE IF EXISTS trash");
+        db.execSQL("DROP TABLE IF EXISTS albums");
+        onCreate(db);
     }
 
     // END SQLITE HELPER
+
+    public void oneTimeExecution(String SQL) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL(SQL);
+        db.close();
+    }
 
 
     // START TRASH
@@ -95,7 +106,10 @@ public class GalleryDB extends SQLiteOpenHelper {
         ArrayList<AlbumScheme> albumSchemes = new ArrayList<>();
         Cursor cursor = db.rawQuery("SELECT * FROM albums", null);
         while (cursor.moveToNext()) {
-            albumSchemes.add(new AlbumScheme(cursor.getString(cursor.getColumnIndexOrThrow("album_name")), cursor.getString(cursor.getColumnIndex("album_path")), cursor.getInt(cursor.getColumnIndex("hidden")) == 1, cursor.getString(cursor.getColumnIndex("created_at"))));
+            String albumName = cursor.getString(cursor.getColumnIndexOrThrow("album_name"));
+            String albumPath = cursor.getString(cursor.getColumnIndexOrThrow("album_path"));
+            String albumThumb = cursor.getString(cursor.getColumnIndexOrThrow("album_thumbnail"));
+            albumSchemes.add(new AlbumScheme(albumName, albumPath, albumThumb, cursor.getInt(cursor.getColumnIndexOrThrow("hidden")) == 1, cursor.getString(cursor.getColumnIndexOrThrow("created_at"))));
         }
         cursor.close();
         db.close();
@@ -106,7 +120,7 @@ public class GalleryDB extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         // Insert album with unique path
         for (AlbumScheme albumScheme : albumSchemes) {
-            db.execSQL("INSERT OR REPLACE INTO albums (album_name, album_path, hidden, created_at) VALUES ('" + albumScheme.albumName + "', '" + albumScheme.albumPath + "', " + albumScheme.hidden + ", " + albumScheme.createdAt + ")");
+            db.execSQL("INSERT OR REPLACE INTO albums (album_name, album_path, album_thumbnail, hidden, created_at) VALUES ('" + albumScheme.albumName + "', '" + albumScheme.albumPath + "','" + albumScheme.albumThumb + "', " + albumScheme.hidden + ", " + albumScheme.createdAt + ")");
         }
         db.close();
     }

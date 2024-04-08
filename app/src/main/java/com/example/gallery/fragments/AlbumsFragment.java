@@ -28,7 +28,7 @@ import com.example.gallery.utils.MediaFetch;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumFrameListener, MediaContentObserver.OnMediaUpdateListener {
+public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumFrameListener, MediaContentObserver.OnMediaUpdateListener, BottomDialog.onBottomSheetListener {
     boolean viewMode;
     ArrayList<MediaFetch.MediaModel> modelArrayList;
     private ArrayList<AlbumFrameAdapter.AlbumModel> albums;
@@ -75,34 +75,6 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
         return null;
     }
 
-    public void loadAlbums() {
-        albums = new ArrayList<>();
-
-        String[] projection = new String[]{
-                MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-        };
-
-        Cursor cursor = requireContext().getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                null,
-                null,
-                MediaStore.Images.Media.BUCKET_DISPLAY_NAME + " ASC"
-        );
-
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                // Retrieve data from the cursor
-                String albumName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
-//                int imageCount = cursor.getInt(cursor.getColumnIndexOrThrow("image_count"));
-
-//                albums.add(new AlbumFrameAdapter.AlbumModel(albumName, imageCount, ""));
-                Log.d("Album", albumName);
-            }
-            cursor.close(); // Close the cursor when done
-        }
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,7 +99,7 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
         ImageButton newAlbumButton = view.findViewById(R.id.plus);
         newAlbumButton.setOnClickListener(v -> {
             // Show dialog to create new album
-            new BottomDialog().show(getParentFragmentManager(), "bottom_dialog");
+            new BottomDialog(this).show(getParentFragmentManager(), "bottom_dialog");
         });
     }
 
@@ -171,7 +143,7 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
 
                 // Tạo đối tượng AlbumModel và thêm vào ArrayList
                 albums.add(new AlbumFrameAdapter.AlbumModel(bucketId, albumName, numOfMedia, thumbnail));
-                albumSchemes.add(new GalleryDB.AlbumScheme(albumName, bucketId, false, null));
+                albumSchemes.add(new GalleryDB.AlbumScheme(albumName, MediaFetch.getDirectoryPathFromBucketId(bucketId), thumbnail, false, null));
             }
         }
 
@@ -185,7 +157,11 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
             }
         }).start();
 
-        // Add the other albums which MediaStore didnt index from GalleryDB
+        getMoreAlbums();
+    }
+
+    public void getMoreAlbums() {
+        // Add the other albums which MediaStore didn't index from GalleryDB
         try(GalleryDB db = new GalleryDB(this.requireContext())) {
             ArrayList<GalleryDB.AlbumScheme> dbAlbums = db.getAlbums();
             for (GalleryDB.AlbumScheme albumScheme : dbAlbums) {
@@ -204,10 +180,6 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
             e.printStackTrace();
             Log.d("DB", "Error updating albums");
         }
-
-        requireActivity().runOnUiThread(()->{
-            albumFrameAdapter.notifyDataSetChanged();
-        });
     }
 
     @Override
@@ -224,5 +196,10 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
     @Override
     public void onItemLongClick(int position) {
         AlbumFrameAdapter.AlbumFrameListener.super.onItemLongClick(position);
+    }
+
+    @Override
+    public void onAlbumCreated() {
+        getMoreAlbums();
     }
 }

@@ -1,5 +1,6 @@
 package com.example.gallery.utils;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -18,11 +19,13 @@ public class GalleryDB extends SQLiteOpenHelper {
         public String albumThumb;
         public boolean hidden;
         public String createdAt;
+        public int albumCount;
 
-        public AlbumScheme(String albumName, String albumPath, String albumThumb, @Nullable boolean hidden, @Nullable String createdAt) {
+        public AlbumScheme(String albumName, String albumPath, String albumThumb, int albumCount, @Nullable boolean hidden, @Nullable String createdAt) {
             this.albumName = albumName;
             this.albumPath = albumPath;
             this.albumThumb = albumThumb;
+            this.albumCount = albumCount;
             this.hidden = hidden;
             if (createdAt == null) {
                 this.createdAt = "CURRENT_TIMESTAMP";
@@ -36,7 +39,7 @@ public class GalleryDB extends SQLiteOpenHelper {
 
 
     public static final String DATABASE_NAME = "gallery_app.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 1;
 
     private static final String SQL_CREATE_TRASH_TABLE =
                     "CREATE TABLE IF NOT EXISTS trash (" +
@@ -50,6 +53,7 @@ public class GalleryDB extends SQLiteOpenHelper {
                     "album_name TEXT NOT NULL," +
                     "album_path TEXT NOT NULL UNIQUE," +
                     "album_thumbnail TEXT," +
+                    "album_count INT DEFAULT 0," +
                     "hidden BOOLEAN DEFAULT FALSE," +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 
@@ -109,7 +113,8 @@ public class GalleryDB extends SQLiteOpenHelper {
             String albumName = cursor.getString(cursor.getColumnIndexOrThrow("album_name"));
             String albumPath = cursor.getString(cursor.getColumnIndexOrThrow("album_path"));
             String albumThumb = cursor.getString(cursor.getColumnIndexOrThrow("album_thumbnail"));
-            albumSchemes.add(new AlbumScheme(albumName, albumPath, albumThumb, cursor.getInt(cursor.getColumnIndexOrThrow("hidden")) == 1, cursor.getString(cursor.getColumnIndexOrThrow("created_at"))));
+            int albumCount = cursor.getInt(cursor.getColumnIndexOrThrow("album_count"));
+            albumSchemes.add(new AlbumScheme(albumName, albumPath, albumThumb, albumCount, cursor.getInt(cursor.getColumnIndexOrThrow("hidden")) == 1, cursor.getString(cursor.getColumnIndexOrThrow("created_at"))));
         }
         cursor.close();
         db.close();
@@ -118,10 +123,37 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     public void updateAlbums(ArrayList<AlbumScheme> albumSchemes) {
         SQLiteDatabase db = getWritableDatabase();
-        // Insert album with unique path
+
         for (AlbumScheme albumScheme : albumSchemes) {
-            db.execSQL("INSERT OR REPLACE INTO albums (album_name, album_path, album_thumbnail, hidden, created_at) VALUES ('" + albumScheme.albumName + "', '" + albumScheme.albumPath + "','" + albumScheme.albumThumb + "', " + albumScheme.hidden + ", " + albumScheme.createdAt + ")");
+            // Check if album with the same album_name already exists
+            Cursor cursor = db.rawQuery("SELECT 1 FROM albums WHERE album_name = ?", new String[]{albumScheme.albumName});
+            boolean exists = cursor.getCount() > 0;
+            cursor.close();
+            if (exists) {
+                // Album with the same album_name already exists, update the row
+                ContentValues values = new ContentValues();
+                values.put("album_name", albumScheme.albumName);
+                values.put("album_path", albumScheme.albumPath);
+                values.put("album_thumbnail", albumScheme.albumThumb);
+                values.put("album_count", albumScheme.albumCount);
+                values.put("hidden", albumScheme.hidden ? 1 : 0);
+                values.put("created_at", albumScheme.createdAt);
+
+                db.update("albums", values, "album_name = ?", new String[]{albumScheme.albumName});
+            } else {
+                // Album does not exist, insert a new row
+                ContentValues values = new ContentValues();
+                values.put("album_name", albumScheme.albumName);
+                values.put("album_path", albumScheme.albumPath);
+                values.put("album_thumbnail", albumScheme.albumThumb);
+                values.put("album_count", albumScheme.albumCount);
+                values.put("hidden", albumScheme.hidden ? 1 : 0);
+                values.put("created_at", albumScheme.createdAt);
+
+                db.insert("albums", null, values);
+            }
         }
+
         db.close();
     }
 

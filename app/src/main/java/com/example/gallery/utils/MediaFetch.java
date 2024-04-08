@@ -334,7 +334,7 @@ public class MediaFetch {
         }
 
         // Return the directory path
-        return directoryPath;
+        return directoryPath.substring(0, directoryPath.lastIndexOf('/'));
     }
 
     @Override

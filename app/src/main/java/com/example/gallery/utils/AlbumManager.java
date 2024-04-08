@@ -1,6 +1,8 @@
 package com.example.gallery.utils;
 
 import android.content.Context;
+import android.media.MediaScannerConnection;
+import android.os.Environment;
 
 import androidx.annotation.NonNull;
 
@@ -11,11 +13,10 @@ import java.io.IOException;
 
 public class AlbumManager {
 
-    public static boolean moveMedia(String sourceFilePath, String bucketID) {
-        String destinationFilePath = MediaFetch.getDirectoryPathFromBucketId(bucketID);
+    public static boolean moveMedia(Context context, String sourceFilePath, String destinationPath) {
         try {
             File sourceFile = new File(sourceFilePath);
-            File destinationFile = new File(destinationFilePath);
+            File destinationFile = new File(destinationPath + "/" + sourceFile.getName());
 
             FileInputStream inputStream = new FileInputStream(sourceFile);
             FileOutputStream outputStream = new FileOutputStream(destinationFile);
@@ -29,16 +30,26 @@ public class AlbumManager {
             inputStream.close();
             outputStream.close();
 
-            return sourceFile.delete();
+            if (sourceFile.delete()) {
+                notifyMediaStoreScan(context, destinationPath);
+                return true;
+            }else
+                return false;
         } catch (IOException e) {
             e.printStackTrace();
             return false; // Error occurred while moving file
         }
     }
 
+    private static void notifyMediaStoreScan(Context context, String filePath) {
+        MediaScannerConnection.scanFile(context, new String[]{filePath}, null, (path, uri) -> {
+            // MediaScannerConnection callback
+        });
+    }
+
     public static String createNewAlbum(@NonNull Context context, String albumName) {
         File album = new File(android.os.Environment.getExternalStoragePublicDirectory(
-                android.os.Environment.DIRECTORY_DCIM), albumName);
+                Environment.DIRECTORY_DCIM), albumName);
 
         if (!album.exists()) {
             if (album.mkdirs()) {

@@ -21,7 +21,7 @@ import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.ImageFrameAdapter;
-import com.example.gallery.utils.GalleryDB;
+import com.example.gallery.component.dialog.AlbumPickerActivity;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -157,11 +157,15 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         Button addBtn = bottomSheet.findViewById(R.id.addToBtn);
         addBtn.setOnClickListener(v -> {
-            // Add selected images to album
-            // Show dialog to select album
-//            new AlbumPickerDialog().show(getParentFragmentManager(), "album_picker");
-            GalleryDB db = new GalleryDB(getContext());
-            db.oneTimeExecution("DELETE FROM albums");
+            imageFrameAdapter.selectionModeEnabled = false;
+            imageFrameAdapter.notifyDataSetChanged();
+            onHideBottomSheet();
+
+            Intent intent = new Intent(mainActivity, AlbumPickerActivity.class);
+            intent.putParcelableArrayListExtra("images", selectedImages);
+            mainActivity.startActivity(intent);
+            imageFrameAdapter.initFrameModels(images);
+            selectedImages.clear();
         });
     }
 

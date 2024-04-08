@@ -143,7 +143,7 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
 
                 // Tạo đối tượng AlbumModel và thêm vào ArrayList
                 albums.add(new AlbumFrameAdapter.AlbumModel(bucketId, albumName, numOfMedia, thumbnail));
-                albumSchemes.add(new GalleryDB.AlbumScheme(albumName, MediaFetch.getDirectoryPathFromBucketId(bucketId), thumbnail, false, null));
+                albumSchemes.add(new GalleryDB.AlbumScheme(albumName, MediaFetch.getDirectoryPathFromBucketId(bucketId), thumbnail, numOfMedia, false, null));
             }
         }
 
@@ -155,9 +155,9 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
                 e.printStackTrace();
                 Log.d("DB", "Error updating albums");
             }
+            getMoreAlbums();
         }).start();
 
-        getMoreAlbums();
     }
 
     public void getMoreAlbums() {

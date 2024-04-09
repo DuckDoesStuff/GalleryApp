@@ -1,6 +1,5 @@
 package com.example.gallery.utils;
 
-import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -43,27 +42,32 @@ public class MediaFetch {
         List<String> bucketIds = new ArrayList<>();
         ContentResolver contentResolver = context.getContentResolver();
 
-        // Truy vấn dữ liệu từ bảng MediaStore.Images.Media để lấy danh sách bucket ID.
+        String[] projection = new String[]{MediaStore.Files.FileColumns.BUCKET_ID};
+
+        Uri uri = MediaStore.Files.getContentUri("external");
+
+        String selection = MediaStore.Files.FileColumns.MEDIA_TYPE + " IN (" +
+                MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE + "," +
+                MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO + ")";
+
         Cursor cursor = contentResolver.query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                new String[]{MediaStore.Images.Media.BUCKET_ID},
-                null,
+                uri,
+                projection,
+                selection,
                 null,
                 null);
 
         if (cursor != null) {
             try {
-                // Duyệt qua tất cả các dòng trong cursor và thêm bucket ID vào danh sách.
                 while (cursor.moveToNext()) {
-                    @SuppressLint("Range") String bucketId = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_ID));
+                    String bucketId = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID));
                     bucketIds.add(bucketId);
                 }
             } finally {
-                cursor.close(); // Đảm bảo đóng cursor sau khi sử dụng xong.
+                cursor.close();
             }
         }
 
-        // Loại bỏ các ID trùng lặp bằng cách sử dụng một HashSet.
         Set<String> uniqueBucketIds = new HashSet<>(bucketIds);
         return new ArrayList<>(uniqueBucketIds);
     }
@@ -160,46 +164,6 @@ public class MediaFetch {
                 e.printStackTrace();
             }
         }).start();
-    }
-
-    public static ArrayList<Uri> getContentUrisForFiles(Context context, List<MediaModel> mediaDelete) {
-        ContentResolver contentResolver = context.getContentResolver();
-        Uri imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        Uri videoUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-
-        String[] projectionImage = {MediaStore.Images.Media._ID};
-        String selectionImage = MediaStore.Images.Media.DATA + "=?";
-
-        String[] projectionVideo = {MediaStore.Video.Media._ID};
-        String selectionVideo = MediaStore.Video.Media.DATA + "=?";
-
-        List<String> filePaths = mediaDelete.stream().map(mediaModel -> mediaModel.data).collect(Collectors.toList());
-
-        ArrayList<Uri> contentUris = new ArrayList<>();
-        for (String filePath : filePaths) {
-            String[] selectionArgs = new String[]{filePath};
-            Cursor cursorImage = contentResolver.query(imageUri, projectionImage, selectionImage, selectionArgs, null);
-            Cursor cursorVideo = contentResolver.query(videoUri, projectionVideo, selectionVideo, selectionArgs, null);
-            try {
-                if (cursorImage != null && cursorImage.moveToFirst()) {
-                    int columnIndex = cursorImage.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
-                    long fileId = cursorImage.getLong(columnIndex);
-                    contentUris.add(Uri.withAppendedPath(imageUri, String.valueOf(fileId)));
-                }else if (cursorVideo != null && cursorVideo.moveToFirst()) {
-                    int columnIndex = cursorVideo.getColumnIndexOrThrow(MediaStore.Video.Media._ID);
-                    long fileId = cursorVideo.getLong(columnIndex);
-                    contentUris.add(Uri.withAppendedPath(videoUri, String.valueOf(fileId)));
-                }
-            } finally {
-                if (cursorImage != null) {
-                    cursorImage.close();
-                }
-                if (cursorVideo != null) {
-                    cursorVideo.close();
-                }
-            }
-        }
-        return contentUris;
     }
 
     public static void deleteMediaFiles(ContentResolver contentResolver, ArrayList<MediaModel> mediaDelete, onDeleteCallback callback) {

@@ -1,65 +1,104 @@
 package com.example.gallery.fragments;
 
+import static android.app.Activity.RESULT_OK;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 
 import com.example.gallery.R;
+import com.example.gallery.activities.AuthActivity;
+import com.example.gallery.activities.MainActivity;
+import com.google.firebase.auth.FirebaseAuth;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ProfileFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class ProfileFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private String username, email, displayName;
+    private FirebaseAuth auth;
+    private ActivityResultLauncher<Intent> launcher;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
+    private MainActivity mainActivity;
     public ProfileFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ProfileFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ProfileFragment newInstance(String param1, String param2) {
-        ProfileFragment fragment = new ProfileFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+        mainActivity = (MainActivity) requireActivity();
+
+        launcher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), result -> {
+                    if(result.getResultCode() == RESULT_OK) {
+                        Log.d("Auth", "ProfileFragment: Logged in from AuthActivity");
+                    }
+                }
+        );
+
+
+        auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() != null) {
+            Log.d("Auth", "ProfileFragment: Session already authenticated");
+            SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("user_session", 0);
+            username = sharedPreferences.getString("username", null);
+            email = sharedPreferences.getString("user_email", null);
+            displayName = sharedPreferences.getString("user_id", null);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_profile, container, false);
+        View v;
+        if(auth.getCurrentUser() != null) {
+            v = inflater.inflate(R.layout.fragment_profile, container, false);
+            TextView textView = v.findViewById(R.id.email);
+            textView.setText(email);
+        }else {
+            v = inflater.inflate(R.layout.fragment_guest, container, false);
+        }
+
+        return v;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        if(auth.getCurrentUser() != null) {
+            view.findViewById(R.id.btn_logout).setOnClickListener(v -> {
+                SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("user_session", 0);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.clear();
+                editor.apply();
+                auth.signOut();
+            });
+        }else {
+            view.findViewById(R.id.btn_login_google).setOnClickListener(v -> {
+                Intent intent = new Intent(requireActivity(), AuthActivity.class);
+                launcher.launch(intent);
+            });
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        launcher.unregister();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 }

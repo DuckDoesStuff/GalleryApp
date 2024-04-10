@@ -145,4 +145,5 @@ public class MainActivity extends AppCompatActivity {
         //        TransitionManager.beginDelayedTransition(binding.bottomNavigationView, transitionSet);
         binding.bottomNavigationView.setVisibility(visibility);
     }
+
 }

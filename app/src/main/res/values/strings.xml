@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Gallery</string>
     <!-- TODO: Remove or change this placeholder text -->
+    <string name="client_id">432682655773-c8rs9e6d1aovc3ornf94tjpdts206j14.apps.googleusercontent.com</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_view_image">ViewImageActivity</string>
     <!-- Strings used for fragments for navigation -->
@@ -45,5 +46,6 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
+    <string name="title_activity_auth">AuthActivity</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

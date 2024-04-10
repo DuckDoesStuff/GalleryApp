@@ -22,8 +22,11 @@ import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
+import com.example.gallery.utils.AlbumManager;
+import com.example.gallery.utils.GalleryDB;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.TrashManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -101,8 +104,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
             popupMenu.setOnMenuItemClickListener(item -> {
                 // Handle menu item click
-                if (item.getItemId() == R.id.choice1) {
-                    Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
+                if (item.getItemId() == R.id.trash) {
+                    //Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
                     return true;
                 } else if (item.getItemId() == R.id.choice2) {
                     return true;
@@ -152,7 +155,17 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     private void setUpBottomSheet() {
         Button deleteBtn = bottomSheet.findViewById(R.id.deleteBtn);
         deleteBtn.setOnClickListener(v -> {
-            MediaFetch.deleteMediaFiles(requireActivity().getContentResolver(), selectedImages, this);
+            //MediaFetch.deleteMediaFiles(requireActivity().getContentResolver(), selectedImages, this);
+            imageFrameAdapter.selectionModeEnabled = false;
+            imageFrameAdapter.notifyDataSetChanged();
+            onHideBottomSheet();
+            new Thread(() -> {
+                for (MediaFetch.MediaModel image : selectedImages) {
+                    TrashManager.moveToTrash(requireContext(), image.data);
+                }
+                selectedImages.clear();
+            }).start();
+
         });
 
         Button addBtn = bottomSheet.findViewById(R.id.addToBtn);

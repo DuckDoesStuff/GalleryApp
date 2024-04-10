@@ -22,8 +22,10 @@ import com.example.gallery.fragments.AlbumsFragment;
 import com.example.gallery.fragments.HomeFragment;
 import com.example.gallery.fragments.PicutresFragment;
 import com.example.gallery.fragments.ProfileFragment;
+import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.MediaFetch;
 import com.example.gallery.utils.PermissionUtils;
+import com.example.gallery.utils.TrashManager;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -77,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
                     1
             );
         }
-
+        TrashManager.createTrash();
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.home) {

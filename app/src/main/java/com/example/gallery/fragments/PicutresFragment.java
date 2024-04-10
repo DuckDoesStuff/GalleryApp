@@ -60,8 +60,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         MediaFetch.getInstance(null).registerListener(this);
         MediaFetch.getInstance(null).fetchMedia(false);
-
-        Log.d("Debug", "on create");
     }
 
     @Override
@@ -78,7 +76,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         requireActivity().runOnUiThread(() -> {
             imageFrameAdapter.selectionModeEnabled = false;
             imageFrameAdapter.initFrameModels(images);
-            Log.d("Debug", "on media update of picture fragment");
         });
     }
 
@@ -175,7 +172,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         onHideBottomSheet();
         imageFrameAdapter.selectionModeEnabled = false;
         imageFrameAdapter.notifyDataSetChanged();
-        Log.d("Debug", "Deleted images");
+        Log.d("Delete", "PictureFragment: Deleted images");
         // There is a bug in here hiding but I can't produce it consistently :(
     }
 

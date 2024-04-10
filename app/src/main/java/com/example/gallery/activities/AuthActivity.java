@@ -36,7 +36,7 @@ public class AuthActivity extends AppCompatActivity {
                     editor.putString("user_email", googleSignInAccount.getEmail());
                     editor.putString("username", googleSignInAccount.getDisplayName());
                     editor.apply();
-                    //                                Log.d("SignIn", googleSignInAccount.getId() + " " + googleSignInAccount.getEmail() + " " + googleSignInAccount.getIdToken());
+                    //Log.d("SignIn", googleSignInAccount.getId() + " " + googleSignInAccount.getEmail() + " " + googleSignInAccount.getIdToken());
                     AuthCredential credential = GoogleAuthProvider.getCredential(googleSignInAccount.getIdToken(), null);
                     auth.signInWithCredential(credential)
                             .addOnSuccessListener(authResult -> {
@@ -73,6 +73,7 @@ public class AuthActivity extends AppCompatActivity {
                 .requestIdToken(getString(R.string.client_id))
                 .build();
         googleSignInClient = GoogleSignIn.getClient(this, gso);
+        Log.d("Auth", "AuthActivity: Launching activity to sign in with Google");
         launcher.launch(googleSignInClient.getSignInIntent());
     }
 

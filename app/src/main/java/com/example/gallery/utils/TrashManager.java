@@ -10,13 +10,21 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class TrashManager {
+
     private static String trashPath;
     private static void notifyMediaStoreScan(Context context, String filePath) {
         MediaScannerConnection.scanFile(context, new String[]{filePath}, null, (path, uri) -> {
             // MediaScannerConnection callback
         });
+    }
+
+    public static File[] getFilesFromTrash() {
+        File trashDirectory = new File(trashPath);
+        File[] files = trashDirectory.listFiles();
+        return files;
     }
     public static void createTrash() {
         File album = new File(android.os.Environment.getExternalStoragePublicDirectory(

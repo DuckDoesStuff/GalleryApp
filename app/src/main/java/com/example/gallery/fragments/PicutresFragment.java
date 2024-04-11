@@ -22,13 +22,10 @@ import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
-import com.example.gallery.utils.AlbumManager;
-import com.example.gallery.utils.GalleryDB;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
 import com.example.gallery.utils.TrashManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 
@@ -106,6 +103,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                 // Handle menu item click
                 if (item.getItemId() == R.id.trash) {
                     //Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
+                    TrashManager.getFilesFromTrash();
                     return true;
                 } else if (item.getItemId() == R.id.choice2) {
                     return true;
@@ -155,7 +153,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     private void setUpBottomSheet() {
         Button deleteBtn = bottomSheet.findViewById(R.id.deleteBtn);
         deleteBtn.setOnClickListener(v -> {
-            //MediaFetch.deleteMediaFiles(requireActivity().getContentResolver(), selectedImages, this);
+            //MediaFetch.deleteMediax`Files(requireActivity().getContentResolver(), selectedImages, this);
             imageFrameAdapter.selectionModeEnabled = false;
             imageFrameAdapter.notifyDataSetChanged();
             onHideBottomSheet();

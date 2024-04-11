@@ -15,17 +15,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
 
 import com.example.gallery.R;
 import com.example.gallery.databinding.ActivityMainBinding;
 import com.example.gallery.fragments.AlbumsFragment;
+import com.example.gallery.fragments.GuestFragment;
 import com.example.gallery.fragments.HomeFragment;
 import com.example.gallery.fragments.PicutresFragment;
-import com.example.gallery.fragments.ProfileFragment;
+import com.example.gallery.fragments.UserFragment;
 import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.MediaFetch;
 import com.example.gallery.utils.PermissionUtils;
 import com.example.gallery.utils.TrashManager;
+import com.example.gallery.utils.UserViewModel;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -34,7 +40,12 @@ public class MainActivity extends AppCompatActivity {
     PicutresFragment picutresFragment;
     HomeFragment homeFragment;
     AlbumsFragment albumsFragment;
-    ProfileFragment profileFragment;
+    Fragment profileFragment;
+    public UserViewModel userViewModel;
+    Observer<FirebaseUser> userObserver;
+    FirebaseUser user;
+    boolean isAuthenticated = false;
+
     PermissionUtils.PermissionCallback permissionCallback = () -> {
         picutresFragment = new PicutresFragment();
         replaceFragment(picutresFragment);
@@ -80,6 +91,23 @@ public class MainActivity extends AppCompatActivity {
             );
         }
         TrashManager.createTrash();
+
+        userViewModel = new UserViewModel();
+        userObserver = firebaseUser -> {
+            Log.d("Debug", "User changed");
+            BottomNavigationView bottomNavigationView = binding.bottomNavigationView;
+            user = firebaseUser;
+            if (bottomNavigationView.getSelectedItemId() == R.id.profile) {
+                if (firebaseUser != null)
+                    profileFragment = new UserFragment();
+                else
+                    profileFragment = new GuestFragment();
+                replaceFragment(profileFragment);
+            }
+        };
+        userViewModel.getCurrentUser().observe(this, userObserver);
+        user = FirebaseAuth.getInstance().getCurrentUser();
+
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.home) {
@@ -98,14 +126,17 @@ public class MainActivity extends AppCompatActivity {
                 }
                 replaceFragment(albumsFragment);
             } else if (itemId == R.id.profile) {
-                if (profileFragment == null) {
-                    profileFragment = new ProfileFragment();
+                if(user != null) {
+                    Log.d("Debug", "User is not null");
+                    profileFragment = new UserFragment();
+                }else {
+                    Log.d("Debug", "User is null");
+                    profileFragment = new GuestFragment();
                 }
                 replaceFragment(profileFragment);
             }
             return true;
         });
-
     }
 
     public void replaceFragment(Fragment fragment) {
@@ -113,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frame_layout, fragment);
         fragmentTransaction.commit();
-        Log.d("Debug", "Fragment replaced");
         currentFragment = fragment;
     }
 
@@ -147,4 +177,5 @@ public class MainActivity extends AppCompatActivity {
         //        TransitionManager.beginDelayedTransition(binding.bottomNavigationView, transitionSet);
         binding.bottomNavigationView.setVisibility(visibility);
     }
+
 }

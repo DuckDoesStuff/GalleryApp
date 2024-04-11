@@ -28,6 +28,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     public boolean selectionModeEnabled = false;
     private ArrayList<FrameModel> frameModels;
     private ArrayList<MediaFetch.MediaModel> selectedImages;
+    private Context context;
 
     public ImageFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<MediaFetch.MediaModel> images, ArrayList<MediaFetch.MediaModel> selectedImages, ImageFrameListener onClickCallback) {
         this.imgSize = imgSize;
@@ -39,7 +40,6 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     public void initFrameModels(ArrayList<MediaFetch.MediaModel> images) {
         if (images == null || images.isEmpty()) {
             frameModels = new ArrayList<>();
-            // TODO: Remember to remove this
         } else {
             frameModels = new ArrayList<>();
             for (MediaFetch.MediaModel media : images) {
@@ -125,7 +125,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         }
     }
 
-    static class FrameViewHolder extends RecyclerView.ViewHolder {
+    public static class FrameViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         CheckBox checkBox;
 
@@ -158,7 +158,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             }
             Glide.with(itemView).load(frameModel.media.data)
                     .transition(DrawableTransitionOptions
-                            .withCrossFade(200))
+                    .withCrossFade(200))
                     .placeholder(new ColorDrawable(Color.GRAY))
                     .centerCrop().into(imageView);
         }

@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,40 +26,49 @@ import java.util.ArrayList;
 
 public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.FrameViewHolder> {
     private final int imgSize;
-    private final TrashFrameAdapter.TrashFrameListener onClickCallBack;
+    private final TrashFrameListener onClickCallBack;
     public boolean selectionModeEnabled = false;
-    private ArrayList<TrashFrameAdapter.FrameModel> frameModels;
+    private ArrayList<FrameModel> frameModels;
+    private ArrayList<String> selectedImages;
 
-    private ArrayList<File> images;
-    private ArrayList<File> selectedImages;
-
-    public TrashFrameAdapter(Context context, int imgSize, File[] images, File[] selectedImages, TrashFrameAdapter.TrashFrameListener onClickCallback) {
+    public TrashFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<String> images, ArrayList<String> selectedImages, TrashFrameListener onClickCallback) {
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
+        this.selectedImages = selectedImages;
         initFrameModels(images);
-        for (File file:selectedImages) {
-            this.selectedImages.add(file);
-        }
     }
-    public void initFrameModels(File[] images) {
-        if (images == null || images.length == 0) {
+    public void initFrameModels(ArrayList<String> images) {
+        if (images == null || images.isEmpty()) {
             frameModels = new ArrayList<>();
             // TODO: Remember to remove this
         } else {
             frameModels = new ArrayList<>();
-            for (File file:images) {
+            for (String file:images) {
                 frameModels.add(new TrashFrameAdapter.FrameModel(file));
-                this.images.add(file);
+
             }
         }
     }
 
-
-
+    @NonNull
+    @Override
+    public TrashFrameAdapter.FrameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Check if a recycled view holder is available
+        FrameViewHolder holder;
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_frame, parent, false);
+        if (itemView.getTag() != null) {
+            holder = (FrameViewHolder) itemView.getTag();
+        } else {
+            // Create a new view holder if none is available
+            holder = new FrameViewHolder(itemView, onClickCallBack);
+            itemView.setTag(holder);
+        }
+        return holder;
+    }
     @Override
     public void onBindViewHolder(@NonNull TrashFrameAdapter.FrameViewHolder holder, int position) {
         holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
-        TrashFrameAdapter.FrameModel frameModel = frameModels.get(position);
+        FrameModel frameModel = frameModels.get(position);
         holder.bind(frameModel);
         holder.checkBox.setVisibility(selectionModeEnabled ? View.VISIBLE : View.GONE);
 
@@ -100,26 +110,12 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
         });
     }
 
-    @NonNull
-    @Override
-    public TrashFrameAdapter.FrameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Check if a recycled view holder is available
-        TrashFrameAdapter.FrameViewHolder holder;
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_frame, parent, false);
-        if (itemView.getTag() != null) {
-            holder = (TrashFrameAdapter.FrameViewHolder) itemView.getTag();
-        } else {
-            // Create a new view holder if none is available
-            holder = new TrashFrameAdapter.FrameViewHolder(itemView, onClickCallBack);
-            itemView.setTag(holder);
-        }
-        return holder;
-    }
+
 
 
     @Override
     public int getItemCount() {
-        return 0;
+        return frameModels.size();
     }
 
     public interface TrashFrameListener {
@@ -134,16 +130,16 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
         ImageView imageView;
         CheckBox checkBox;
 
-        TrashFrameAdapter.FrameModel frameModel;
+        FrameModel frameModel;
 
-        public FrameViewHolder(View itemView, TrashFrameAdapter.TrashFrameListener listener) {
+        public FrameViewHolder(View itemView, TrashFrameListener listener) {
             super(itemView);
             imageView = itemView.findViewById(R.id.frame);
             checkBox = itemView.findViewById(R.id.select_box);
 
             Glide.with(itemView).load(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
         }
-        public void bind(TrashFrameAdapter.FrameModel frameModel) {
+        public void bind(FrameModel frameModel) {
             this.frameModel = frameModel;
             checkBox.setChecked(frameModel.isSelected);
             if (frameModel.isSelected) {
@@ -160,6 +156,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
                 // Nếu không được chọn, hiển thị hình ảnh bình thường bằng cách xóa bỏ color filter
                 imageView.clearColorFilter();
             }
+            Log.d("hehe", "toi glide");
             Glide.with(itemView).load(frameModel.file)
                     .transition(DrawableTransitionOptions
                             .withCrossFade(200))
@@ -168,12 +165,13 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
         }
     }
     private static class FrameModel {
-        private final File file;
+        private final String file;
         private boolean isSelected;
 
-        public FrameModel(File file) {
+        public FrameModel(String file) {
             this.file = file;
             isSelected = false;
+
         }
     }
 }

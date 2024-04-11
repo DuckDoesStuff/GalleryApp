@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
+import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
 import com.example.gallery.utils.MediaContentObserver;
@@ -27,6 +28,7 @@ import com.example.gallery.utils.MediaFetch;
 import com.example.gallery.utils.TrashManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, MediaContentObserver.OnMediaUpdateListener, MediaFetch.onDeleteCallback {
@@ -100,7 +102,10 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                 // Handle menu item click
                 if (item.getItemId() == R.id.trash) {
                     //Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
-                    TrashManager.getFilesFromTrash();
+                    ArrayList<String> intentIn = TrashManager.getFilesFromTrash();
+                    Intent intent = new Intent(getContext(), TrashActivity.class);
+                    intent.putStringArrayListExtra("imagesPath", intentIn);
+                    mainActivity.startActivity(intent);
                     return true;
                 } else if (item.getItemId() == R.id.choice2) {
                     return true;

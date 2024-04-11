@@ -6,6 +6,8 @@ import android.os.Environment;
 
 import androidx.annotation.NonNull;
 
+import com.example.gallery.component.TrashFrameAdapter;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -21,10 +23,14 @@ public class TrashManager {
         });
     }
 
-    public static File[] getFilesFromTrash() {
+    public static ArrayList<String> getFilesFromTrash() {
         File trashDirectory = new File(trashPath);
         File[] files = trashDirectory.listFiles();
-        return files;
+        ArrayList<String> output  = new ArrayList<>();
+        for (File file:files) {
+            output.add(file.getAbsolutePath());
+        }
+        return output;
     }
     public static void createTrash() {
         File album = new File(android.os.Environment.getExternalStoragePublicDirectory(

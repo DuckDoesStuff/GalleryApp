@@ -24,8 +24,10 @@ import com.example.gallery.fragments.GuestFragment;
 import com.example.gallery.fragments.HomeFragment;
 import com.example.gallery.fragments.PicutresFragment;
 import com.example.gallery.fragments.UserFragment;
+import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.MediaFetch;
 import com.example.gallery.utils.PermissionUtils;
+import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.UserViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
                     1
             );
         }
+        TrashManager.createTrash();
 
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         userObserver = firebaseUser -> {

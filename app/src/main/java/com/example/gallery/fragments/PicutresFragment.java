@@ -20,14 +20,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
+import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.snackbar.Snackbar;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, MediaContentObserver.OnMediaUpdateListener, MediaFetch.onDeleteCallback {
@@ -99,8 +101,12 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
             popupMenu.setOnMenuItemClickListener(item -> {
                 // Handle menu item click
-                if (item.getItemId() == R.id.choice1) {
-                    Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
+                if (item.getItemId() == R.id.trash) {
+                    //Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
+                    ArrayList<String> intentIn = TrashManager.getFilesFromTrash();
+                    Intent intent = new Intent(getContext(), TrashActivity.class);
+                    intent.putStringArrayListExtra("imagesPath", intentIn);
+                    mainActivity.startActivity(intent);
                     return true;
                 } else if (item.getItemId() == R.id.choice2) {
                     return true;
@@ -150,7 +156,17 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     private void setUpBottomSheet() {
         Button deleteBtn = bottomSheet.findViewById(R.id.deleteBtn);
         deleteBtn.setOnClickListener(v -> {
-            MediaFetch.deleteMediaFiles(requireActivity().getContentResolver(), selectedImages, this);
+            //MediaFetch.deleteMediax`Files(requireActivity().getContentResolver(), selectedImages, this);
+            imageFrameAdapter.selectionModeEnabled = false;
+            imageFrameAdapter.notifyDataSetChanged();
+            onHideBottomSheet();
+            new Thread(() -> {
+                for (MediaFetch.MediaModel image : selectedImages) {
+                    TrashManager.moveToTrash(requireContext(), image.data);
+                }
+                selectedImages.clear();
+            }).start();
+
         });
 
         Button addBtn = bottomSheet.findViewById(R.id.addToBtn);

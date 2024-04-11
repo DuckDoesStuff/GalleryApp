@@ -19,41 +19,40 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.gallery.R;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.MediaFetch;
 
+import java.io.File;
 import java.util.ArrayList;
 
-public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.FrameViewHolder> {
+public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.FrameViewHolder> {
     private final int imgSize;
-    private final ImageFrameListener onClickCallBack;
+    private final TrashFrameListener onClickCallBack;
     public boolean selectionModeEnabled = false;
-    public boolean canSelect = true;
     private ArrayList<FrameModel> frameModels;
-    private ArrayList<MediaModel> selectedImages;
-    private Context context;
+    private ArrayList<String> selectedImages;
 
-    public ImageFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<MediaModel> images, ArrayList<MediaModel> selectedImages, ImageFrameListener onClickCallback) {
+    public TrashFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<String> images, ArrayList<String> selectedImages, TrashFrameListener onClickCallback) {
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
         this.selectedImages = selectedImages;
         initFrameModels(images);
     }
-
-    public void initFrameModels(ArrayList<MediaModel> images) {
+    public void initFrameModels(ArrayList<String> images) {
         if (images == null || images.isEmpty()) {
             frameModels = new ArrayList<>();
+            // TODO: Remember to remove this
         } else {
             frameModels = new ArrayList<>();
-            for (MediaModel media : images) {
-                frameModels.add(new FrameModel(media));
+            for (String file:images) {
+                frameModels.add(new TrashFrameAdapter.FrameModel(file));
+
             }
         }
-        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
-    public ImageFrameAdapter.FrameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public TrashFrameAdapter.FrameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Check if a recycled view holder is available
         FrameViewHolder holder;
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_frame, parent, false);
@@ -66,9 +65,8 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         }
         return holder;
     }
-
     @Override
-    public void onBindViewHolder(@NonNull ImageFrameAdapter.FrameViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull TrashFrameAdapter.FrameViewHolder holder, int position) {
         holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
         FrameModel frameModel = frameModels.get(position);
         holder.bind(frameModel);
@@ -88,16 +86,15 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
                     // Apply the color filter to the ImageView to reduce brightness
                     holder.imageView.setColorFilter(colorFilter);
-                    selectedImages.add(frameModel.media);
+                    selectedImages.add(frameModel.file);
                 } else {
                     holder.imageView.clearColorFilter();
-                    selectedImages.remove(frameModel.media);
+                    selectedImages.remove(frameModel.file);
                 }
 
                 // Turn off selection mode if not selecting any images
                 if (selectedImages.isEmpty()) {
                     selectionModeEnabled = false;
-                    notifyDataSetChanged();
                 }
             }
             onClickCallBack.onItemClick(position);
@@ -106,20 +103,22 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             selectionModeEnabled = true;
             frameModel.isSelected = true;
 
-            selectedImages.add(frameModel.media);
+            selectedImages.add(frameModel.file);
             onClickCallBack.onItemLongClick(position);
 
-            notifyDataSetChanged();
             return true;
         });
     }
+
+
+
 
     @Override
     public int getItemCount() {
         return frameModels.size();
     }
 
-    public interface ImageFrameListener {
+    public interface TrashFrameListener {
         default void onItemClick(int position) {
         }
 
@@ -127,20 +126,19 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         }
     }
 
-    public static class FrameViewHolder extends RecyclerView.ViewHolder {
+    static class FrameViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         CheckBox checkBox;
 
         FrameModel frameModel;
 
-        public FrameViewHolder(View itemView, ImageFrameListener listener) {
+        public FrameViewHolder(View itemView, TrashFrameListener listener) {
             super(itemView);
             imageView = itemView.findViewById(R.id.frame);
             checkBox = itemView.findViewById(R.id.select_box);
 
             Glide.with(itemView).load(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
         }
-
         public void bind(FrameModel frameModel) {
             this.frameModel = frameModel;
             checkBox.setChecked(frameModel.isSelected);
@@ -158,22 +156,22 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                 // Nếu không được chọn, hiển thị hình ảnh bình thường bằng cách xóa bỏ color filter
                 imageView.clearColorFilter();
             }
-
-            Glide.with(itemView).load(frameModel.media.path)
+            Log.d("hehe", "toi glide");
+            Glide.with(itemView).load(frameModel.file)
                     .transition(DrawableTransitionOptions
-                    .withCrossFade(200))
+                            .withCrossFade(200))
                     .placeholder(new ColorDrawable(Color.GRAY))
                     .centerCrop().into(imageView);
         }
     }
-
     private static class FrameModel {
-        private final MediaModel media;
+        private final String file;
         private boolean isSelected;
 
-        public FrameModel(MediaModel media) {
-            this.media = media;
+        public FrameModel(String file) {
+            this.file = file;
             isSelected = false;
+
         }
     }
 }

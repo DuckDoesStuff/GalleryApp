@@ -1,31 +1,42 @@
 package com.example.gallery.activities;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+
 import com.example.gallery.R;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import jp.co.cyberagent.android.gpuimage.GPUImage;
 import jp.co.cyberagent.android.gpuimage.GPUImageBrightnessFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageContrastFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageFilterGroup;
+import jp.co.cyberagent.android.gpuimage.GPUImageView;
 
 public class ChangeBrightnessActivity extends AppCompatActivity {
-    private ImageView imageView;
+
     private String imagePath;
+    private Handler mHandler = new Handler();
 
     private SeekBar brightnessSeekBar;
     private SeekBar contrastSeekBar;
+    private  GPUImage gpuImage;
+    private GPUImageView gpuImageView;
 
-    private GPUImage gpuImage;
-    private float brightnessValue = 0.0f;
+    private static final int DELAY_MILLIS = 300;
+    private String editedImagePath;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,9 +44,13 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
 
 
         imagePath = getIntent().getStringExtra("imagePath");
-        imageView = findViewById(R.id.imageView);
+        gpuImageView = findViewById(R.id.imageView); // Initialize GPUImageView
+        gpuImageView.setScaleType(GPUImage.ScaleType.CENTER_INSIDE);
 
-        Picasso.get().load(new File(imagePath)).into(imageView);
+        gpuImageView.setImage(new File(imagePath));
+
+        editedImagePath = imagePath;
+
 
         ImageButton backBtn = findViewById(R.id.back_button);
         backBtn.setOnClickListener(v -> finish());
@@ -46,48 +61,125 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
 
 
         ImageButton brightnessBtn = findViewById(R.id.brightness_btn);
-        brightnessBtn.setOnClickListener(v->onBrightnessButtonClick());
+        brightnessBtn.setOnClickListener(v -> onBrightnessButtonClick());
 
 
         ImageButton contrastBtn = findViewById(R.id.contrast_btn);
-        contrastBtn.setOnClickListener(v->onContrastButtonClick());
+        contrastBtn.setOnClickListener(v -> onContrastButtonClick());
 
+        ImageButton saveBtn = findViewById(R.id.save_btn);
+        saveBtn.setOnClickListener(v->{
+            sendResult(editedImagePath);
+
+        });
 
         gpuImage = new GPUImage(this);
         gpuImage.setImage(new File(imagePath));
 
-        brightnessSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                brightnessValue = (float) progress / 50 -1; // Chuyển đổi giá trị từ 0-100 thành 0-1
-                applyBrightnessFilter(brightnessValue);
-            }
+            brightnessSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    float brightnessValue = (float) progress / 50 - 1;
+                    float contrastValue = (float) contrastSeekBar.getProgress() / 25;
+                    applyFilterInBackground(brightnessValue, contrastValue);
+                }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
 
+            contrastSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    float contrastValue = (float) progress / 25;
+                    float brightnessValue = (float) brightnessSeekBar.getProgress() / 50 - 1;
+                    applyFilterInBackground(brightnessValue, contrastValue);
+                }
 
-    }
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+        }
 
 
     private void onBrightnessButtonClick() {
+
         brightnessSeekBar.setVisibility(View.VISIBLE);
         contrastSeekBar.setVisibility(View.INVISIBLE);
     }
 
     private void onContrastButtonClick() {
+
         brightnessSeekBar.setVisibility(View.INVISIBLE);
         contrastSeekBar.setVisibility(View.VISIBLE);
     }
 
-    private void applyBrightnessFilter(float brightnessValue) {
-        GPUImageBrightnessFilter brightnessFilter = new GPUImageBrightnessFilter();
-        brightnessFilter.setBrightness(brightnessValue);
-        gpuImage.setFilter(brightnessFilter);
-        Glide.with(this).load(gpuImage.getBitmapWithFilterApplied()).fitCenter().into(imageView);
+    private void applyFilterInBackground(final float brightnessValue, final float contrastValue) {
+        // Hủy bỏ bất kỳ Runnable trước đó đang đợi để chạy
+        mHandler.removeCallbacksAndMessages(null);
+
+        // Đặt một Runnable mới để áp dụng bộ lọc sau một khoảng thời gian trì hoãn
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                GPUImageFilterGroup filterGroup = new GPUImageFilterGroup();
+
+                GPUImageBrightnessFilter brightnessFilter = new GPUImageBrightnessFilter();
+                brightnessFilter.setBrightness(brightnessValue);
+
+                GPUImageContrastFilter contrastFilter = new GPUImageContrastFilter();
+                contrastFilter.setContrast(contrastValue);
+
+                filterGroup.addFilter(brightnessFilter);
+                filterGroup.addFilter(contrastFilter);
+
+                gpuImage.setFilter(filterGroup);
+                final Bitmap filteredBitmap = gpuImage.getBitmapWithFilterApplied();
+
+                Bitmap scaledBitmap = Bitmap.createScaledBitmap(filteredBitmap, gpuImageView.getWidth(), gpuImageView.getHeight(), true);
+                editedImagePath = saveBitmapAndGetPath(scaledBitmap);
+                // Lưu lại đường dẫn của ảnh đã chỉnh sửa
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        gpuImageView.setScaleType(GPUImage.ScaleType.CENTER_INSIDE);
+
+                        gpuImageView.setImage(scaledBitmap);
+                    }
+                });
+            }
+        }, DELAY_MILLIS);
     }
+    private String saveBitmapAndGetPath(Bitmap bitmap) {
+        File editedImageFile = new File(getExternalFilesDir(null), "edited_image.jpg");
+        try {
+            FileOutputStream outputStream = new FileOutputStream(editedImageFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+            outputStream.flush();
+            outputStream.close();
+            return editedImageFile.getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    private void sendResult(String editedImagePath) {
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("editedImagePath", editedImagePath);
+        setResult(Activity.RESULT_OK, resultIntent);
+        finish();
+    }
+
+
 }

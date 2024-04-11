@@ -65,9 +65,12 @@ public class ImageActivity extends AppCompatActivity {
         viewPager2.setUserInputEnabled(enabled);
     }
 
+
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.d("Debug", "Image activity gone");
     }
+
 }

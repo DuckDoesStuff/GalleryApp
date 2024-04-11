@@ -104,6 +104,38 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
                     })
                     .show();
         });
+        deleteBtn.setOnClickListener(v->{
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Delete file forever")
+                    .setMessage("If you delete these " + selectedImages.size() + " files, you can not restore")
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        // Xử lý khi nhấn nút OK
+
+                        new Thread(() -> {
+                            for (String image : selectedImages) {
+                                TrashManager.deleteFromTrash(image);
+                                images.remove(image);
+                            }
+                            selectedImages.clear();
+                        }).start();
+                        trashFrameAdapter.selectionModeEnabled = false;
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                runOnUiThread(()->{
+                                    trashFrameAdapter.initFrameModels(images);
+                                });
+                            }
+                        }, 1000);
+
+
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> {
+                        // Xử lý khi nhấn nút Cancel
+
+                    })
+                    .show();
+        });
 
     }
     @Override

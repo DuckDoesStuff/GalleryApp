@@ -70,6 +70,16 @@ public class TrashManager {
             return false; // Error occurred while moving file
         }
     }
+    public static void deleteFromTrash(String trashFilePath) {
+        // Tạo đối tượng File từ đường dẫn tệp trong thư mục .trash
+        File trashFile = new File(trashFilePath);
+
+        // Kiểm tra xem tệp tồn tại trước khi xóa
+        if (trashFile.exists()) {
+            // Xóa tệp từ thư mục .trash
+            boolean deleted = trashFile.delete();
+        }
+    }
     public static boolean restoreFromTrash(@NonNull Context context, String imgName, String imgPath) {
         GalleryDB db = new GalleryDB(context);
         String path = db.getOriginalPath(imgName);

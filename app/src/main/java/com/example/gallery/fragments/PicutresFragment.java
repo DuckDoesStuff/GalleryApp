@@ -155,6 +155,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         Button addBtn = bottomSheet.findViewById(R.id.addToBtn);
         addBtn.setOnClickListener(v -> {
             imageFrameAdapter.selectionModeEnabled = false;
+
             imageFrameAdapter.notifyDataSetChanged();
             onHideBottomSheet();
 

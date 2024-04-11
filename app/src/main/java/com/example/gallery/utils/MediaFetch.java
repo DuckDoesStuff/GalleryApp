@@ -151,7 +151,6 @@ public class MediaFetch {
         String callerMethodName = stackTraceElements[3].getMethodName();
 
         // Print the caller's information
-        Log.d("Caller", "Caller: " + callerClassName + "." + callerMethodName);
         new Thread(() -> {
             try {
                 if (forceFetch || mediaModelArrayList == null || mediaModelArrayList.isEmpty()) {

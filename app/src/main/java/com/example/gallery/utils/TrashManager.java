@@ -3,6 +3,7 @@ package com.example.gallery.utils;
 import android.content.Context;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -46,6 +47,36 @@ public class TrashManager {
         try {
             File sourceFile = new File(imgPath);
             File destinationFile = new File(trashPath + "/" + sourceFile.getName());
+
+            FileInputStream inputStream = new FileInputStream(sourceFile);
+            FileOutputStream outputStream = new FileOutputStream(destinationFile);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+
+            inputStream.close();
+            outputStream.close();
+
+            if (sourceFile.delete()) {
+                notifyMediaStoreScan(context, trashPath);
+                return true;
+            }else
+                return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false; // Error occurred while moving file
+        }
+    }
+    public static boolean restoreFromTrash(@NonNull Context context, String imgName, String imgPath) {
+        GalleryDB db = new GalleryDB(context);
+        String path = db.getOriginalPath(imgName);
+
+        try {
+            File sourceFile = new File(imgPath);
+            File destinationFile = new File(path);
 
             FileInputStream inputStream = new FileInputStream(sourceFile);
             FileOutputStream outputStream = new FileOutputStream(destinationFile);

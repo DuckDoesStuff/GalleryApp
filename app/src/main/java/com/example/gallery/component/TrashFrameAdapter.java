@@ -31,6 +31,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
     private ArrayList<FrameModel> frameModels;
     private ArrayList<String> selectedImages;
 
+
     public TrashFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<String> images, ArrayList<String> selectedImages, TrashFrameListener onClickCallback) {
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
@@ -48,6 +49,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
 
             }
         }
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -66,7 +68,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
         return holder;
     }
     @Override
-    public void onBindViewHolder(@NonNull TrashFrameAdapter.FrameViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull FrameViewHolder holder, int position) {
         holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
         FrameModel frameModel = frameModels.get(position);
         holder.bind(frameModel);
@@ -95,17 +97,19 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
                 // Turn off selection mode if not selecting any images
                 if (selectedImages.isEmpty()) {
                     selectionModeEnabled = false;
+                    notifyDataSetChanged();
                 }
             }
             onClickCallBack.onItemClick(position);
         });
         holder.itemView.setOnLongClickListener(v -> {
+
+            Log.d("debug", "log duoc ne");
             selectionModeEnabled = true;
             frameModel.isSelected = true;
-
             selectedImages.add(frameModel.file);
             onClickCallBack.onItemLongClick(position);
-
+            notifyDataSetChanged();
             return true;
         });
     }

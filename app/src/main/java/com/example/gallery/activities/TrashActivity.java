@@ -2,7 +2,9 @@ package com.example.gallery.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -14,6 +16,9 @@ import com.example.gallery.R;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.TrashFrameAdapter;
 import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.TrashManager;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,6 +31,9 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
     boolean viewMode = true;
     MainActivity mainActivity;
 
+    TextView restoreBtn;
+    TextView deleteBtn;
+
     private ArrayList<String> selectedImages;
     private ArrayList<Integer> selectedPositions;
 
@@ -37,6 +45,10 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
         Intent intent = getIntent();
         ImageButton backBtn = findViewById(R.id.back_button_trash);
         backBtn.setOnClickListener(v -> finish());
+        restoreBtn = findViewById(R.id.edit_button);
+        deleteBtn = findViewById(R.id.empty_button);
+        restoreBtn.setVisibility(View.GONE);
+        deleteBtn.setVisibility(View.GONE);
 
 
         final int position;
@@ -53,11 +65,45 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
         int spanCount = 3; // Change this to change the number of columns
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int imgSize = screenWidth / spanCount;
-
+        selectedImages = new ArrayList<>();
         if (trashFrameAdapter == null)
             trashFrameAdapter = new TrashFrameAdapter(this, imgSize, selectedPositions, images, selectedImages, this);
         recyclerView.setAdapter(trashFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+
+        restoreBtn.setOnClickListener(v->{
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Restore file")
+                    .setMessage("Restore " + selectedImages.size() + " files")
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        // Xử lý khi nhấn nút OK
+
+                        new Thread(() -> {
+                            for (String image : selectedImages) {
+                                File temp = new File(image);
+                                TrashManager.restoreFromTrash(this, temp.getName(), image);
+                                images.remove(image);
+                            }
+                            selectedImages.clear();
+                        }).start();
+                        trashFrameAdapter.selectionModeEnabled = false;
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                runOnUiThread(()->{
+                                    trashFrameAdapter.initFrameModels(images);
+                                });
+                            }
+                        }, 1000);
+
+
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> {
+                        // Xử lý khi nhấn nút Cancel
+
+                    })
+                    .show();
+        });
 
     }
     @Override
@@ -65,5 +111,22 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
         super.onPointerCaptureChanged(hasCapture);
     }
 
+    // Override phương thức onItemClick() và onItemLongClick()
+    @Override
+    public void onItemClick(int position) {
+        // Xử lý sự kiện click item
+        if (selectedImages.isEmpty()) {
+            restoreBtn.setVisibility(View.GONE);
+            deleteBtn.setVisibility(View.GONE);
+        }
+    }
 
+    @Override
+    public void onItemLongClick(int position) {
+        // Xử lý sự kiện long click item
+        if (!selectedImages.isEmpty()) {
+            restoreBtn.setVisibility(View.VISIBLE);
+            deleteBtn.setVisibility(View.VISIBLE);
+        }
+    }
 }

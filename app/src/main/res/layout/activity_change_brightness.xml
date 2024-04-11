@@ -41,12 +41,13 @@
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
-    <ImageView
+    <jp.co.cyberagent.android.gpuimage.GPUImageView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:id="@+id/imageView"
-        android:background="@color/background_dark"/>
+
+        />
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -59,7 +60,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="100"
-            android:progress="50"
+            android:progress="25"
             android:layout_marginStart="16dp"
             android:layout_gravity="center"
             android:layout_marginEnd="16dp"

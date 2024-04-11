@@ -87,6 +87,8 @@ public class TrashManager {
                 outputStream.write(buffer, 0, length);
             }
 
+            db.onItemRestored(path);
+
             inputStream.close();
             outputStream.close();
 

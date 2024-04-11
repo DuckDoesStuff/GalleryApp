@@ -24,6 +24,7 @@ import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -37,8 +38,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     MainActivity mainActivity;
     ImageFrameAdapter imageFrameAdapter;
     RecyclerView recyclerView;
-    private ArrayList<MediaFetch.MediaModel> images;
-    private ArrayList<MediaFetch.MediaModel> selectedImages;
+    private ArrayList<MediaModel> images;
+    private ArrayList<MediaModel> selectedImages;
     private ArrayList<Integer> selectedPositions;
 
     public PicutresFragment() {
@@ -69,7 +70,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     }
 
     @Override
-    public void onMediaUpdate(ArrayList<MediaFetch.MediaModel> modelArrayList) {
+    public void onMediaUpdate(ArrayList<MediaModel> modelArrayList) {
         // Ensure running on UI thread
         images = modelArrayList;
         MediaFetch.sortArrayListModel(images, MediaFetch.SORT_BY_DATE_TAKEN, MediaFetch.SORT_DESC);

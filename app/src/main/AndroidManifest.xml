@@ -25,7 +25,7 @@
         android:theme="@style/Theme.Gallery"
         tools:targetApi="31">
         <activity
-            android:name=".activities.AuthActivity"
+            android:name=".utils.firebase.AuthActivity"
             android:exported="false"
             android:label="@string/title_activity_auth" />
         <activity

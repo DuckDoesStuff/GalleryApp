@@ -11,12 +11,12 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.gallery.R;
 import com.example.gallery.component.ViewPagerAdapter;
-import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaModel;
 
 import java.util.ArrayList;
 
 public class ImageActivity extends AppCompatActivity {
-    ArrayList<MediaFetch.MediaModel> images;
+    ArrayList<MediaModel> images;
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
 
@@ -42,7 +42,7 @@ public class ImageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Thực hiện chuyển sang EditActivity
-                String currentImagePath = images.get(viewPager2.getCurrentItem()).data;
+                String currentImagePath = images.get(viewPager2.getCurrentItem()).path;
 
                 // Thực hiện chuyển sang EditActivity và truyền đường dẫn của hình ảnh
                 Intent editIntent = new Intent(ImageActivity.this, EditActivity.class);

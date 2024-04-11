@@ -24,6 +24,6 @@ public class MediaContentObserver extends ContentObserver {
     }
 
     public interface OnMediaUpdateListener {
-        void onMediaUpdate(ArrayList<MediaFetch.MediaModel> modelArrayList);
+        void onMediaUpdate(ArrayList<MediaModel> modelArrayList);
     }
 }

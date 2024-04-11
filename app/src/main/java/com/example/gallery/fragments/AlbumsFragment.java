@@ -24,13 +24,14 @@ import com.example.gallery.component.dialog.BottomDialog;
 import com.example.gallery.utils.GalleryDB;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumFrameListener, MediaContentObserver.OnMediaUpdateListener, BottomDialog.onBottomSheetListener {
     boolean viewMode;
-    ArrayList<MediaFetch.MediaModel> modelArrayList;
+    ArrayList<MediaModel> modelArrayList;
     private ArrayList<AlbumFrameAdapter.AlbumModel> albums;
 
     private ArrayList<AlbumFrameAdapter.AlbumModel> selectedAlbums;
@@ -124,22 +125,22 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
     }
 
     @Override
-    public void onMediaUpdate(ArrayList<MediaFetch.MediaModel> modelArrayList) {
+    public void onMediaUpdate(ArrayList<MediaModel> modelArrayList) {
         albums.clear();
         List<String> bucketIds = MediaFetch.getBucketIds(this.requireContext());
         ArrayList<GalleryDB.AlbumScheme> albumSchemes = new ArrayList<>();
         this.modelArrayList= modelArrayList;
         for (String bucketId : bucketIds) {
             // Lấy danh sách media từ bucket ID (có thể là ảnh hoặc video)
-            ArrayList<MediaFetch.MediaModel> mediaList = MediaFetch.mediaFromBucketID(modelArrayList, bucketId);
+            ArrayList<MediaModel> mediaList = MediaFetch.mediaFromBucketID(modelArrayList, bucketId);
 
             // Kiểm tra xem album có media không
             if (!mediaList.isEmpty()) {
                 // Lấy thông tin của album (tên album, số lượng media)
-                String albumName = mediaList.get(0).bucketName; // Lấy tên album từ media đầu tiên trong danh sách
+                String albumName = mediaList.get(0).albumName; // Lấy tên album từ media đầu tiên trong danh sách
                 int numOfMedia = mediaList.size();
                 MediaFetch.sortArrayListModel(mediaList, MediaFetch.SORT_BY_DATE_TAKEN, MediaFetch.SORT_DESC);
-                String thumbnail = mediaList.get(0).data; // Đây là nơi để lấy hình ảnh thumbnail, bạn có thể thay thế bằng logic tương ứng
+                String thumbnail = mediaList.get(0).path; // Đây là nơi để lấy hình ảnh thumbnail, bạn có thể thay thế bằng logic tương ứng
 
                 // Tạo đối tượng AlbumModel và thêm vào ArrayList
                 albums.add(new AlbumFrameAdapter.AlbumModel(bucketId, albumName, numOfMedia, thumbnail));
@@ -185,7 +186,7 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
     @Override
     public void onItemClick(int position) {
         AlbumFrameAdapter.AlbumFrameListener.super.onItemClick(position);
-        ArrayList<MediaFetch.MediaModel> mediaList = MediaFetch.mediaFromBucketID(modelArrayList, albums.get(position).id);
+        ArrayList<MediaModel> mediaList = MediaFetch.mediaFromBucketID(modelArrayList, albums.get(position).id);
         Intent intent = new Intent(getContext(), AlbumActivity.class);
         intent.putExtra("images", mediaList);
         intent.putExtra("name", albums.get(position).albumName);

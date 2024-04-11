@@ -5,8 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -111,7 +109,7 @@ public class MediaFetch {
             try {
                 switch (sortBy) {
                     case SORT_BY_BUCKET_NAME:
-                        return o1.bucketName.compareTo(o2.bucketName) * sortDirection;
+                        return o1.albumName.compareTo(o2.albumName) * sortDirection;
                     case SORT_BY_DURATION:
                         return o1.duration.compareTo(o2.duration) * sortDirection;
                     case SORT_BY_DATE_TAKEN:
@@ -169,8 +167,8 @@ public class MediaFetch {
         if(!mediaDelete.isEmpty()) {
             Iterator<MediaModel> iterator = mediaDelete.iterator();
             while (iterator.hasNext()) {
-                MediaFetch.MediaModel mediaModel = iterator.next();
-                deleteMediaFile(contentResolver, mediaModel.data);
+                MediaModel mediaModel = iterator.next();
+                deleteMediaFile(contentResolver, mediaModel.path);
                 iterator.remove();
             }
             callback.onDeleteResult();
@@ -220,12 +218,13 @@ public class MediaFetch {
                 while (imageCursor.moveToNext()) {
                     String bucketName = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
                     String bucketID = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID));
-                    String data = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                    String path = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
                     String dateTaken = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
                     String dateAdded = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED));
                     String duration = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
-
-                    mediaList.add(new MediaModel(bucketName, bucketID, data, dateTaken, dateAdded, duration));
+                    String type = "image";
+                    String name = path.substring(path.lastIndexOf('/') + 1);
+                    mediaList.add(new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type));
                 }
             } finally {
                 imageCursor.close();
@@ -242,14 +241,15 @@ public class MediaFetch {
         if (videoCursor != null) {
             try {
                 while (videoCursor.moveToNext()) {
-                    String bucketName = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
-                    String bucketID = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID));
-                    String data = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-                    String dateTaken = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
-                    String dateAdded = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED));
-                    String duration = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
-
-                    mediaList.add(new MediaModel(bucketName, bucketID, data, dateTaken, dateAdded, duration));
+                    String bucketName = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
+                    String bucketID = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_ID));
+                    String data = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA));
+                    String dateTaken = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_TAKEN));
+                    String dateAdded = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED));
+                    String duration = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
+                    String type = "video";
+                    String name = data.substring(data.lastIndexOf('/') + 1);
+                    mediaList.add(new MediaModel(bucketName, bucketID, data, name, dateTaken, dateAdded, duration, type));
                 }
             } finally {
                 videoCursor.close();
@@ -306,58 +306,4 @@ public class MediaFetch {
         Log.d("Media", "MediaFetch is destroyed");
     }
 
-    public static class MediaModel implements Parcelable {
-        public static final Creator<MediaModel> CREATOR = new Creator<MediaModel>() {
-            @Override
-            public MediaModel createFromParcel(Parcel in) {
-                return new MediaModel(in);
-            }
-
-            @Override
-            public MediaModel[] newArray(int size) {
-                return new MediaModel[size];
-            }
-        };
-        public String bucketName;  // Album name
-        public String bucketID;    // Unique album identifier
-        public String data;        // Filepath
-        public String dateTaken;   // Date recorded or taken by device camera
-        public String dateAdded;   // Date MediaStore added
-        public String duration;    // Video duration
-
-        public MediaModel(String bucketName, String bucketID, String data, String dateTaken, String dateAdded, String duration) {
-            this.bucketName = bucketName;
-            this.bucketID = bucketID;
-            this.data = data;
-            this.dateTaken = dateTaken;
-            this.dateAdded = dateAdded;
-            this.duration = duration;
-        }
-
-        // Parcelable implementation
-        protected MediaModel(Parcel in) {
-            bucketName = in.readString();
-            bucketID = in.readString();
-            data = in.readString();
-            dateTaken = in.readString();
-            dateAdded = in.readString();
-            duration = in.readString();
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(@NonNull Parcel dest, int flags) {
-            dest.writeString(bucketName);
-            dest.writeString(bucketID);
-            dest.writeString(data);
-            dest.writeString(dateTaken);
-            dest.writeString(dateAdded);
-            dest.writeString(duration);
-        }
-
-    }
 }

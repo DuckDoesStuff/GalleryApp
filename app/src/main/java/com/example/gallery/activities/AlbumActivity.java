@@ -11,19 +11,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
 import com.example.gallery.component.ImageFrameAdapter;
-import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaModel;
 
 import java.util.ArrayList;
 
 public class AlbumActivity extends  AppCompatActivity implements ImageFrameAdapter.ImageFrameListener{
-    ArrayList<MediaFetch.MediaModel> images;
+    ArrayList<MediaModel> images;
     RecyclerView recyclerView;
     ImageFrameAdapter imageFrameAdapter;
 
     boolean viewMode = true;
     MainActivity mainActivity;
 
-    private ArrayList<MediaFetch.MediaModel> selectedImages;
+    private ArrayList<MediaModel> selectedImages;
     private ArrayList<Integer> selectedPositions;
 
     @Override

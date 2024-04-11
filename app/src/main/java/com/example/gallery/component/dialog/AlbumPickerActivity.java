@@ -12,12 +12,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.GalleryDB;
-import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaModel;
 
 import java.util.ArrayList;
 
 public class AlbumPickerActivity extends AppCompatActivity implements AlbumPickerAdapter.AlbumPickerListener {
-    ArrayList<MediaFetch.MediaModel> images;
+    ArrayList<MediaModel> images;
     ArrayList<GalleryDB.AlbumScheme> albums;
     private GalleryDB db;
 
@@ -54,8 +54,8 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
     @Override
     public void onAlbumSelected(GalleryDB.AlbumScheme album) {
         new Thread(() -> {
-            for (MediaFetch.MediaModel image : images) {
-                AlbumManager.moveMedia(this, image.data, album.albumPath);
+            for (MediaModel image : images) {
+                AlbumManager.moveMedia(this, image.path, album.albumPath);
             }
             try {
                 GalleryDB db = new GalleryDB(this);

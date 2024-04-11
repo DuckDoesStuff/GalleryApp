@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.gallery.R;
 import com.example.gallery.databinding.ActivityMainBinding;
@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
     public UserViewModel userViewModel;
     Observer<FirebaseUser> userObserver;
     FirebaseUser user;
-    boolean isAuthenticated = false;
 
     PermissionUtils.PermissionCallback permissionCallback = () -> {
         picutresFragment = new PicutresFragment();
@@ -89,9 +88,8 @@ public class MainActivity extends AppCompatActivity {
             );
         }
 
-        userViewModel = new UserViewModel();
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         userObserver = firebaseUser -> {
-            Log.d("Debug", "User changed");
             BottomNavigationView bottomNavigationView = binding.bottomNavigationView;
             user = firebaseUser;
             if (bottomNavigationView.getSelectedItemId() == R.id.profile) {
@@ -124,10 +122,8 @@ public class MainActivity extends AppCompatActivity {
                 replaceFragment(albumsFragment);
             } else if (itemId == R.id.profile) {
                 if(user != null) {
-                    Log.d("Debug", "User is not null");
                     profileFragment = new UserFragment();
                 }else {
-                    Log.d("Debug", "User is null");
                     profileFragment = new GuestFragment();
                 }
                 replaceFragment(profileFragment);

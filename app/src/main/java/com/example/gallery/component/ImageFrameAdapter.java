@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.gallery.R;
-import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaModel;
 
 import java.util.ArrayList;
 
@@ -26,23 +26,24 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     private final int imgSize;
     private final ImageFrameListener onClickCallBack;
     public boolean selectionModeEnabled = false;
+    public boolean canSelect = true;
     private ArrayList<FrameModel> frameModels;
-    private ArrayList<MediaFetch.MediaModel> selectedImages;
+    private ArrayList<MediaModel> selectedImages;
     private Context context;
 
-    public ImageFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<MediaFetch.MediaModel> images, ArrayList<MediaFetch.MediaModel> selectedImages, ImageFrameListener onClickCallback) {
+    public ImageFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<MediaModel> images, ArrayList<MediaModel> selectedImages, ImageFrameListener onClickCallback) {
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
         this.selectedImages = selectedImages;
         initFrameModels(images);
     }
 
-    public void initFrameModels(ArrayList<MediaFetch.MediaModel> images) {
+    public void initFrameModels(ArrayList<MediaModel> images) {
         if (images == null || images.isEmpty()) {
             frameModels = new ArrayList<>();
         } else {
             frameModels = new ArrayList<>();
-            for (MediaFetch.MediaModel media : images) {
+            for (MediaModel media : images) {
                 frameModels.add(new FrameModel(media));
             }
         }
@@ -156,7 +157,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                 // Nếu không được chọn, hiển thị hình ảnh bình thường bằng cách xóa bỏ color filter
                 imageView.clearColorFilter();
             }
-            Glide.with(itemView).load(frameModel.media.data)
+            Glide.with(itemView).load(frameModel.media.path)
                     .transition(DrawableTransitionOptions
                     .withCrossFade(200))
                     .placeholder(new ColorDrawable(Color.GRAY))
@@ -165,10 +166,10 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     }
 
     private static class FrameModel {
-        private final MediaFetch.MediaModel media;
+        private final MediaModel media;
         private boolean isSelected;
 
-        public FrameModel(MediaFetch.MediaModel media) {
+        public FrameModel(MediaModel media) {
             this.media = media;
             isSelected = false;
         }

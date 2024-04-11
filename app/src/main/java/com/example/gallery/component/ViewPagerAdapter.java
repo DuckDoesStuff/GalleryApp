@@ -22,7 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
-import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaModel;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,9 +30,9 @@ import java.util.ArrayList;
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewPagerViewHolder> {
     static ImageActivity imageActivity;
-    ArrayList<MediaFetch.MediaModel> images;
+    ArrayList<MediaModel> images;
 
-    public ViewPagerAdapter(ArrayList<MediaFetch.MediaModel> images, ImageActivity imageActivity) {
+    public ViewPagerAdapter(ArrayList<MediaModel> images, ImageActivity imageActivity) {
         this.images = images;
         ViewPagerAdapter.imageActivity = imageActivity;
     }
@@ -98,14 +98,14 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         ExoPlayer player;
         ScaleGestureDetector scaleGestureDetector;
         GestureDetector gestureDetector;
-        MediaFetch.MediaModel mediaModel;
+        MediaModel mediaModel;
 
         public ViewPagerViewHolder(@NonNull View itemView) {
             super(itemView);
-            frameLayout = itemView.findViewById(R.id.page_media);
+            frameLayout = itemView.findViewById(R.id.page_frame);
         }
 
-        public void onBind(MediaFetch.MediaModel mediaModel) {
+        public void onBind(MediaModel mediaModel) {
             this.mediaModel = mediaModel;
 
             // If media is an image
@@ -117,7 +117,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
                 frameLayout.removeAllViews();
                 frameLayout.addView(imageView);
 
-                Glide.with(itemView).load(mediaModel.data).into(imageView);
+                Glide.with(itemView).load(mediaModel.path).into(imageView);
 
                 scaleListener = new ScaleListener();
                 scaleGestureDetector = new ScaleGestureDetector(itemView.getContext(), scaleListener);
@@ -152,7 +152,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
             playerView = new PlayerView(imageActivity);
             player = new ExoPlayer.Builder(imageActivity).build();
 
-            MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(new File(mediaModel.data)));
+            MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(new File(mediaModel.path)));
             player.setMediaItem(mediaItem);
             player.prepare();
             playerView.setPlayer(player);

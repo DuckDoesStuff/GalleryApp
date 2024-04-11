@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -102,8 +103,14 @@ public class EditActivity extends AppCompatActivity {
             Uri croppedUri = UCrop.getOutput(data);
             if (croppedUri != null) {
                 imgPath = croppedUri.getPath();
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Picasso.get().load(new File(imgPath)).into(imageView);
+                                        }
+                                    }, 1000);
 
-                Picasso.get().load(new File(imgPath)).into(imageView);
 
             }
         }
@@ -114,7 +121,15 @@ public class EditActivity extends AppCompatActivity {
         if (data != null) {
             imgPath = data.getStringExtra("editedImagePath");
             if (imgPath != null) {
-                Picasso.get().load(new File(imgPath)).into(imageView);
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Picasso.get().load(new File(imgPath)).into(imageView);
+
+                    }
+                }, 1000);
+
 
 
             }

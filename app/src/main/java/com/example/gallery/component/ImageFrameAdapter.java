@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -156,6 +157,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                 // Nếu không được chọn, hiển thị hình ảnh bình thường bằng cách xóa bỏ color filter
                 imageView.clearColorFilter();
             }
+
             Glide.with(itemView).load(frameModel.media.data)
                     .transition(DrawableTransitionOptions
                             .withCrossFade(200))

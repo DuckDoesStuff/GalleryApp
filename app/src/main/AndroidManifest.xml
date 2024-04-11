@@ -31,6 +31,9 @@
             android:name=".activities.AlbumActivity"
             android:exported="false" />
         <activity
+            android:name=".activities.TrashActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.EditActivity"
             android:exported="false"
             android:theme="@style/Theme.Gallery" />

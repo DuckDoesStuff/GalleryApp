@@ -25,11 +25,10 @@ import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
-import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.TrashManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, MediaContentObserver.OnMediaUpdateListener, MediaFetch.onDeleteCallback {
@@ -161,8 +160,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             imageFrameAdapter.notifyDataSetChanged();
             onHideBottomSheet();
             new Thread(() -> {
-                for (MediaFetch.MediaModel image : selectedImages) {
-                    TrashManager.moveToTrash(requireContext(), image.data);
+                for (MediaModel image : selectedImages) {
+                    TrashManager.moveToTrash(requireContext(), image.path);
                 }
                 selectedImages.clear();
             }).start();

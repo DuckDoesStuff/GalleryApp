@@ -26,6 +26,7 @@ import com.example.gallery.utils.MediaModel;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Objects;
 
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewPagerViewHolder> {
@@ -109,7 +110,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
             this.mediaModel = mediaModel;
 
             // If media is an image
-            if(mediaModel.duration == null) {
+            if(Objects.equals(mediaModel.type, "image")) {
                 // First inflate mediaView with the ImageView
                 imageView = new ImageView(itemView.getContext());
                 imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));

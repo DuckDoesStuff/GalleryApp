@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 
 import com.example.gallery.activities.MainActivity;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -225,7 +224,8 @@ public class MediaFetch {
                     String duration = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
                     String type = "image";
                     String name = path.substring(path.lastIndexOf('/') + 1);
-                    mediaList.add(new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type));
+                    MediaModel mediaModel = new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type);
+                    mediaList.add(mediaModel);
                 }
             } finally {
                 imageCursor.close();
@@ -244,13 +244,14 @@ public class MediaFetch {
                 while (videoCursor.moveToNext()) {
                     String bucketName = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
                     String bucketID = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_ID));
-                    String data = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA));
+                    String path = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA));
                     String dateTaken = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_TAKEN));
                     String dateAdded = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED));
                     String duration = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
                     String type = "video";
-                    String name = data.substring(data.lastIndexOf('/') + 1);
-                    mediaList.add(new MediaModel(bucketName, bucketID, data, name, dateTaken, dateAdded, duration, type));
+                    String name = path.substring(path.lastIndexOf('/') + 1);
+                    MediaModel mediaModel = new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type);
+                    mediaList.add(mediaModel);
                 }
             } finally {
                 videoCursor.close();

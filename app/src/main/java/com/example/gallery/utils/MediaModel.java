@@ -45,11 +45,11 @@ public class MediaModel implements Parcelable {
         albumName = in.readString();
         bucketID = in.readString();
         path = in.readString();
+        name = in.readString();
+        type = in.readString();
         dateTaken = in.readString();
         dateAdded = in.readString();
         duration = in.readString();
-        type = in.readString();
-        name = in.readString();
         isLocal = in.readBoolean();
         isSynced = in.readBoolean();
     }

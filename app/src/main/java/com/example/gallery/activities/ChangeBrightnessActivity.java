@@ -145,9 +145,8 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
                 final Bitmap filteredBitmap = gpuImage.getBitmapWithFilterApplied();
 
                 Bitmap scaledBitmap = Bitmap.createScaledBitmap(filteredBitmap, gpuImageView.getWidth(), gpuImageView.getHeight(), true);
-
+                editedImagePath = saveBitmapAndGetPath(scaledBitmap);
                 // Lưu lại đường dẫn của ảnh đã chỉnh sửa
-                editedImagePath = getEditedImagePath(scaledBitmap);
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -160,6 +159,19 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
             }
         }, DELAY_MILLIS);
     }
+    private String saveBitmapAndGetPath(Bitmap bitmap) {
+        File editedImageFile = new File(getExternalFilesDir(null), "edited_image.jpg");
+        try {
+            FileOutputStream outputStream = new FileOutputStream(editedImageFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+            outputStream.flush();
+            outputStream.close();
+            return editedImageFile.getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     private void sendResult(String editedImagePath) {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("editedImagePath", editedImagePath);
@@ -167,18 +179,5 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
         finish();
     }
 
-    private String getEditedImagePath(Bitmap editedBitmap) {
-        // Tạm thời lưu ảnh đã chỉnh sửa vào bộ nhớ cache của ứng dụng
-        File cachePath = new File(getCacheDir(), "edited_image.jpg");
-        try {
-            FileOutputStream outputStream = new FileOutputStream(cachePath);
-            editedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-            outputStream.flush();
-            outputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        return cachePath.getAbsolutePath();
-    }
 }

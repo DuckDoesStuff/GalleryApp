@@ -74,23 +74,7 @@
                 android:background="@null"
 
                 />
-            <ImageButton
-                android:id="@+id/rotate_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:src="@drawable/rotate"
-                android:layout_weight="1"
-                android:background="@null"
 
-                />
-
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:src="@drawable/contrast"
-                android:background="@null"
-                android:id="@+id/contrast_btn"
-                android:layout_weight="1" />
 
             <ImageButton
                 android:layout_width="wrap_content"
@@ -102,14 +86,7 @@
 
 
                 android:layout_weight="1" />
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:src="@drawable/filter"
-                android:background="@null"
-                android:id="@+id/filter_btn"
-                android:layout_weight="1"
-                />
+
 
         </LinearLayout>
 

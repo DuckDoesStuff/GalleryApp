@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.ColorDrawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +31,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     private ArrayList<MediaModel> selectedImages;
     private Context context;
 
-    public ImageFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<MediaModel> images, ArrayList<MediaModel> selectedImages, ImageFrameListener onClickCallback) {
+    public ImageFrameAdapter(Context context, int imgSize, ArrayList<MediaModel> images, ArrayList<MediaModel> selectedImages, ImageFrameListener onClickCallback) {
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
         this.selectedImages = selectedImages;
@@ -100,14 +99,16 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                     notifyDataSetChanged();
                 }
             }
-            onClickCallBack.onItemClick(position);
+            if(onClickCallBack != null)
+                onClickCallBack.onItemClick(position);
         });
         holder.itemView.setOnLongClickListener(v -> {
             selectionModeEnabled = true;
             frameModel.isSelected = true;
 
             selectedImages.add(frameModel.media);
-            onClickCallBack.onItemLongClick(position);
+            if (onClickCallBack != null)
+                onClickCallBack.onItemLongClick(position);
 
             notifyDataSetChanged();
             return true;

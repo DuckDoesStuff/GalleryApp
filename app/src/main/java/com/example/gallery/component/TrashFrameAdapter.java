@@ -19,9 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.gallery.R;
-import com.example.gallery.utils.MediaFetch;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.FrameViewHolder> {
@@ -109,9 +107,6 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
             return true;
         });
     }
-
-
-
 
     @Override
     public int getItemCount() {

@@ -53,7 +53,7 @@ public class AlbumActivity extends  AppCompatActivity implements ImageFrameAdapt
         int imgSize = screenWidth / spanCount;
 
         if (imageFrameAdapter == null)
-            imageFrameAdapter = new ImageFrameAdapter(this, imgSize, selectedPositions, images, selectedImages, this);
+            imageFrameAdapter = new ImageFrameAdapter(this, imgSize, images, selectedImages, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
 

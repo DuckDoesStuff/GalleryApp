@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -57,6 +58,11 @@ public class GalleryDB extends SQLiteOpenHelper {
                     "hidden BOOLEAN DEFAULT FALSE," +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 
+    private static final String SQL_CREATE_TO_UPLOAD_TABLE =
+                    "CREATE TABLE IF NOT EXISTS to_upload (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "image_path TEXT NOT NULL UNIQUE)";
+
     // START SQLITE HELPER
     public GalleryDB(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -65,19 +71,27 @@ public class GalleryDB extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_TRASH_TABLE);
         db.execSQL(SQL_CREATE_ALBUM_TABLE);
+        db.execSQL(SQL_CREATE_TO_UPLOAD_TABLE);
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS trash");
         db.execSQL("DROP TABLE IF EXISTS albums");
+        db.execSQL("DROP TABLE IF EXISTS to_upload");
         onCreate(db);
     }
 
     // END SQLITE HELPER
 
-    public void oneTimeExecution(String SQL) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.execSQL(SQL);
+    public void oneTimeExecution() {
+        SQLiteDatabase db = getReadableDatabase();
+        // Log everything in to_upload
+        Cursor cursor = db.rawQuery("SELECT * FROM to_upload", null);
+        while (cursor.moveToNext()) {
+            String path = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+            Log.d("DB", "Image: " + path);
+        }
+        cursor.close();
         db.close();
     }
 
@@ -87,6 +101,7 @@ public class GalleryDB extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("INSERT INTO trash (original_path) VALUES ('" + originalPath + "')");
         db.close();
+        onRemoveImageToUpload(originalPath);
     }
 
     public void onItemRestored(String originalPath) {
@@ -177,4 +192,33 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     // END ALBUM
 
+
+    // START UPLOAD
+
+    public void onNewImageToUpload(String imagePath) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("INSERT OR IGNORE INTO to_upload (image_path) VALUES ('" + imagePath + "')");
+        db.close();
+    }
+
+    public ArrayList<MediaModel> getImagesToUpload() {
+        SQLiteDatabase db = getReadableDatabase();
+        ArrayList<MediaModel> images = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT * FROM to_upload", null);
+        while (cursor.moveToNext()) {
+            String path = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+            images.add(new MediaModel(path));
+        }
+        cursor.close();
+        db.close();
+        return images;
+    }
+
+    public void onRemoveImageToUpload(String imagePath) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("DELETE FROM to_upload WHERE image_path = ?", new String[]{imagePath});
+        db.close();
+    }
+
+    // END UPLOAD
 }

@@ -2,20 +2,15 @@ package com.example.gallery.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ImageButton;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
-import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.TrashFrameAdapter;
-import com.example.gallery.utils.MediaFetch;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class TrashActivity extends AppCompatActivity implements TrashFrameAdapter.TrashFrameListener{
@@ -56,9 +51,9 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
 
         if (trashFrameAdapter == null)
             trashFrameAdapter = new TrashFrameAdapter(this, imgSize, selectedPositions, images, selectedImages, this);
+
         recyclerView.setAdapter(trashFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
-
     }
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {

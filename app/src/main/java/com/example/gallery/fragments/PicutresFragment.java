@@ -23,6 +23,7 @@ import com.example.gallery.activities.MainActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
+import com.example.gallery.utils.GalleryDB;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
 import com.example.gallery.utils.MediaModel;
@@ -54,6 +55,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mainActivity = ((MainActivity) requireActivity());
         if(selectedImages == null)
             selectedImages = new ArrayList<>();
 
@@ -108,6 +110,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                     mainActivity.startActivity(intent);
                     return true;
                 } else if (item.getItemId() == R.id.choice2) {
+                    GalleryDB db = new GalleryDB(getContext());
+                    db.oneTimeExecution();
                     return true;
                 } else if (item.getItemId() == R.id.choice3) {
                     return true;
@@ -147,7 +151,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         int imgSize = screenWidth / spanCount;
 
         if (imageFrameAdapter == null)
-            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, selectedPositions, images, selectedImages, this);
+            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
     }
@@ -155,7 +159,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     private void setUpBottomSheet() {
         Button deleteBtn = bottomSheet.findViewById(R.id.deleteBtn);
         deleteBtn.setOnClickListener(v -> {
-            //MediaFetch.deleteMediax`Files(requireActivity().getContentResolver(), selectedImages, this);
             imageFrameAdapter.selectionModeEnabled = false;
             imageFrameAdapter.notifyDataSetChanged();
             onHideBottomSheet();

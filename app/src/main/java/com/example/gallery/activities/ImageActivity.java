@@ -23,6 +23,8 @@ public class ImageActivity extends AppCompatActivity {
     ArrayList<MediaModel> images;
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
+    private static final int EDIT_IMAGE_REQUEST_CODE = 1001;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,10 +83,8 @@ public class ImageActivity extends AppCompatActivity {
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Thực hiện chuyển sang EditActivity
                 String currentImagePath = images.get(viewPager2.getCurrentItem()).path;
 
-                // Thực hiện chuyển sang EditActivity và truyền đường dẫn của hình ảnh
                 Intent editIntent = new Intent(ImageActivity.this, EditActivity.class);
                 editIntent.putExtra("imagePath", currentImagePath);
                 startActivity(editIntent);
@@ -99,6 +99,7 @@ public class ImageActivity extends AppCompatActivity {
         viewPager2.setCurrentItem(position, false);
         viewPager2.setDrawingCacheEnabled(true);
         viewPager2.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
+
     }
 
     public void setViewPagerInputEnabled(boolean enabled) {

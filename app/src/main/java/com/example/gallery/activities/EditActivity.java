@@ -113,7 +113,7 @@ public class EditActivity extends AppCompatActivity {
                                         public void run() {
                                             Picasso.get().load(new File(imgPath)).into(imageView);
                                         }
-                                    }, 1000);
+                                    }, 2000);
 
 
             }
@@ -165,24 +165,19 @@ public class EditActivity extends AppCompatActivity {
         FileOutputStream outputStream = null;
 
         try {
-            // Mở luồng đọc từ tệp ảnh đã chỉnh sửa
             inputStream = new FileInputStream(editedImageFile);
 
-            // Mở luồng ghi vào tệp mới
             outputStream = new FileOutputStream(savedImageFile);
 
-            // Sao chép nội dung từ luồng đầu vào sang luồng đầu ra
             byte[] buffer = new byte[1024];
             int length;
             while ((length = inputStream.read(buffer)) > 0) {
                 outputStream.write(buffer, 0, length);
             }
 
-            // Hiển thị thông báo hoặc thực hiện các hành động cần thiết khi ảnh đã được lưu
             Toast.makeText(this, "Image saved successfully", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
-            // Xử lý ngoại lệ khi có lỗi xảy ra trong quá trình sao chép tệp
             Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
         } finally {
             // Đóng luồng

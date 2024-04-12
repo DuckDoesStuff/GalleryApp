@@ -70,9 +70,15 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     public void onBindViewHolder(@NonNull ImageFrameAdapter.FrameViewHolder holder, int position) {
         holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
         FrameModel frameModel = frameModels.get(position);
+
         holder.bind(frameModel);
         holder.checkBox.setVisibility(selectionModeEnabled ? View.VISIBLE : View.GONE);
 
+        if (frameModel.media.type.equals("video")) {
+            holder.play.setVisibility(View.VISIBLE); // Hiển thị nút play cho video
+        } else {
+            holder.play.setVisibility(View.GONE); // Ẩn nút play cho hình ảnh
+        }
         holder.itemView.setOnClickListener(v -> {
             if (selectionModeEnabled) {
                 frameModel.isSelected = !frameModel.isSelected;
@@ -131,6 +137,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     public static class FrameViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         CheckBox checkBox;
+        ImageView play;
 
         FrameModel frameModel;
 
@@ -138,7 +145,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             super(itemView);
             imageView = itemView.findViewById(R.id.frame);
             checkBox = itemView.findViewById(R.id.select_box);
-
+            play = itemView.findViewById(R.id.play_button);
             Glide.with(itemView).load(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
         }
 

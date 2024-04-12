@@ -23,7 +23,6 @@ import com.example.gallery.activities.MainActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
-import com.example.gallery.utils.GalleryDB;
 import com.example.gallery.utils.MediaContentObserver;
 import com.example.gallery.utils.MediaFetch;
 import com.example.gallery.utils.MediaModel;
@@ -76,6 +75,13 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     public void onMediaUpdate(ArrayList<MediaModel> modelArrayList) {
         // Ensure running on UI thread
         images = modelArrayList;
+//        try {
+//            GalleryDB db = new GalleryDB(requireContext());
+//            ArrayList<MediaModel> mediaFromCloud = db.getImageFromCloud();
+//            mediaList.addAll(mediaFromCloud);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         MediaFetch.sortArrayListModel(images, MediaFetch.SORT_BY_DATE_TAKEN, MediaFetch.SORT_DESC);
         requireActivity().runOnUiThread(() -> {
             imageFrameAdapter.selectionModeEnabled = false;
@@ -110,8 +116,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                     mainActivity.startActivity(intent);
                     return true;
                 } else if (item.getItemId() == R.id.choice2) {
-                    GalleryDB db = new GalleryDB(getContext());
-                    db.oneTimeExecution();
                     return true;
                 } else if (item.getItemId() == R.id.choice3) {
                     return true;

@@ -9,6 +9,12 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+
 import java.util.ArrayList;
 
 
@@ -63,6 +69,17 @@ public class GalleryDB extends SQLiteOpenHelper {
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "image_path TEXT NOT NULL UNIQUE)";
 
+    // This table will be synced with the user firestore
+    private static final String SQL_CREATE_MEDIA_TABLE =
+                    "CREATE TABLE IF NOT EXISTS images (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "user_id," +
+                    "local_path TEXT," +
+                    "cloud_path TEXT," +
+                    "type TEXT," +
+                    "is_synced BOOLEAN DEFAULT(false)," +
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+
     // START SQLITE HELPER
     public GalleryDB(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -72,12 +89,14 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_TRASH_TABLE);
         db.execSQL(SQL_CREATE_ALBUM_TABLE);
         db.execSQL(SQL_CREATE_TO_UPLOAD_TABLE);
+        db.execSQL(SQL_CREATE_MEDIA_TABLE);
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS trash");
         db.execSQL("DROP TABLE IF EXISTS albums");
         db.execSQL("DROP TABLE IF EXISTS to_upload");
+        db.execSQL("DROP TABLE IF EXISTS images");
         onCreate(db);
     }
 
@@ -221,4 +240,61 @@ public class GalleryDB extends SQLiteOpenHelper {
     }
 
     // END UPLOAD
+
+    // START IMAGE
+
+    public void onNewImage(String cloudPath) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("INSERT INTO images (user_id, cloud_path) VALUES ('" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "', '" + cloudPath + "')");
+        db.close();
+    }
+
+    public void updateImages(Context context) {
+        // This method will be called when the user logs in
+        // It will sync the images table with the user firestore
+        // If the image is not in the images table, it will be added
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            return;
+        }
+
+        FirebaseFirestore fs = FirebaseFirestore.getInstance();
+        CollectionReference root = fs.collection(user.getUid());
+        root.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                QuerySnapshot result = task.getResult();
+                if (result == null) {
+                    return;
+                }
+
+                SQLiteDatabase db = getWritableDatabase();
+                for (int i = 0; i < result.size(); i++) {
+                    String cloudPath = result.getDocuments().get(i).getId();
+                    Cursor cursor = db.rawQuery("SELECT 1 FROM images WHERE cloud_path = ?", new String[]{cloudPath});
+                    boolean exists = cursor.getCount() > 0;
+                    cursor.close();
+                    if (!exists) {
+                        db.execSQL("INSERT INTO images (user_id, cloud_path) VALUES ('" + user.getUid() + "', '" + cloudPath + "')");
+                    }
+                }
+            }
+        });
+    }
+
+    public ArrayList<MediaModel> getImageFromCloud() {
+        ArrayList<MediaModel> mediaModels = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM images", null);
+        while (cursor.moveToNext()) {
+            String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
+            mediaModels.add(new MediaModel(cloudPath));
+        }
+        cursor.close();
+        db.close();
+        return mediaModels;
+    }
+
+    // END IMAGE
 }

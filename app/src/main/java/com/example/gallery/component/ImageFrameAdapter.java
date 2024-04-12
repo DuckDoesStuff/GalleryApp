@@ -144,6 +144,10 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
         public void bind(FrameModel frameModel) {
             this.frameModel = frameModel;
+
+            if (frameModel.media.isLocal) {
+                itemView.findViewById(R.id.cloud_icon).setVisibility(View.INVISIBLE);
+            }
             checkBox.setChecked(frameModel.isSelected);
             if (frameModel.isSelected) {
                 // Tạo một ColorMatrix để giảm độ sáng của hình ảnh

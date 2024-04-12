@@ -227,6 +227,7 @@ public class MediaFetch {
                     String name = path.substring(path.lastIndexOf('/') + 1);
                     db.onNewImageToUpload(path);
                     MediaModel mediaModel = new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type);
+                    mediaModel.isLocal = true;
                     mediaList.add(mediaModel);
                 }
             } finally {
@@ -254,6 +255,7 @@ public class MediaFetch {
                     String name = path.substring(path.lastIndexOf('/') + 1);
                     db.onNewImageToUpload(path);
                     MediaModel mediaModel = new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type);
+                    mediaModel.isLocal = true;
                     mediaList.add(mediaModel);
                 }
             } finally {

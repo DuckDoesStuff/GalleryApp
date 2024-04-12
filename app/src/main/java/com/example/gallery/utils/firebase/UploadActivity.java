@@ -19,6 +19,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -40,13 +42,14 @@ public class UploadActivity extends AppCompatActivity {
     private int currentProgress = 0;
     private TextView progressText;
     private GalleryDB db;
+    private FirebaseUser user;
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setContentView(R.layout.activity_upload);
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser user = auth.getCurrentUser();
+        user = auth.getCurrentUser();
 
         db = new GalleryDB(this);
 
@@ -132,9 +135,16 @@ public class UploadActivity extends AppCompatActivity {
             // Handle successful uploads
             semaphore.release();
             currentProgress++;
-            circularProgressIndicator.setProgress((currentProgress / totalProgress * 100));
+            circularProgressIndicator.setProgress((currentProgress / totalProgress) * 100);
             try {
                 db.onRemoveImageToUpload(localPath);
+                // Update firestore
+                FirebaseFirestore fs = FirebaseFirestore.getInstance();
+                CollectionReference userCollection = fs.collection(user.getUid());
+                mediaRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    db.onNewImage(uri.toString());
+                    userCollection.add(new MediaModel(uri.toString()));
+                });
             } catch (Exception e) {
                 e.printStackTrace();
             }

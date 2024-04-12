@@ -102,8 +102,11 @@ public class MainActivity extends AppCompatActivity {
             BottomNavigationView bottomNavigationView = binding.bottomNavigationView;
             user = firebaseUser;
             if (bottomNavigationView.getSelectedItemId() == R.id.profile) {
-                if (firebaseUser != null)
+                if (firebaseUser != null) {
                     profileFragment = new UserFragment();
+                    GalleryDB db = new GalleryDB(this);
+                    db.updateImages(this);
+                }
                 else
                     profileFragment = new GuestFragment();
                 replaceFragment(profileFragment);

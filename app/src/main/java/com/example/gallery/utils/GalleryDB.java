@@ -128,6 +128,44 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.execSQL("DELETE FROM trash WHERE original_path = '" + originalPath + "'");
         db.close();
     }
+    public String getOriginalPath(String fileName) {
+        String originalPath = null;
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor cursor = null;
+
+        try {
+            // Truy vấn cơ sở dữ liệu để lấy original_path
+            String[] projection = { "original_path" };
+            String selection = "original_path LIKE ?";
+            String[] selectionArgs = { "%" + fileName + "%" }; // Sử dụng phép toán LIKE để tìm kiếm phần của tên tệp tin
+
+            cursor = db.query(
+                    "trash", // Tên bảng trong cơ sở dữ liệu
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null,
+                    null,
+                    null
+            );
+
+            // Di chuyển con trỏ tới hàng đầu tiên (nếu có)
+            if (cursor.moveToFirst()) {
+                originalPath = cursor.getString(cursor.getColumnIndexOrThrow("original_path"));
+            }
+        } catch (Exception e) {
+            // Xử lý ngoại lệ (nếu có)
+            e.printStackTrace();
+        } finally {
+            // Đóng con trỏ và cơ sở dữ liệu
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+
+        return originalPath;
+    }
 
     public void onItemDeleted(String originalPath) {
         SQLiteDatabase db = getWritableDatabase();

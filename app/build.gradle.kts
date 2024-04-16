@@ -59,6 +59,7 @@ dependencies {
     implementation("com.github.yalantis:ucrop:2.2.8-native")
     // For loading images
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.github.MikeOrtiz:TouchImageView:3.6")
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     implementation("androidx.navigation:navigation-ui:2.7.7")
 

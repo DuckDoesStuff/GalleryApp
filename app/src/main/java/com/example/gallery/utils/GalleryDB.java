@@ -12,9 +12,6 @@ import androidx.annotation.Nullable;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
@@ -343,40 +340,6 @@ public class GalleryDB extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("INSERT INTO media (user_id, cloud_path) VALUES ('" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "', '" + cloudPath + "')");
         db.close();
-    }
-
-    public void updateMedia(Context context) {
-        // This method will be called when the user logs in
-        // It will sync the media table with the user firestore
-        // If the image is not in the media table, it will be added
-
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) {
-            return;
-        }
-
-        FirebaseFirestore fs = FirebaseFirestore.getInstance();
-        CollectionReference root = fs.collection(user.getUid());
-        root.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                QuerySnapshot result = task.getResult();
-                if (result == null) {
-                    return;
-                }
-
-                SQLiteDatabase db = getWritableDatabase();
-                for (int i = 0; i < result.size(); i++) {
-                    String cloudPath = result.getDocuments().get(i).getId();
-                    Cursor cursor = db.rawQuery("SELECT 1 FROM media WHERE cloud_path = ?", new String[]{cloudPath});
-                    boolean exists = cursor.getCount() > 0;
-                    cursor.close();
-                    if (!exists) {
-                        db.execSQL("INSERT INTO media (user_id, cloud_path) VALUES ('" + user.getUid() + "', '" + cloudPath + "')");
-                    }
-                }
-            }
-        });
     }
 
     public void addToMediaTable(ArrayList<MediaModel> mediaModels) {

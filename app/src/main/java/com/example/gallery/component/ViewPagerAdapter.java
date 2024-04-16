@@ -1,6 +1,8 @@
 package com.example.gallery.component;
 
 import android.annotation.SuppressLint;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,12 +12,16 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.utils.MediaModel;
@@ -105,9 +111,19 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
                 frameLayout.removeAllViews();
                 frameLayout.addView(touchImageView);
 
-                Glide.with(itemView).load(mediaModel.localPath).into(touchImageView);
+                Glide.with(itemView).asBitmap().load(new File(mediaModel.localPath)).diskCacheStrategy(DiskCacheStrategy.ALL).into(new CustomTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                        touchImageView.setImageBitmap(resource);
+                    }
 
-                touchImageView.setImageURI(Uri.fromFile(new File(mediaModel.localPath)));
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                    }
+                });
+
+//                touchImageView.setImageURI(Uri.fromFile(new File(mediaModel.localPath)));
 
                 touchImageView.setOnTouchListener((view, event) -> {
                     boolean result = true;

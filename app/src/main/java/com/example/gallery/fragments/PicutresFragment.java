@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
+import com.example.gallery.activities.SearchActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
@@ -122,9 +123,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         ImageButton searchButton = view.findViewById(R.id.search);
         searchButton.setOnClickListener(v -> {
-            if (getActivity() != null && getActivity() instanceof MainActivity) {
-                mainActivity.replaceFragment(new SearchViewFragment());
-            }
+            Intent intent = new Intent(getActivity(), SearchActivity.class);
+            startActivity(intent);
         });
 
         return view;

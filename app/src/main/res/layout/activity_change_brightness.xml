@@ -26,32 +26,57 @@
             <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/function"
+                    android:textColor="@color/background_light"
+                    android:textSize="25sp"
+                    android:layout_gravity="center"
+                    android:text="Color">
+
+
+                </TextView>
+            </FrameLayout>
 
 
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:id="@+id/save_btn"
-                android:src="@drawable/save"
+                android:src="@drawable/check"
                 android:background="@null"
+                android:layout_marginEnd="10dp"
                 />
+
 
 
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
-    <jp.co.cyberagent.android.gpuimage.GPUImageView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:id="@+id/imageView"
-
-        />
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.08"
+        android:layout_weight="1"
+
+        >
+
+    <jp.co.cyberagent.android.gpuimage.GPUImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/imageView"
+        android:scaleType="centerInside"
+
+        />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.12"
         android:background="@color/background_dark"
         >
 
@@ -64,9 +89,10 @@
             android:layout_marginStart="16dp"
             android:layout_gravity="center"
             android:layout_marginEnd="16dp"
+            android:progressTint="@color/background_light"
+            android:thumbTint="@color/background_light"
+            android:progressBackgroundTint="@color/background_light"
             android:visibility="invisible"
-
-
             />
 
         <SeekBar
@@ -78,7 +104,53 @@
             android:layout_gravity="center"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:visibility="invisible" />
+            android:visibility="invisible"
+            android:progressTint="@color/background_light"
+            android:thumbTint="@color/background_light"
+            android:progressBackgroundTint="@color/background_light"/>
+        <SeekBar
+            android:id="@+id/gamma_seek_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="300"
+
+            android:progress="100"
+            android:layout_marginStart="16dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="16dp"
+            android:visibility="invisible"
+            android:progressTint="@color/background_light"
+            android:thumbTint="@color/background_light"
+            android:progressBackgroundTint="@color/background_light"
+
+            />
+
+        <SeekBar
+            android:id="@+id/saturation_seek_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="50"
+            android:layout_gravity="center"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:visibility="invisible"
+            android:progressTint="@color/background_light"
+            android:thumbTint="@color/background_light"
+            android:progressBackgroundTint="@color/background_light"/>
+        <SeekBar
+            android:id="@+id/exposure_seek_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="50"
+            android:layout_gravity="center"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:visibility="invisible"
+            android:progressTint="@color/background_light"
+            android:thumbTint="@color/background_light"
+            android:progressBackgroundTint="@color/background_light"/>
 
     </FrameLayout>
 
@@ -117,9 +189,34 @@
                 android:id="@+id/brightness_btn"
 
                 android:background="@null"
+                android:layout_weight="1" />
+            <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/gamma"
+            android:background="@null"
+            android:id="@+id/gamma_btn"
+            android:layout_weight="1" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/saturation"
+                android:id="@+id/saturation_btn"
+
+                android:background="@null"
 
 
                 android:layout_weight="1" />
+            <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/exposure"
+            android:background="@null"
+            android:id="@+id/exposure_btn"
+            android:layout_weight="1" />
+
+
 
 
         </LinearLayout>

@@ -140,7 +140,7 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
                 String albumName = mediaList.get(0).albumName; // Lấy tên album từ media đầu tiên trong danh sách
                 int numOfMedia = mediaList.size();
                 MediaFetch.sortArrayListModel(mediaList, MediaFetch.SORT_BY_DATE_TAKEN, MediaFetch.SORT_DESC);
-                String thumbnail = mediaList.get(0).path; // Đây là nơi để lấy hình ảnh thumbnail, bạn có thể thay thế bằng logic tương ứng
+                String thumbnail = mediaList.get(0).localPath; // Đây là nơi để lấy hình ảnh thumbnail, bạn có thể thay thế bằng logic tương ứng
 
                 // Tạo đối tượng AlbumModel và thêm vào ArrayList
                 albums.add(new AlbumFrameAdapter.AlbumModel(bucketId, albumName, numOfMedia, thumbnail));

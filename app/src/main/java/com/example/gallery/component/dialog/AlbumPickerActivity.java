@@ -55,7 +55,7 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
     public void onAlbumSelected(GalleryDB.AlbumScheme album) {
         new Thread(() -> {
             for (MediaModel image : images) {
-                AlbumManager.moveMedia(this, image.path, album.albumPath);
+                AlbumManager.moveMedia(this, image.localPath, album.albumPath);
             }
             try {
                 GalleryDB db = new GalleryDB(this);

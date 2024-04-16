@@ -4,7 +4,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -72,19 +71,11 @@ public class MediaFetch {
     private MediaFetch(@NonNull Context context) {
         this.context = context;
         listeners = new ArrayList<>();
-        ContentResolver contentResolver = context.getContentResolver();
-        MediaContentObserver mediaContentObserver = new MediaContentObserver(new Handler());
-        contentResolver.registerContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, true, mediaContentObserver);
-        contentResolver.registerContentObserver(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, true, mediaContentObserver);
     }
     private MediaFetch(@NonNull Context context, MainActivity mainActivity) {
         this.context = context;
         this.mainActivity = mainActivity;
         listeners = new ArrayList<>();
-        ContentResolver contentResolver = context.getContentResolver();
-        MediaContentObserver mediaContentObserver = new MediaContentObserver(new Handler());
-        contentResolver.registerContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, true, mediaContentObserver);
-        contentResolver.registerContentObserver(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, true, mediaContentObserver);
     }
 
     public static synchronized MediaFetch getInstance(Context context) {
@@ -111,9 +102,9 @@ public class MediaFetch {
                     case SORT_BY_BUCKET_NAME:
                         return o1.albumName.compareTo(o2.albumName) * sortDirection;
                     case SORT_BY_DURATION:
-                        return o1.duration.compareTo(o2.duration) * sortDirection;
+                        return ((o1.duration > o2.duration) ? 1 : 0) * sortDirection;
                     case SORT_BY_DATE_TAKEN:
-                        return o1.dateTaken.compareTo(o2.dateTaken) * sortDirection;
+                        return ((o1.dateTaken > o2.dateTaken) ? 1 : 0) * sortDirection;
                     default:
                         return 0;
                 }
@@ -168,7 +159,7 @@ public class MediaFetch {
             Iterator<MediaModel> iterator = mediaDelete.iterator();
             while (iterator.hasNext()) {
                 MediaModel mediaModel = iterator.next();
-                deleteMediaFile(contentResolver, mediaModel.path);
+                deleteMediaFile(contentResolver, mediaModel.localPath);
                 iterator.remove();
             }
             callback.onDeleteResult();
@@ -217,17 +208,20 @@ public class MediaFetch {
         if (imageCursor != null) {
             try {
                 while (imageCursor.moveToNext()) {
-                    String bucketName = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
+                    String albumName = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
                     String bucketID = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID));
-                    String path = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-                    String dateTaken = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
-                    String dateAdded = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED));
-                    String duration = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
                     String type = "image";
-                    String name = path.substring(path.lastIndexOf('/') + 1);
-                    db.onNewImageToUpload(path);
-                    MediaModel mediaModel = new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type);
-                    mediaModel.isLocal = true;
+                    String localPath = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                    long dateTaken = imageCursor.getLong(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
+                    int duration = imageCursor.getInt(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
+                    db.onNewImageToUpload(localPath);
+                    MediaModel mediaModel = new MediaModel();
+                    mediaModel.setBucketID(bucketID)
+                            .setAlbumName(albumName)
+                            .setType(type)
+                            .setLocalPath(localPath)
+                            .setDateTaken(dateTaken)
+                            .setDuration(duration);
                     mediaList.add(mediaModel);
                 }
             } finally {
@@ -245,17 +239,20 @@ public class MediaFetch {
         if (videoCursor != null) {
             try {
                 while (videoCursor.moveToNext()) {
-                    String bucketName = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
-                    String bucketID = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_ID));
-                    String path = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA));
-                    String dateTaken = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_TAKEN));
-                    String dateAdded = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED));
-                    String duration = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
+                    String albumName = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
+                    String bucketID = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID));
                     String type = "video";
-                    String name = path.substring(path.lastIndexOf('/') + 1);
-                    db.onNewImageToUpload(path);
-                    MediaModel mediaModel = new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type);
-                    mediaModel.isLocal = true;
+                    String localPath = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                    long dateTaken = videoCursor.getLong(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
+                    int duration = videoCursor.getInt(videoCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
+                    db.onNewImageToUpload(localPath);
+                    MediaModel mediaModel = new MediaModel();
+                    mediaModel.setBucketID(bucketID)
+                            .setAlbumName(albumName)
+                            .setType(type)
+                            .setLocalPath(localPath)
+                            .setDateTaken(dateTaken)
+                            .setDuration(duration);
                     mediaList.add(mediaModel);
                 }
             } finally {

@@ -23,15 +23,15 @@ import com.example.gallery.activities.MainActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
-import com.example.gallery.utils.MediaContentObserver;
-import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.DatabaseObserver;
+import com.example.gallery.utils.GalleryDB;
 import com.example.gallery.utils.MediaModel;
 import com.example.gallery.utils.TrashManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.util.ArrayList;
 
-public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, MediaContentObserver.OnMediaUpdateListener, MediaFetch.onDeleteCallback {
+public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
 
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
@@ -52,6 +52,19 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     }
 
     @Override
+    public void onDatabaseChanged() {
+        try (GalleryDB db = new GalleryDB(getContext())){
+            images = db.getAllMedia();
+            images.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
+            mainActivity.runOnUiThread(() -> imageFrameAdapter.initFrameModels(images));
+            Log.d("PicturesFragment", "Pictures fragment got updated");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("PicturesFragment", "Error getting media from database onChanged");
+        }
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mainActivity = ((MainActivity) requireActivity());
@@ -61,32 +74,20 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         if(selectedPositions == null)
             selectedPositions = new ArrayList<>();
 
-        MediaFetch.getInstance(null).registerListener(this);
-        MediaFetch.getInstance(null).fetchMedia(false);
+        try(GalleryDB db = new GalleryDB(getContext())){
+            images = db.getAllMedia();
+            images.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
+            GalleryDB.addObserver(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("PicturesFragment", "Error getting media from database");
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        MediaFetch.getInstance(null).unregisterListener(this);
-    }
-
-    @Override
-    public void onMediaUpdate(ArrayList<MediaModel> modelArrayList) {
-        // Ensure running on UI thread
-        images = modelArrayList;
-//        try {
-//            GalleryDB db = new GalleryDB(requireContext());
-//            ArrayList<MediaModel> mediaFromCloud = db.getImageFromCloud();
-//            mediaList.addAll(mediaFromCloud);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-        MediaFetch.sortArrayListModel(images, MediaFetch.SORT_BY_DATE_TAKEN, MediaFetch.SORT_DESC);
-        requireActivity().runOnUiThread(() -> {
-            imageFrameAdapter.selectionModeEnabled = false;
-            imageFrameAdapter.initFrameModels(images);
-        });
+        GalleryDB.removeObserver(this);
     }
 
     @Override
@@ -109,7 +110,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             popupMenu.setOnMenuItemClickListener(item -> {
                 // Handle menu item click
                 if (item.getItemId() == R.id.trash) {
-                    //Snackbar.make(requireView(), "Total images: " + selectedImages.size(), Snackbar.LENGTH_SHORT).show();
                     ArrayList<String> intentIn = TrashManager.getFilesFromTrash();
                     Intent intent = new Intent(getContext(), TrashActivity.class);
                     intent.putStringArrayListExtra("imagesPath", intentIn);
@@ -168,7 +168,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             onHideBottomSheet();
             new Thread(() -> {
                 for (MediaModel image : selectedImages) {
-                    TrashManager.moveToTrash(requireContext(), image.path);
+                    TrashManager.moveToTrash(requireContext(), image.localPath);
                 }
                 selectedImages.clear();
             }).start();
@@ -188,16 +188,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             imageFrameAdapter.initFrameModels(images);
             selectedImages.clear();
         });
-    }
-
-    @Override
-    public void onDeleteResult() {
-        selectedImages.clear();
-        onHideBottomSheet();
-        imageFrameAdapter.selectionModeEnabled = false;
-        imageFrameAdapter.notifyDataSetChanged();
-        Log.d("Delete", "PictureFragment: Deleted images");
-        // There is a bug in here hiding but I can't produce it consistently :(
     }
 
     @Override

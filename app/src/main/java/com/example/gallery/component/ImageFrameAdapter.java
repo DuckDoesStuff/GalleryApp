@@ -21,6 +21,7 @@ import com.example.gallery.R;
 import com.example.gallery.utils.MediaModel;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.FrameViewHolder> {
     private final int imgSize;
@@ -74,7 +75,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         holder.bind(frameModel);
         holder.checkBox.setVisibility(selectionModeEnabled ? View.VISIBLE : View.GONE);
 
-        if (frameModel.media.type.equals("video")) {
+        if (frameModel.media.type.contains("video")) {
             holder.play.setVisibility(View.VISIBLE); // Hiển thị nút play cho video
         } else {
             holder.play.setVisibility(View.GONE); // Ẩn nút play cho hình ảnh
@@ -152,7 +153,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         public void bind(FrameModel frameModel) {
             this.frameModel = frameModel;
 
-            if (frameModel.media.isLocal) {
+            if (!Objects.equals(frameModel.media.localPath, "")) {
                 itemView.findViewById(R.id.cloud_icon).setVisibility(View.INVISIBLE);
             }
             checkBox.setChecked(frameModel.isSelected);
@@ -171,7 +172,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                 imageView.clearColorFilter();
             }
 
-            Glide.with(itemView).load(frameModel.media.path)
+            Glide.with(itemView).load(frameModel.media.localPath)
                     .transition(DrawableTransitionOptions
                     .withCrossFade(200))
                     .placeholder(new ColorDrawable(Color.GRAY))

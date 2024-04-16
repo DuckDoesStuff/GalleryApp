@@ -2,7 +2,6 @@ package com.example.gallery.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -16,7 +15,6 @@ import com.example.gallery.utils.MediaModel;
 import com.example.gallery.utils.TrashManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class ImageActivity extends AppCompatActivity {
@@ -69,7 +67,7 @@ public class ImageActivity extends AppCompatActivity {
                         }
 
                         // Di chuyển hình ảnh đã xóa vào thùng rác
-                        String currentImagePath = images.get(currentPosition).path;
+                        String currentImagePath = images.get(currentPosition).localPath;
                         TrashManager.moveToTrash(ImageActivity.this, currentImagePath);
 
                     })
@@ -83,7 +81,7 @@ public class ImageActivity extends AppCompatActivity {
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String currentImagePath = images.get(viewPager2.getCurrentItem()).path;
+                String currentImagePath = images.get(viewPager2.getCurrentItem()).localPath;
 
                 Intent editIntent = new Intent(ImageActivity.this, EditActivity.class);
                 editIntent.putExtra("imagePath", currentImagePath);

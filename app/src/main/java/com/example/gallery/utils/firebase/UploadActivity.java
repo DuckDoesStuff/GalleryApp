@@ -85,7 +85,7 @@ public class UploadActivity extends AppCompatActivity {
         Handler handler = new Handler(Looper.getMainLooper());
         executorService.execute(() -> {
             for (MediaModel mediaModel : selectedImages) {
-                uploadMedia(mediaModel.path);
+                uploadMedia(mediaModel.localPath);
             }
 
             handler.post(() -> {
@@ -142,8 +142,11 @@ public class UploadActivity extends AppCompatActivity {
                 FirebaseFirestore fs = FirebaseFirestore.getInstance();
                 CollectionReference userCollection = fs.collection(user.getUid());
                 mediaRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                    db.onNewImage(uri.toString());
-                    userCollection.add(new MediaModel(uri.toString()));
+                    db.onNewMedia(uri.toString());
+                    MediaModel mediaModel = new MediaModel();
+                    mediaModel.setLocalPath(localPath)
+                            .setCloudPath(uri.toString());
+                    userCollection.add(mediaModel);
                 });
             } catch (Exception e) {
                 e.printStackTrace();

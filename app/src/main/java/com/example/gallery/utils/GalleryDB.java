@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -44,6 +45,24 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     // END SCHEMES
 
+    static volatile ArrayList<DatabaseObserver> observers = new ArrayList<>();
+
+    public static void addObserver(DatabaseObserver observer) {
+        Log.d("GalleryDB", "Observer added");
+        observers.add(observer);
+    }
+
+    public static void removeObserver(DatabaseObserver observer) {
+        Log.d("GalleryDB", "Observer removed");
+        observers.remove(observer);
+    }
+
+    public static void notifyObservers() {
+        for (DatabaseObserver observer : observers) {
+            observer.onDatabaseChanged();
+            Log.d("GalleryDB", "Observer notified");
+        }
+    }
 
     public static final String DATABASE_NAME = "gallery_app.db";
     private static final int DATABASE_VERSION = 1;
@@ -71,14 +90,19 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     // This table will be synced with the user firestore
     private static final String SQL_CREATE_MEDIA_TABLE =
-                    "CREATE TABLE IF NOT EXISTS images (" +
+                    "CREATE TABLE IF NOT EXISTS media (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "user_id," +
+                    "media_id TEXT," +
+                    "user_id TEXT," +
                     "local_path TEXT," +
                     "cloud_path TEXT," +
+                    "downloaded BOOLEAN," +
+                    "album_name TEXT," +
                     "type TEXT," +
-                    "is_synced BOOLEAN DEFAULT(false)," +
-                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+                    "duration INTEGER," +
+                    "location TEXT," +
+                    "date_taken INTEGER," +
+                    "UNIQUE (local_path, cloud_path, media_id))";
 
     // START SQLITE HELPER
     public GalleryDB(@Nullable Context context) {
@@ -96,23 +120,11 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS trash");
         db.execSQL("DROP TABLE IF EXISTS albums");
         db.execSQL("DROP TABLE IF EXISTS to_upload");
-        db.execSQL("DROP TABLE IF EXISTS images");
+        db.execSQL("DROP TABLE IF EXISTS media");
         onCreate(db);
     }
 
     // END SQLITE HELPER
-
-    public void oneTimeExecution() {
-        SQLiteDatabase db = getReadableDatabase();
-        // Log everything in to_upload
-        Cursor cursor = db.rawQuery("SELECT * FROM to_upload", null);
-        while (cursor.moveToNext()) {
-            String path = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
-            Log.d("DB", "Image: " + path);
-        }
-        cursor.close();
-        db.close();
-    }
 
 
     // START TRASH
@@ -251,24 +263,23 @@ public class GalleryDB extends SQLiteOpenHelper {
 
 
     // START UPLOAD
-
     public void onNewImageToUpload(String imagePath) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("INSERT OR IGNORE INTO to_upload (image_path) VALUES ('" + imagePath + "')");
         db.close();
     }
 
-    public ArrayList<MediaModel> getImagesToUpload() {
+    public ArrayList<MediaModel> getMediaToUpload() {
         SQLiteDatabase db = getReadableDatabase();
-        ArrayList<MediaModel> images = new ArrayList<>();
+        ArrayList<MediaModel> mediaModels = new ArrayList<>();
         Cursor cursor = db.rawQuery("SELECT * FROM to_upload", null);
         while (cursor.moveToNext()) {
             String path = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
-            images.add(new MediaModel(path));
+            mediaModels.add(new MediaModel().setLocalPath(path));
         }
         cursor.close();
         db.close();
-        return images;
+        return mediaModels;
     }
 
     public void onRemoveImageToUpload(String imagePath) {
@@ -279,18 +290,65 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     // END UPLOAD
 
-    // START IMAGE
 
-    public void onNewImage(String cloudPath) {
+    // START MEDIA
+    public ArrayList<MediaModel> getAllMedia() {
+        ArrayList<MediaModel> medialModels = new ArrayList<>();
+
+        SQLiteDatabase db = getReadableDatabase();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String []args;
+        if (user != null) {
+            args = new String[]{user.getUid()};
+        }else {
+            args = new String[]{""};
+        }
+        Cursor cursor = db.rawQuery(
+            "SELECT * FROM media WHERE user_id = ? OR user_id = NULL",
+            args);
+
+        try {
+            while (cursor.moveToNext()) {
+                String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
+                String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
+                boolean downloaded = cursor.getInt(cursor.getColumnIndexOrThrow("downloaded")) == 1;
+                String albumName = cursor.getString(cursor.getColumnIndexOrThrow("album_name"));
+                String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
+                int duration = cursor.getInt(cursor.getColumnIndexOrThrow("duration"));
+                String location = cursor.getString(cursor.getColumnIndexOrThrow("location"));
+                int mediaID = cursor.getInt(cursor.getColumnIndexOrThrow("media_id"));
+                long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow("date_taken"));
+                medialModels.add(new MediaModel()
+                        .setLocalPath(localPath)
+                        .setCloudPath(cloudPath)
+                        .setDownloaded(downloaded)
+                        .setAlbumName(albumName)
+                        .setType(type)
+                        .setDuration(duration)
+                        .setGeoLocation(location)
+                        .setMediaID(mediaID)
+                        .setDateTaken(dateTaken));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("GalleryDB", "Error while fetching media from database");
+        } finally {
+            cursor.close();
+            db.close();
+        }
+        return medialModels;
+    }
+
+    public void onNewMedia(String cloudPath) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("INSERT INTO images (user_id, cloud_path) VALUES ('" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "', '" + cloudPath + "')");
+        db.execSQL("INSERT INTO media (user_id, cloud_path) VALUES ('" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "', '" + cloudPath + "')");
         db.close();
     }
 
-    public void updateImages(Context context) {
+    public void updateMedia(Context context) {
         // This method will be called when the user logs in
-        // It will sync the images table with the user firestore
-        // If the image is not in the images table, it will be added
+        // It will sync the media table with the user firestore
+        // If the image is not in the media table, it will be added
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
@@ -310,29 +368,55 @@ public class GalleryDB extends SQLiteOpenHelper {
                 SQLiteDatabase db = getWritableDatabase();
                 for (int i = 0; i < result.size(); i++) {
                     String cloudPath = result.getDocuments().get(i).getId();
-                    Cursor cursor = db.rawQuery("SELECT 1 FROM images WHERE cloud_path = ?", new String[]{cloudPath});
+                    Cursor cursor = db.rawQuery("SELECT 1 FROM media WHERE cloud_path = ?", new String[]{cloudPath});
                     boolean exists = cursor.getCount() > 0;
                     cursor.close();
                     if (!exists) {
-                        db.execSQL("INSERT INTO images (user_id, cloud_path) VALUES ('" + user.getUid() + "', '" + cloudPath + "')");
+                        db.execSQL("INSERT INTO media (user_id, cloud_path) VALUES ('" + user.getUid() + "', '" + cloudPath + "')");
                     }
                 }
             }
         });
     }
 
-    public ArrayList<MediaModel> getImageFromCloud() {
-        ArrayList<MediaModel> mediaModels = new ArrayList<>();
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM images", null);
-        while (cursor.moveToNext()) {
-            String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
-            mediaModels.add(new MediaModel(cloudPath));
+    public void addToMediaTable(ArrayList<MediaModel> mediaModels) {
+        SQLiteDatabase db = getWritableDatabase();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = user != null ? user.getUid() : "";
+        for (MediaModel mediaModel : mediaModels) {
+            ContentValues values = getMediaValue(mediaModel, uid);
+            db.insertWithOnConflict("media", null, values, SQLiteDatabase.CONFLICT_IGNORE);
         }
-        cursor.close();
         db.close();
-        return mediaModels;
+        Log.d("GalleryDB", "Media table updated");
+        notifyObservers();
     }
 
-    // END IMAGE
+    public void removeFromMediaTable(ArrayList<MediaModel> mediaModels) {
+        SQLiteDatabase db = getWritableDatabase();
+        for (MediaModel mediaModel : mediaModels) {
+            db.execSQL("DELETE FROM media WHERE media_id = " + mediaModel.mediaID);
+        }
+        db.close();
+        Log.d("GalleryDB", "Media table updated");
+        notifyObservers();
+    }
+
+    @NonNull
+    private static ContentValues getMediaValue(MediaModel mediaModel, String uid) {
+        ContentValues values = new ContentValues();
+        values.put("user_id", uid);
+        values.put("local_path", mediaModel.localPath);
+        values.put("cloud_path", mediaModel.cloudPath);
+        values.put("downloaded", mediaModel.downloaded ? 1 : 0);
+        values.put("album_name", mediaModel.albumName);
+        values.put("type", mediaModel.type);
+        values.put("duration", mediaModel.duration);
+        values.put("location", mediaModel.geoLocation);
+        values.put("media_id", mediaModel.mediaID);
+        values.put("date_taken", mediaModel.dateTaken);
+        return values;
+    }
+
+    // END MEDIA
 }

@@ -26,7 +26,6 @@ import com.example.gallery.utils.MediaModel;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Objects;
 
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewPagerViewHolder> {
@@ -110,7 +109,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
             this.mediaModel = mediaModel;
 
             // If media is an image
-            if(Objects.equals(mediaModel.type, "image")) {
+            if(mediaModel.type.contains("image")) {
                 // First inflate mediaView with the ImageView
                 imageView = new ImageView(itemView.getContext());
                 imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -118,7 +117,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
                 frameLayout.removeAllViews();
                 frameLayout.addView(imageView);
 
-                Glide.with(itemView).load(mediaModel.path).into(imageView);
+                Glide.with(itemView).load(mediaModel.localPath).into(imageView);
 
                 scaleListener = new ScaleListener();
                 scaleGestureDetector = new ScaleGestureDetector(itemView.getContext(), scaleListener);
@@ -153,7 +152,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
             playerView = new PlayerView(imageActivity);
             player = new ExoPlayer.Builder(imageActivity).build();
 
-            MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(new File(mediaModel.path)));
+            MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(new File(mediaModel.localPath)));
             player.setMediaItem(mediaItem);
             player.prepare();
             playerView.setPlayer(player);

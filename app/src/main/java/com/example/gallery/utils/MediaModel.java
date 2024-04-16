@@ -17,52 +17,91 @@ public class MediaModel implements Parcelable {
             return new MediaModel[size];
         }
     };
-    public String albumName;
-    public String bucketID;
-    public String path;
-    public String name;
-    public String dateTaken;
-    public String dateAdded;
-    public String duration;
-    public String type;
-    public boolean isLocal = true;
-    public boolean isSynced = false;
+    public String albumName = "";
+    public String bucketID = "";
+    public String type = "";
+    public String localPath = "";
+    public String cloudPath = "";
+    public String geoLocation = "";
+    public int mediaID = 0;
+    public long dateTaken = 0;
+    public int duration = 0;
+    public boolean downloaded = false;
 
-
-    public MediaModel(String path) {
-        this.path = path;
-        albumName = "";
-        bucketID = "";
-        name = "";
-        dateTaken = "";
-        dateAdded = "";
-        duration = "";
-        type = "";
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MediaModel) {
+            MediaModel mediaModel = (MediaModel) obj;
+            return mediaModel.mediaID == mediaID;
+        }
+        return false;
     }
 
-    public MediaModel(String albumName, String bucketID, String path, String name, String dateTaken, String dateAdded, String duration, String type) {
+    public MediaModel() {
+    }
+
+    public MediaModel setAlbumName(String albumName) {
         this.albumName = albumName;
+        return this;
+    }
+
+    public MediaModel setBucketID(String bucketID) {
         this.bucketID = bucketID;
-        this.path = path;
-        this.name = name;
-        this.dateTaken = dateTaken;
-        this.dateAdded = dateAdded;
-        this.duration = duration;
+        return this;
+    }
+
+    public MediaModel setType(String type) {
         this.type = type;
+        return this;
+    }
+
+    public MediaModel setLocalPath(String localPath) {
+        this.localPath = localPath;
+        return this;
+    }
+
+    public MediaModel setCloudPath(String cloudPath) {
+        this.cloudPath = cloudPath;
+        return this;
+    }
+
+    public MediaModel setGeoLocation(String geoLocation) {
+        this.geoLocation = geoLocation;
+        return this;
+    }
+
+    public MediaModel setMediaID(int mediaID) {
+        this.mediaID = mediaID;
+        return this;
+    }
+
+    public MediaModel setDateTaken(long dateTaken) {
+        this.dateTaken = dateTaken;
+        return this;
+    }
+
+    public MediaModel setDuration(int duration) {
+        this.duration = duration;
+        return this;
+    }
+
+    public MediaModel setDownloaded(boolean downloaded) {
+        this.downloaded = downloaded;
+        return this;
     }
 
     // Parcelable implementation
     protected MediaModel(Parcel in) {
         albumName = in.readString();
         bucketID = in.readString();
-        path = in.readString();
-        name = in.readString();
         type = in.readString();
-        dateTaken = in.readString();
-        dateAdded = in.readString();
-        duration = in.readString();
-        isLocal = in.readBoolean();
-        isSynced = in.readBoolean();
+        localPath = in.readString();
+        cloudPath = in.readString();
+        geoLocation = in.readString();
+        mediaID = in.readInt();
+        dateTaken = in.readLong();
+        duration = in.readInt();
+        downloaded = in.readByte() != 0;
     }
 
     @Override
@@ -74,14 +113,14 @@ public class MediaModel implements Parcelable {
     public void writeToParcel(@NonNull Parcel dest, int flags) {
         dest.writeString(albumName);
         dest.writeString(bucketID);
-        dest.writeString(path);
-        dest.writeString(name);
         dest.writeString(type);
-        dest.writeString(dateTaken);
-        dest.writeString(dateAdded);
-        dest.writeString(duration);
-        dest.writeBoolean(isLocal);
-        dest.writeBoolean(isSynced);
+        dest.writeString(localPath);
+        dest.writeString(cloudPath);
+        dest.writeString(geoLocation);
+        dest.writeInt(mediaID);
+        dest.writeLong(dateTaken);
+        dest.writeInt(duration);
+        dest.writeByte((byte) (downloaded ? 1 : 0));
     }
 
 }

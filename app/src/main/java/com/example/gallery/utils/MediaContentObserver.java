@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
 
+import com.example.gallery.utils.database.MediaModel;
+
 import java.util.ArrayList;
 
 public class MediaContentObserver extends ContentObserver {

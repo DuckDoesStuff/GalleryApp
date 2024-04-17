@@ -8,30 +8,31 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="center">
+        android:layout_gravity="center"
+        android:orientation="vertical">
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Profile Fragment"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:text="Profile Fragment" />
 
         <TextView
             android:id="@+id/email"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginVertical="20dp"
             android:layout_gravity="center"
-            android:text="Profile Fragment" />
+            android:layout_marginVertical="20dp"
+            android:text="Profile Fragment"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btn_logout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Logout"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:text="Logout" />
     </LinearLayout>
 
 </FrameLayout>

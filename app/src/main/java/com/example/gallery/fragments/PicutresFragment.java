@@ -23,10 +23,10 @@ import com.example.gallery.activities.MainActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
-import com.example.gallery.utils.DatabaseObserver;
-import com.example.gallery.utils.GalleryDB;
-import com.example.gallery.utils.MediaModel;
 import com.example.gallery.utils.TrashManager;
+import com.example.gallery.utils.database.DatabaseObserver;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.util.ArrayList;
@@ -47,13 +47,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         // Required empty public constructor
     }
 
-    public static PicutresFragment newInstance() {
-        return new PicutresFragment();
-    }
-
     @Override
     public void onDatabaseChanged() {
-        try (GalleryDB db = new GalleryDB(getContext())){
+        try (GalleryDB db = new GalleryDB(getContext())) {
             images = db.getAllMedia();
             images.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
             mainActivity.runOnUiThread(() -> imageFrameAdapter.initFrameModels(images));
@@ -68,16 +64,16 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mainActivity = ((MainActivity) requireActivity());
-        if(selectedImages == null)
+        if (selectedImages == null)
             selectedImages = new ArrayList<>();
 
-        if(selectedPositions == null)
+        if (selectedPositions == null)
             selectedPositions = new ArrayList<>();
 
-        try(GalleryDB db = new GalleryDB(getContext())){
+        try (GalleryDB db = new GalleryDB(getContext())) {
             images = db.getAllMedia();
             images.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
-            GalleryDB.addObserver(this);
+            GalleryDB.addMediaObserver(this);
         } catch (Exception e) {
             e.printStackTrace();
             Log.d("PicturesFragment", "Error getting media from database");
@@ -87,7 +83,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     @Override
     public void onDestroy() {
         super.onDestroy();
-        GalleryDB.removeObserver(this);
+        GalleryDB.removeMediaObserver(this);
     }
 
     @Override
@@ -195,8 +191,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         // Hide bottom sheet if not selecting any images
         if (selectedImages.isEmpty() && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
             onHideBottomSheet();
-        }
-        else if (viewMode) {
+        } else if (viewMode) {
             Intent intent = new Intent(getContext(), ImageActivity.class);
             intent.putExtra("images", images);
             intent.putExtra("initial", position);

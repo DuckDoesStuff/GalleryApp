@@ -1,4 +1,4 @@
-package com.example.gallery.utils;
+package com.example.gallery.utils.database;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -28,6 +28,23 @@ public class MediaModel implements Parcelable {
     public int duration = 0;
     public boolean downloaded = false;
 
+    public MediaModel() {
+    }
+
+    // Parcelable implementation
+    protected MediaModel(Parcel in) {
+        albumName = in.readString();
+        bucketID = in.readString();
+        type = in.readString();
+        localPath = in.readString();
+        cloudPath = in.readString();
+        geoLocation = in.readString();
+        mediaID = in.readInt();
+        dateTaken = in.readLong();
+        duration = in.readInt();
+        downloaded = in.readByte() != 0;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof MediaModel) {
@@ -35,9 +52,6 @@ public class MediaModel implements Parcelable {
             return mediaModel.mediaID == mediaID;
         }
         return false;
-    }
-
-    public MediaModel() {
     }
 
     public MediaModel setAlbumName(String albumName) {
@@ -88,20 +102,6 @@ public class MediaModel implements Parcelable {
     public MediaModel setDownloaded(boolean downloaded) {
         this.downloaded = downloaded;
         return this;
-    }
-
-    // Parcelable implementation
-    protected MediaModel(Parcel in) {
-        albumName = in.readString();
-        bucketID = in.readString();
-        type = in.readString();
-        localPath = in.readString();
-        cloudPath = in.readString();
-        geoLocation = in.readString();
-        mediaID = in.readInt();
-        dateTaken = in.readLong();
-        duration = in.readInt();
-        downloaded = in.readByte() != 0;
     }
 
     @Override

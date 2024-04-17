@@ -24,7 +24,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.database.MediaModel;
 import com.ortiz.touchview.TouchImageView;
 
 import java.io.File;
@@ -62,7 +62,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
     @Override
     public void onViewRecycled(@NonNull ViewPagerViewHolder holder) {
         super.onViewRecycled(holder);
-        if(holder.player != null) {
+        if (holder.player != null) {
             holder.player.release();
             Log.d("Player", "View recycled and player released");
         }
@@ -71,7 +71,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
     @Override
     public void onViewAttachedToWindow(@NonNull ViewPagerViewHolder holder) {
         super.onViewAttachedToWindow(holder);
-        if(holder.player != null) {
+        if (holder.player != null) {
             holder.setupPlayerView();
             Log.d("Player", "View attached and player prepared");
         }
@@ -80,7 +80,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
     @Override
     public void onViewDetachedFromWindow(@NonNull ViewPagerViewHolder holder) {
         super.onViewDetachedFromWindow(holder);
-        if(holder.player != null) {
+        if (holder.player != null) {
             holder.player.release();
             Log.d("Player", "View detached and player released");
         }
@@ -103,7 +103,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
             this.mediaModel = mediaModel;
 
             // If media is an image
-            if(mediaModel.type.contains("image")) {
+            if (mediaModel.type.contains("image")) {
                 // First inflate mediaView with the ImageView
                 touchImageView = new TouchImageView(itemView.getContext());
                 touchImageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -123,17 +123,16 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
                     }
                 });
 
-//                touchImageView.setImageURI(Uri.fromFile(new File(mediaModel.localPath)));
+                //                touchImageView.setImageURI(Uri.fromFile(new File(mediaModel.localPath)));
 
                 touchImageView.setOnTouchListener((view, event) -> {
                     boolean result = true;
                     if (event.getPointerCount() >= 2 || view.canScrollHorizontally(1) && view.canScrollHorizontally(-1)) {
-                        if(event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE) {
+                        if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE) {
                             // Disallow RecyclerView to intercept touch events.
                             view.getParent().requestDisallowInterceptTouchEvent(true);
                             result = false;
-                        }
-                        else if (event.getAction() == MotionEvent.ACTION_UP) {
+                        } else if (event.getAction() == MotionEvent.ACTION_UP) {
                             // Allow RecyclerView to intercept touch events.
                             view.getParent().requestDisallowInterceptTouchEvent(false);
                         }
@@ -141,10 +140,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
                     return result;
                 });
 
-            }else {
+            } else {
                 setupPlayerView();
             }
         }
+
         public void setupPlayerView() {
             playerView = new PlayerView(imageActivity);
             player = new ExoPlayer.Builder(imageActivity).build();

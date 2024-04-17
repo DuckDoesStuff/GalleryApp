@@ -19,7 +19,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.io.File;
 import java.util.ArrayList;
 
-public class TrashActivity extends AppCompatActivity implements TrashFrameAdapter.TrashFrameListener{
+public class TrashActivity extends AppCompatActivity implements TrashFrameAdapter.TrashFrameListener {
     ArrayList<String> images;
     RecyclerView recyclerView;
     TrashFrameAdapter trashFrameAdapter;
@@ -68,7 +68,7 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
         recyclerView.setAdapter(trashFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
 
-        restoreBtn.setOnClickListener(v->{
+        restoreBtn.setOnClickListener(v -> {
             new MaterialAlertDialogBuilder(this)
                     .setTitle("Restore file")
                     .setMessage("Restore " + selectedImages.size() + " files")
@@ -87,7 +87,7 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                runOnUiThread(()->{
+                                runOnUiThread(() -> {
                                     trashFrameAdapter.initFrameModels(images);
                                 });
                             }
@@ -101,7 +101,7 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
                     })
                     .show();
         });
-        deleteBtn.setOnClickListener(v->{
+        deleteBtn.setOnClickListener(v -> {
             new MaterialAlertDialogBuilder(this)
                     .setTitle("Delete file forever")
                     .setMessage("If you delete these " + selectedImages.size() + " files, you can not restore")
@@ -119,7 +119,7 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                runOnUiThread(()->{
+                                runOnUiThread(() -> {
                                     trashFrameAdapter.initFrameModels(images);
                                 });
                             }
@@ -135,6 +135,7 @@ public class TrashActivity extends AppCompatActivity implements TrashFrameAdapte
         });
 
     }
+
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
         super.onPointerCaptureChanged(hasCapture);

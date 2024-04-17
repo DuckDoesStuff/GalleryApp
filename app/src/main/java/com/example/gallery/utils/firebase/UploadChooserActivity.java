@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
 import com.example.gallery.component.ImageFrameAdapter;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
 
@@ -32,8 +32,7 @@ public class UploadChooserActivity extends AppCompatActivity implements ImageFra
             foundImages = new ArrayList<>();
             foundImages = intent.getParcelableArrayListExtra("foundImages");
             selectedImages = new ArrayList<>();
-        }
-        else {
+        } else {
             finish();
         }
 

@@ -13,7 +13,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.gallery.R;
 import com.example.gallery.activities.MainActivity;
-import com.example.gallery.utils.UserViewModel;
+import com.example.gallery.utils.firebase.UserViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -22,6 +22,7 @@ public class UserFragment extends Fragment {
     private FirebaseUser user;
 
     private MainActivity mainActivity;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

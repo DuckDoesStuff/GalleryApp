@@ -14,51 +14,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.gallery.R;
+import com.example.gallery.utils.database.AlbumModel;
 
 import java.util.ArrayList;
-
+import java.util.Objects;
 
 
 public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.AlbumViewHolder> {
     private final AlbumFrameAdapter.AlbumFrameListener onClickCallBack;
-    public static class AlbumModel {
-        public String id;
-        public String albumName;
-        int numOfImg;
-        String thumbnail;
-        public AlbumModel (String id, String name, int n, String thumb) {
-            this.id = id;
-            this.albumName = name;
-            this.numOfImg = n;
-            this.thumbnail = thumb;
-        }
+    private ArrayList<AlbumFrameModel> frameModels;
+
+    public AlbumFrameAdapter(AlbumFrameListener onClickCallBack, ArrayList<AlbumModel> albums) {
+        this.onClickCallBack = onClickCallBack;
+        initFrameModels(albums);
     }
-    public interface AlbumFrameListener {
-        default void onItemClick(int position) {
-
-        }
-
-        default void onItemLongClick(int position) {
-        }
-    }
-    private ArrayList<AlbumModel> albums;
-
-    static class AlbumViewHolder extends RecyclerView.ViewHolder {
-
-        ImageView albumThumbnail;
-        TextView albumName;
-        TextView albumCount;
-
-        public AlbumViewHolder(@NonNull View itemView) {
-            super(itemView);
-            albumThumbnail = itemView.findViewById(R.id.album_thumbnail);
-            albumName = itemView.findViewById(R.id.album_name);
-            albumCount = itemView.findViewById(R.id.album_count);
-        }
-    }
-
-
-
 
     @NonNull
     @Override
@@ -71,28 +40,12 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
 
         return viewHolder;
     }
+
     @Override
     public void onBindViewHolder(@NonNull AlbumFrameAdapter.AlbumViewHolder holder, int position) {
-        ImageView thumbnail = holder.itemView.findViewById(R.id.album_thumbnail);
-        if(albums.get(position).thumbnail == null) {
-            ColorMatrix matrix = new ColorMatrix();
-            matrix.setSaturation(0);
-            thumbnail.setColorFilter(new ColorMatrixColorFilter(matrix));
-        } else {
-            Glide.with(holder.itemView)
-                .load(albums
-                .get(position).thumbnail)
-                .centerCrop()
-                .into(thumbnail);
-        }
-
-        TextView albumName = holder.itemView.findViewById(R.id.album_name);
-        albumName.setText(albums.get(position).albumName);
-
-        TextView albumCount = holder.itemView.findViewById(R.id.album_count);
-        albumCount.setText(String.valueOf((albums.get(position).numOfImg)));
+        holder.bind(frameModels.get(position));
         holder.itemView.setOnClickListener(v -> {
-            if(albums.get(position).id != null)
+            if (frameModels.get(position).album.mediaCount != 0)
                 onClickCallBack.onItemClick(position);
             else
                 Toast.makeText(v.getContext(), "This album is empty!", Toast.LENGTH_SHORT).show();
@@ -107,11 +60,67 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
 
     @Override
     public int getItemCount() {
-        return albums.size();
+        return frameModels.size();
     }
 
-    public AlbumFrameAdapter(AlbumFrameListener onClickCallBack, ArrayList<AlbumModel> albums) {
-        this.onClickCallBack = onClickCallBack;
-        this.albums = albums;
+    public void initFrameModels(ArrayList<AlbumModel> albums) {
+        if (albums == null || albums.isEmpty()) {
+            frameModels = new ArrayList<>();
+        } else {
+            frameModels = new ArrayList<>();
+            for (AlbumModel albumModel : albums) {
+                frameModels.add(new AlbumFrameModel(albumModel));
+            }
+        }
+        notifyDataSetChanged();
+    }
+
+    public interface AlbumFrameListener {
+        default void onItemClick(int position) {
+
+        }
+
+        default void onItemLongClick(int position) {
+        }
+    }
+
+    public static class AlbumFrameModel {
+        public AlbumModel album;
+
+        public AlbumFrameModel(AlbumModel albumModel) {
+            album = albumModel;
+        }
+    }
+
+    static class AlbumViewHolder extends RecyclerView.ViewHolder {
+        AlbumFrameModel albumFrameModel;
+        ImageView albumThumbnail;
+        TextView albumName;
+        TextView albumCount;
+
+        public AlbumViewHolder(@NonNull View itemView) {
+            super(itemView);
+            albumThumbnail = itemView.findViewById(R.id.album_thumbnail);
+            albumName = itemView.findViewById(R.id.album_name);
+            albumCount = itemView.findViewById(R.id.album_count);
+        }
+
+        public void bind(AlbumFrameModel albumFrameModel) {
+            this.albumFrameModel = albumFrameModel;
+
+            if (Objects.equals(albumFrameModel.album.albumThumbnail, "")) {
+                ColorMatrix matrix = new ColorMatrix();
+                matrix.setSaturation(0);
+                albumThumbnail.setColorFilter(new ColorMatrixColorFilter(matrix));
+            } else {
+                Glide.with(itemView)
+                        .load(albumFrameModel.album.albumThumbnail)
+                        .centerCrop()
+                        .into(albumThumbnail);
+            }
+
+            albumName.setText(albumFrameModel.album.albumName);
+            albumCount.setText(String.valueOf(albumFrameModel.album.mediaCount));
+        }
     }
 }

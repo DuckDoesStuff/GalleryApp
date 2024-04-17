@@ -3,13 +3,12 @@ package com.example.gallery.activities;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.provider.Settings;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,13 +26,14 @@ import com.example.gallery.fragments.GuestFragment;
 import com.example.gallery.fragments.HomeFragment;
 import com.example.gallery.fragments.PicutresFragment;
 import com.example.gallery.fragments.UserFragment;
-import com.example.gallery.utils.GalleryDB;
 import com.example.gallery.utils.MediaFetch;
-import com.example.gallery.utils.MediaModel;
 import com.example.gallery.utils.PermissionUtils;
 import com.example.gallery.utils.TrashManager;
-import com.example.gallery.utils.UserViewModel;
+import com.example.gallery.utils.database.DatabaseQuery;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 import com.example.gallery.utils.firebase.UploadChooserActivity;
+import com.example.gallery.utils.firebase.UserViewModel;
 import com.example.gallery.utils.media.MediaStoreService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -44,18 +44,24 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
+    public UserViewModel userViewModel;
     ActivityMainBinding binding;
     Fragment currentFragment;
     PicutresFragment picutresFragment;
     HomeFragment homeFragment;
     AlbumsFragment albumsFragment;
     Fragment profileFragment;
-    public UserViewModel userViewModel;
     Observer<FirebaseUser> userObserver;
     FirebaseUser user;
 
+    DatabaseQuery databaseQuery;
+
     PermissionUtils.PermissionCallback permissionCallback = () -> {
-        // Starts media service
+        Intent serviceIntent = new Intent(this, MediaStoreService.class);
+        startService(serviceIntent);
+
+        new Thread(this::startDatabase).start();
+
         picutresFragment = new PicutresFragment();
         replaceFragment(picutresFragment);
     };
@@ -63,10 +69,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent serviceIntent = new Intent(this, MediaStoreService.class);
-        startService(serviceIntent);
 
-        new Thread(this::queryMediaStore).start();
+        databaseQuery = new DatabaseQuery(this);
 
         MediaFetch.getInstance(getApplicationContext(), this).fetchMedia(true);
 
@@ -96,10 +100,10 @@ public class MainActivity extends AppCompatActivity {
             PermissionUtils.requestMultipleActivityPermissions(
                     this,
                     new String[]
-                    {
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    },
+                            {
+                                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            },
                     permissionCallback,
                     1
             );
@@ -113,8 +117,7 @@ public class MainActivity extends AppCompatActivity {
             if (bottomNavigationView.getSelectedItemId() == R.id.profile) {
                 if (firebaseUser != null) {
                     profileFragment = new UserFragment();
-                }
-                else
+                } else
                     profileFragment = new GuestFragment();
                 replaceFragment(profileFragment);
             }
@@ -140,9 +143,9 @@ public class MainActivity extends AppCompatActivity {
                 }
                 replaceFragment(albumsFragment);
             } else if (itemId == R.id.profile) {
-                if(user != null) {
+                if (user != null) {
                     profileFragment = new UserFragment();
-                }else {
+                } else {
                     profileFragment = new GuestFragment();
                 }
                 replaceFragment(profileFragment);
@@ -199,12 +202,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        if(user == null) return;
+        if (user == null) return;
 
         GalleryDB db = new GalleryDB(this);
         ArrayList<MediaModel> imagesToUpload = db.getMediaToUpload();
 
-        if(imagesToUpload.isEmpty()) return;
+        if (imagesToUpload.isEmpty()) return;
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Upload new media")
@@ -221,129 +224,20 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void queryMediaStore() {
+    private void startDatabase() {
         // Query the MediaStore for new media here
-        ArrayList<MediaModel> mediaList = new ArrayList<>();
-
-        String[] projection = new String[]{
-                MediaStore.MediaColumns._ID,
-                MediaStore.MediaColumns.DATA,
-                MediaStore.MediaColumns.BUCKET_ID,
-                MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
-                MediaStore.MediaColumns.DATE_ADDED,
-                MediaStore.MediaColumns.DATE_TAKEN,
-                MediaStore.MediaColumns.DURATION,
-                MediaStore.MediaColumns.MIME_TYPE
-        };
-
-        Cursor imageCursor = this.getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                null,
-                null,
-                null
-        );
-        GalleryDB db = new GalleryDB(this);
-        if (imageCursor != null) {
-            try {
-                while (imageCursor.moveToNext()) {
-                    String albumName = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
-                    String bucketID = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID));
-                    String type = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE));
-                    String localPath = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-                    int mediaID = imageCursor.getInt(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID));
-                    long dateTaken = imageCursor.getLong(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
-                    if (dateTaken == 0) {
-                        dateTaken = imageCursor.getLong(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED));
-                    }
-                    int duration = imageCursor.getInt(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
-                    db.onNewImageToUpload(localPath);
-                    MediaModel mediaModel = new MediaModel();
-                    mediaModel.setBucketID(bucketID)
-                            .setAlbumName(albumName)
-                            .setType(type)
-                            .setLocalPath(localPath)
-                            .setMediaID(mediaID)
-                            .setDateTaken(dateTaken)
-                            .setDuration(duration);
-                    mediaList.add(mediaModel);
-                }
-            } finally {
-                imageCursor.close();
-            }
-        }
-
-        Cursor videoCursor = this.getContentResolver().query(
-                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                null,
-                null,
-                MediaStore.MediaColumns.DATE_TAKEN + " DESC"
-        );
-        if (videoCursor != null) {
-            try {
-                while (videoCursor.moveToNext()) {
-                    String albumName = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
-                    String bucketID = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_ID));
-                    String type = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.MIME_TYPE));
-                    String localPath = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA));
-                    int mediaID = videoCursor.getInt(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID));
-                    long dateTaken = videoCursor.getLong(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_TAKEN));
-                    if(dateTaken == 0) {
-                        dateTaken = videoCursor.getLong(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED));
-                    }
-                    int duration = videoCursor.getInt(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
-                    db.onNewImageToUpload(localPath);
-                    MediaModel mediaModel = new MediaModel();
-                    mediaModel.setBucketID(bucketID)
-                            .setAlbumName(albumName)
-                            .setType(type)
-                            .setLocalPath(localPath)
-                            .setMediaID(mediaID)
-                            .setDateTaken(dateTaken)
-                            .setDuration(duration);
-                    mediaList.add(mediaModel);
-                }
-            } finally {
-                videoCursor.close();
-            }
-        }
-
-
-        ArrayList<MediaModel> dbAllMedia = db.getAllMedia();
-
-        // Check for new media
-        ArrayList<MediaModel> mediaModelsToAdd = new ArrayList<>();
-        mediaModelsToAdd = mediaList.stream().filter(mediaModel -> !dbAllMedia.contains(mediaModel)).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-
-        // Check for deleted media
-        ArrayList<MediaModel> mediaModelsToDelete = new ArrayList<>();
-        mediaModelsToDelete = dbAllMedia.stream().filter(mediaModel -> !mediaList.contains(mediaModel)).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-
-        addToMediaTable(mediaModelsToAdd);
-        removeFromMediaTable(mediaModelsToDelete);
-    }
-
-    private void addToMediaTable(ArrayList<MediaModel> mediaModels) {
+        databaseQuery.queryMedia();
+        databaseQuery.queryAlbum();
         // Update SQLite database with the retrieved information here
-        try(GalleryDB galleryDB = new GalleryDB(this)) {
-            // Update the database
-            galleryDB.addToMediaTable(mediaModels);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+        databaseQuery.addToMediaTable(databaseQuery.mediaModelsToAdd);
+        databaseQuery.addToAlbumTable(databaseQuery.albumModelsToAdd);
+        databaseQuery.removeFromMediaTable(databaseQuery.mediaModelsToDelete);
+        databaseQuery.removeFromAlbumTable(databaseQuery.albumModelsToDelete);
+        // Sync with firestore if authenticated
 
-        }
-    }
 
-    private void removeFromMediaTable(ArrayList<MediaModel> mediaModels) {
-        // Update SQLite database with the retrieved information here
-        try(GalleryDB galleryDB = new GalleryDB(this)) {
-            // Update the database
-            galleryDB.removeFromMediaTable(mediaModels);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        GalleryDB.notifyMediaObservers();
+        GalleryDB.notifyAlbumObservers();
+        Log.d("MainActivity", "Database refreshed");
     }
 }

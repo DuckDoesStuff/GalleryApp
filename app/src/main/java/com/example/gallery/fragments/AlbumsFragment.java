@@ -1,9 +1,7 @@
 package com.example.gallery.fragments;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,76 +19,57 @@ import com.example.gallery.activities.AlbumActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.AlbumFrameAdapter;
 import com.example.gallery.component.dialog.BottomDialog;
-import com.example.gallery.utils.GalleryDB;
-import com.example.gallery.utils.MediaContentObserver;
-import com.example.gallery.utils.MediaFetch;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.database.AlbumModel;
+import com.example.gallery.utils.database.DatabaseObserver;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumFrameListener, MediaContentObserver.OnMediaUpdateListener, BottomDialog.onBottomSheetListener {
+public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumFrameListener, DatabaseObserver {
     boolean viewMode;
-    ArrayList<MediaModel> modelArrayList;
-    private ArrayList<AlbumFrameAdapter.AlbumModel> albums;
-
-    private ArrayList<AlbumFrameAdapter.AlbumModel> selectedAlbums;
-
     AlbumFrameAdapter albumFrameAdapter;
-
     MainActivity mainActivity;
+    private ArrayList<AlbumModel> albums;
+    private ArrayList<AlbumFrameAdapter.AlbumFrameModel> selectedAlbums;
 
     public AlbumsFragment() {
         // Required empty public constructor
     }
 
-    private String getThumbnailForAlbum(String albumName) {
-        String[] projection = new String[]{
-                MediaStore.Images.Media.DATA
-        };
 
-        // Định nghĩa điều kiện để chỉ lấy hình ảnh trong album cụ thể
-        String selection = MediaStore.Images.Media.BUCKET_DISPLAY_NAME + " = ?";
-        String[] selectionArgs = new String[]{albumName};
-
-        Cursor cursor = requireContext().getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                selection,
-                selectionArgs,
-                MediaStore.Images.Media.DATE_ADDED + " DESC"
-        );
-
-        if (cursor != null && cursor.moveToFirst()) {
-            String thumbnailPath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-
-            // Di chuyển con trỏ đến ảnh cuối cùng trong album
-            cursor.moveToLast();
-            thumbnailPath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-
-            cursor.close();
-            return thumbnailPath;
+    @Override
+    public void onDatabaseChanged() {
+        try (GalleryDB db = new GalleryDB(this.requireContext())) {
+            albums = db.getAllAlbums();
+            Log.d("AlbumsFragment", "Albums fragment got updated");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("AlbumsFragment", "Error getting albums");
         }
-
-        // Trả về null nếu không có ảnh trong album
-        return null;
+        mainActivity.runOnUiThread(() -> albumFrameAdapter.initFrameModels(albums));
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        selectedAlbums = new ArrayList<AlbumFrameAdapter.AlbumModel>();
+        selectedAlbums = new ArrayList<>();
         viewMode = true;
-        albums = new ArrayList<>();
-        MediaFetch.getInstance(null).registerListener(this);
-        MediaFetch.getInstance(null).fetchMedia(false);
+        mainActivity = ((MainActivity) requireActivity());
 
+        try (GalleryDB db = new GalleryDB(this.requireContext())) {
+            albums = db.getAllAlbums();
+            GalleryDB.addAlbumObserver(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("AlbumsFragment", "Error getting albums");
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        MediaFetch.getInstance(null).unregisterListener(this);
+        GalleryDB.removeAlbumObserver(this);
     }
 
     @Override
@@ -100,93 +79,41 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
         ImageButton newAlbumButton = view.findViewById(R.id.plus);
         newAlbumButton.setOnClickListener(v -> {
             // Show dialog to create new album
-            new BottomDialog(this).show(getParentFragmentManager(), "bottom_dialog");
+            new BottomDialog(null).show(getParentFragmentManager(), "bottom_dialog");
         });
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_albums, container, false);
-        mainActivity = ((MainActivity) requireActivity());
 
         int spanCount = 3; // Change this to change the number of columns
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int albSize = screenWidth / spanCount;
 
-
-
         RecyclerView recyclerView = view.findViewById(R.id.album_grid);
         albumFrameAdapter = new AlbumFrameAdapter(this, albums);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setAdapter(albumFrameAdapter);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_albums, container, false);
+        mainActivity = ((MainActivity) requireActivity());
+
 
         return view;
     }
 
     @Override
-    public void onMediaUpdate(ArrayList<MediaModel> modelArrayList) {
-        albums.clear();
-        List<String> bucketIds = MediaFetch.getBucketIds(this.requireContext());
-        ArrayList<GalleryDB.AlbumScheme> albumSchemes = new ArrayList<>();
-        this.modelArrayList= modelArrayList;
-        for (String bucketId : bucketIds) {
-            // Lấy danh sách media từ bucket ID (có thể là ảnh hoặc video)
-            ArrayList<MediaModel> mediaList = MediaFetch.mediaFromBucketID(modelArrayList, bucketId);
-
-            // Kiểm tra xem album có media không
-            if (!mediaList.isEmpty()) {
-                // Lấy thông tin của album (tên album, số lượng media)
-                String albumName = mediaList.get(0).albumName; // Lấy tên album từ media đầu tiên trong danh sách
-                int numOfMedia = mediaList.size();
-                MediaFetch.sortArrayListModel(mediaList, MediaFetch.SORT_BY_DATE_TAKEN, MediaFetch.SORT_DESC);
-                String thumbnail = mediaList.get(0).localPath; // Đây là nơi để lấy hình ảnh thumbnail, bạn có thể thay thế bằng logic tương ứng
-
-                // Tạo đối tượng AlbumModel và thêm vào ArrayList
-                albums.add(new AlbumFrameAdapter.AlbumModel(bucketId, albumName, numOfMedia, thumbnail));
-                albumSchemes.add(new GalleryDB.AlbumScheme(albumName, MediaFetch.getDirectoryPathFromBucketId(bucketId), thumbnail, numOfMedia, false, null));
-            }
-        }
-
-        // Update GalleryDB
-        new Thread(() -> {
-            try(GalleryDB db = new GalleryDB(this.requireContext())) {
-                db.updateAlbums(albumSchemes);
-            }catch (Exception e){
-                e.printStackTrace();
-                Log.d("DB", "Error updating albums");
-            }
-            getMoreAlbums();
-        }).start();
-
-    }
-
-    public void getMoreAlbums() {
-        // Add the other albums which MediaStore didn't index from GalleryDB
-        try(GalleryDB db = new GalleryDB(this.requireContext())) {
-            ArrayList<GalleryDB.AlbumScheme> dbAlbums = db.getAlbums();
-            for (GalleryDB.AlbumScheme albumScheme : dbAlbums) {
-                boolean found = false;
-                for (AlbumFrameAdapter.AlbumModel album : albums) {
-                    if (album.albumName.equals(albumScheme.albumName)) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    albums.add(new AlbumFrameAdapter.AlbumModel(null, albumScheme.albumName, 0, null));
-                }
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-            Log.d("DB", "Error updating albums");
-        }
-    }
-
-    @Override
     public void onItemClick(int position) {
         AlbumFrameAdapter.AlbumFrameListener.super.onItemClick(position);
-        ArrayList<MediaModel> mediaList = MediaFetch.mediaFromBucketID(modelArrayList, albums.get(position).id);
+        ArrayList<MediaModel> mediaList = new ArrayList<>();
+
+        // Get media in the same bucket here
+        try (GalleryDB db = new GalleryDB(this.requireContext())) {
+            mediaList = db.getMediaInAlbum(albums.get(position));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("AlbumsFragment", "Error getting media in album");
+        }
+
         Intent intent = new Intent(getContext(), AlbumActivity.class);
         intent.putExtra("images", mediaList);
         intent.putExtra("name", albums.get(position).albumName);
@@ -197,10 +124,5 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
     @Override
     public void onItemLongClick(int position) {
         AlbumFrameAdapter.AlbumFrameListener.super.onItemLongClick(position);
-    }
-
-    @Override
-    public void onAlbumCreated() {
-        getMoreAlbums();
     }
 }

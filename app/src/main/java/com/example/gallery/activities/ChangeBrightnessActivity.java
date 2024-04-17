@@ -25,16 +25,15 @@ import jp.co.cyberagent.android.gpuimage.GPUImageView;
 
 public class ChangeBrightnessActivity extends AppCompatActivity {
 
+    private static final int DELAY_MILLIS = 300;
     private String imagePath;
     private Handler mHandler = new Handler();
-
     private SeekBar brightnessSeekBar;
     private SeekBar contrastSeekBar;
-    private  GPUImage gpuImage;
+    private GPUImage gpuImage;
     private GPUImageView gpuImageView;
-
-    private static final int DELAY_MILLIS = 300;
     private String editedImagePath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +65,7 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
         contrastBtn.setOnClickListener(v -> onContrastButtonClick());
 
         ImageButton saveBtn = findViewById(R.id.save_btn);
-        saveBtn.setOnClickListener(v->{
+        saveBtn.setOnClickListener(v -> {
             sendResult(editedImagePath);
 
         });
@@ -74,40 +73,40 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
         gpuImage = new GPUImage(this);
         gpuImage.setImage(new File(imagePath));
 
-            brightnessSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    float brightnessValue = (float) progress / 50 - 1;
-                    float contrastValue = (float) contrastSeekBar.getProgress() / 25;
-                    applyFilterInBackground(brightnessValue, contrastValue);
-                }
+        brightnessSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float brightnessValue = (float) progress / 50 - 1;
+                float contrastValue = (float) contrastSeekBar.getProgress() / 25;
+                applyFilterInBackground(brightnessValue, contrastValue);
+            }
 
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                }
-            });
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
 
-            contrastSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    float contrastValue = (float) progress / 25;
-                    float brightnessValue = (float) brightnessSeekBar.getProgress() / 50 - 1;
-                    applyFilterInBackground(brightnessValue, contrastValue);
-                }
+        contrastSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float contrastValue = (float) progress / 25;
+                float brightnessValue = (float) brightnessSeekBar.getProgress() / 50 - 1;
+                applyFilterInBackground(brightnessValue, contrastValue);
+            }
 
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                }
-            });
-        }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+    }
 
 
     private void onBrightnessButtonClick() {
@@ -159,6 +158,7 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
             }
         }, DELAY_MILLIS);
     }
+
     private String saveBitmapAndGetPath(Bitmap bitmap) {
         File editedImageFile = new File(getExternalFilesDir(null), "edited_image.jpg");
         try {
@@ -172,6 +172,7 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
             return null;
         }
     }
+
     private void sendResult(String editedImagePath) {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("editedImagePath", editedImagePath);

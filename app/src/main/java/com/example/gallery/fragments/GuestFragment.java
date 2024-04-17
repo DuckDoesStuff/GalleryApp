@@ -16,9 +16,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.gallery.R;
-import com.example.gallery.utils.firebase.AuthActivity;
 import com.example.gallery.activities.MainActivity;
-import com.example.gallery.utils.UserViewModel;
+import com.example.gallery.utils.firebase.AuthActivity;
+import com.example.gallery.utils.firebase.UserViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class GuestFragment extends Fragment {
@@ -26,6 +26,7 @@ public class GuestFragment extends Fragment {
     private ActivityResultLauncher<Intent> launcher;
 
     private MainActivity mainActivity;
+
     public GuestFragment() {
         // Required empty public constructor
     }
@@ -37,7 +38,7 @@ public class GuestFragment extends Fragment {
 
         launcher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(), result -> {
-                    if(result.getResultCode() == RESULT_OK) {
+                    if (result.getResultCode() == RESULT_OK) {
                         Log.d("Auth", "GuestFragment: Logged in from AuthActivity");
                         UserViewModel userViewModel = mainActivity.userViewModel;
                         userViewModel.getCurrentUser().setValue(auth.getCurrentUser());

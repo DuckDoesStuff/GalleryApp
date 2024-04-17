@@ -13,8 +13,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.gallery.R;
-import com.example.gallery.utils.GalleryDB;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,11 +33,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 public class UploadActivity extends AppCompatActivity {
+    private final Semaphore semaphore = new Semaphore(5); // Limit the number of concurrent uploads
     private CircularProgressIndicator circularProgressIndicator;
     private ArrayList<MediaModel> selectedImages;
     private FirebaseStorage storage;
     private StorageReference userRoot;
-    private final Semaphore semaphore = new Semaphore(5); // Limit the number of concurrent uploads
     private int totalProgress;
     private int currentProgress = 0;
     private TextView progressText;
@@ -54,7 +54,7 @@ public class UploadActivity extends AppCompatActivity {
         db = new GalleryDB(this);
 
         Intent intent = getIntent();
-        if(intent == null) {
+        if (intent == null) {
             finish();
             return;
         }
@@ -97,14 +97,14 @@ public class UploadActivity extends AppCompatActivity {
 
         backBtn.setOnClickListener(v -> {
             new MaterialAlertDialogBuilder(this)
-                .setTitle("Cancel Upload")
-                .setMessage("You sure you want to cancel the upload?")
-                .setPositiveButton("OK", (dialog, which) -> {
-                    executorService.shutdownNow();
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> {
-                })
-                .show();
+                    .setTitle("Cancel Upload")
+                    .setMessage("You sure you want to cancel the upload?")
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        executorService.shutdownNow();
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> {
+                    })
+                    .show();
         });
 
 

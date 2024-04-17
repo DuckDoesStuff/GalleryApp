@@ -16,10 +16,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class BottomDialog extends BottomSheetDialogFragment {
-    public interface onBottomSheetListener {
-        void onAlbumCreated();
-    }
-
     private onBottomSheetListener listener;
 
     public BottomDialog(onBottomSheetListener listener) {
@@ -28,7 +24,6 @@ public class BottomDialog extends BottomSheetDialogFragment {
 
     public BottomDialog() {
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,9 +49,9 @@ public class BottomDialog extends BottomSheetDialogFragment {
         Button createAlbumBtn = view.findViewById(R.id.btn_create);
         createAlbumBtn.setOnClickListener(v -> {
             String albumNameStr = albumName.getText().toString();
-            if(albumNameStr.isEmpty()) {
+            if (albumNameStr.isEmpty()) {
                 Toast.makeText(getContext(), "Please enter album name", Toast.LENGTH_SHORT).show();
-            }else {
+            } else {
                 if (AlbumManager.createNewAlbum(requireContext(), albumNameStr) != null) {
                     Toast.makeText(getContext(), "Album created successfully", Toast.LENGTH_SHORT).show();
                     if (listener != null)
@@ -68,5 +63,9 @@ public class BottomDialog extends BottomSheetDialogFragment {
             }
         });
 
+    }
+
+    public interface onBottomSheetListener {
+        void onAlbumCreated();
     }
 }

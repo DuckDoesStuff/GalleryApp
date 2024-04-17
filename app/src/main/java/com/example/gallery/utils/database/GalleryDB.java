@@ -1,4 +1,4 @@
-package com.example.gallery.utils;
+package com.example.gallery.utils.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -17,77 +17,32 @@ import java.util.ArrayList;
 
 
 public class GalleryDB extends SQLiteOpenHelper {
-    // START SCHEMES
-    public static class AlbumScheme {
-        public String albumName;
-        public String albumPath;
-        public String albumThumb;
-        public boolean hidden;
-        public String createdAt;
-        public int albumCount;
-
-        public AlbumScheme(String albumName, String albumPath, String albumThumb, int albumCount, @Nullable boolean hidden, @Nullable String createdAt) {
-            this.albumName = albumName;
-            this.albumPath = albumPath;
-            this.albumThumb = albumThumb;
-            this.albumCount = albumCount;
-            this.hidden = hidden;
-            if (createdAt == null) {
-                this.createdAt = "CURRENT_TIMESTAMP";
-            } else {
-                this.createdAt = createdAt;
-            }
-        }
-    }
-
-    // END SCHEMES
-
-    static volatile ArrayList<DatabaseObserver> observers = new ArrayList<>();
-
-    public static void addObserver(DatabaseObserver observer) {
-        Log.d("GalleryDB", "Observer added");
-        observers.add(observer);
-    }
-
-    public static void removeObserver(DatabaseObserver observer) {
-        Log.d("GalleryDB", "Observer removed");
-        observers.remove(observer);
-    }
-
-    public static void notifyObservers() {
-        for (DatabaseObserver observer : observers) {
-            observer.onDatabaseChanged();
-            Log.d("GalleryDB", "Observer notified");
-        }
-    }
-
     public static final String DATABASE_NAME = "gallery_app.db";
     private static final int DATABASE_VERSION = 1;
-
     private static final String SQL_CREATE_TRASH_TABLE =
-                    "CREATE TABLE IF NOT EXISTS trash (" +
+            "CREATE TABLE IF NOT EXISTS trash (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "original_path TEXT NOT NULL," +
                     "trashed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
-
     private static final String SQL_CREATE_ALBUM_TABLE =
-                    "CREATE TABLE IF NOT EXISTS albums (" +
+            "CREATE TABLE IF NOT EXISTS albums (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "album_name TEXT NOT NULL," +
-                    "album_path TEXT NOT NULL UNIQUE," +
-                    "album_thumbnail TEXT," +
-                    "album_count INT DEFAULT 0," +
+                    "user_id TEXT," +
+                    "album_name TEXT," +
+                    "local_path TEXT," +
+                    "cloud_path TEXT," +
+                    "album_thumb TEXT," +
                     "hidden BOOLEAN DEFAULT FALSE," +
-                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
-
+                    "downloaded BOOLEAN DEFAULT FALSE," +
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                    "UNIQUE (album_name, local_path, cloud_path))";
     private static final String SQL_CREATE_TO_UPLOAD_TABLE =
-                    "CREATE TABLE IF NOT EXISTS to_upload (" +
+            "CREATE TABLE IF NOT EXISTS to_upload (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "image_path TEXT NOT NULL UNIQUE)";
-
     // This table will be synced with the user firestore
     private static final String SQL_CREATE_MEDIA_TABLE =
-                    "CREATE TABLE IF NOT EXISTS media (" +
+            "CREATE TABLE IF NOT EXISTS media (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "media_id TEXT," +
                     "user_id TEXT," +
@@ -100,11 +55,84 @@ public class GalleryDB extends SQLiteOpenHelper {
                     "location TEXT," +
                     "date_taken INTEGER," +
                     "UNIQUE (local_path, cloud_path, media_id))";
+    // START observers
+    static volatile ArrayList<DatabaseObserver> mediaObservers = new ArrayList<>();
+    static volatile ArrayList<DatabaseObserver> albumObservers = new ArrayList<>();
+
+
+    // END observers
 
     // START SQLITE HELPER
     public GalleryDB(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
+
+    public static void addMediaObserver(DatabaseObserver observer) {
+        Log.d("GalleryDB", "Observer added");
+        mediaObservers.add(observer);
+    }
+
+    public static void removeMediaObserver(DatabaseObserver observer) {
+        Log.d("GalleryDB", "Observer removed");
+        mediaObservers.remove(observer);
+    }
+
+    public static void notifyMediaObservers() {
+        for (DatabaseObserver observer : mediaObservers) {
+            observer.onDatabaseChanged();
+            Log.d("GalleryDB", "Observer notified");
+        }
+    }
+
+    public static void addAlbumObserver(DatabaseObserver observer) {
+        Log.d("GalleryDB", "Observer added");
+        albumObservers.add(observer);
+    }
+
+    public static void removeAlbumObserver(DatabaseObserver observer) {
+        Log.d("GalleryDB", "Observer removed");
+        albumObservers.remove(observer);
+    }
+
+    public static void notifyAlbumObservers() {
+        for (DatabaseObserver observer : albumObservers) {
+            observer.onDatabaseChanged();
+            Log.d("GalleryDB", "Observer notified");
+        }
+    }
+
+    @NonNull
+    private static ContentValues getAlbumValues(AlbumModel albumModel) {
+        ContentValues values = new ContentValues();
+        values.put("user_id", albumModel.userID);
+        values.put("album_name", albumModel.albumName);
+        values.put("local_path", albumModel.localPath);
+        values.put("cloud_path", albumModel.cloudPath);
+        values.put("album_thumb", albumModel.albumThumbnail);
+        values.put("hidden", albumModel.hidden ? 1 : 0);
+        values.put("downloaded", albumModel.downloaded ? 1 : 0);
+        values.put("created_at", albumModel.createdAt);
+        return values;
+    }
+
+    @NonNull
+    private static ContentValues getMediaValue(MediaModel mediaModel, String uid) {
+        ContentValues values = new ContentValues();
+        values.put("user_id", uid);
+        values.put("local_path", mediaModel.localPath);
+        values.put("cloud_path", mediaModel.cloudPath);
+        values.put("downloaded", mediaModel.downloaded ? 1 : 0);
+        values.put("album_name", mediaModel.albumName);
+        values.put("type", mediaModel.type);
+        values.put("duration", mediaModel.duration);
+        values.put("location", mediaModel.geoLocation);
+        values.put("media_id", mediaModel.mediaID);
+        values.put("date_taken", mediaModel.dateTaken);
+        return values;
+    }
+
+    // END SQLITE HELPER
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_TRASH_TABLE);
@@ -112,6 +140,7 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_TO_UPLOAD_TABLE);
         db.execSQL(SQL_CREATE_MEDIA_TABLE);
     }
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS trash");
@@ -120,9 +149,6 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS media");
         onCreate(db);
     }
-
-    // END SQLITE HELPER
-
 
     // START TRASH
     public void onNewItemTrashed(String originalPath) {
@@ -137,6 +163,9 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.execSQL("DELETE FROM trash WHERE original_path = '" + originalPath + "'");
         db.close();
     }
+
+    // END TRASH
+
     public String getOriginalPath(String fileName) {
         String originalPath = null;
         SQLiteDatabase db = getWritableDatabase();
@@ -144,9 +173,9 @@ public class GalleryDB extends SQLiteOpenHelper {
 
         try {
             // Truy vấn cơ sở dữ liệu để lấy original_path
-            String[] projection = { "original_path" };
+            String[] projection = {"original_path"};
             String selection = "original_path LIKE ?";
-            String[] selectionArgs = { "%" + fileName + "%" }; // Sử dụng phép toán LIKE để tìm kiếm phần của tên tệp tin
+            String[] selectionArgs = {"%" + fileName + "%"}; // Sử dụng phép toán LIKE để tìm kiếm phần của tên tệp tin
 
             cursor = db.query(
                     "trash", // Tên bảng trong cơ sở dữ liệu
@@ -182,60 +211,43 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.close();
     }
 
-    // END TRASH
-
-
     // START ALBUM
-    public ArrayList<AlbumScheme> getAlbums() {
+    public ArrayList<AlbumModel> getAllAlbums() {
         SQLiteDatabase db = getReadableDatabase();
-        ArrayList<AlbumScheme> albumSchemes = new ArrayList<>();
+        ArrayList<AlbumModel> albumSchemes = new ArrayList<>();
         Cursor cursor = db.rawQuery("SELECT * FROM albums", null);
         while (cursor.moveToNext()) {
+            String userID = cursor.getString(cursor.getColumnIndexOrThrow("user_id"));
             String albumName = cursor.getString(cursor.getColumnIndexOrThrow("album_name"));
-            String albumPath = cursor.getString(cursor.getColumnIndexOrThrow("album_path"));
-            String albumThumb = cursor.getString(cursor.getColumnIndexOrThrow("album_thumbnail"));
-            int albumCount = cursor.getInt(cursor.getColumnIndexOrThrow("album_count"));
-            albumSchemes.add(new AlbumScheme(albumName, albumPath, albumThumb, albumCount, cursor.getInt(cursor.getColumnIndexOrThrow("hidden")) == 1, cursor.getString(cursor.getColumnIndexOrThrow("created_at"))));
+            String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
+            String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
+            String albumThumb = cursor.getString(cursor.getColumnIndexOrThrow("album_thumb"));
+            boolean hidden = cursor.getInt(cursor.getColumnIndexOrThrow("hidden")) == 1;
+            boolean downloaded = cursor.getInt(cursor.getColumnIndexOrThrow("downloaded")) == 1;
+            long createdAt = cursor.getLong(cursor.getColumnIndexOrThrow("created_at"));
+
+            Cursor getMediaCount = db.rawQuery("SELECT COUNT(*) FROM media WHERE album_name = ?", new String[]{albumName});
+            int mediaCount = 0;
+            if (getMediaCount.moveToFirst()) {
+                mediaCount = getMediaCount.getInt(0);
+            }
+            getMediaCount.close();
+
+
+            albumSchemes.add(new AlbumModel()
+                    .setAlbumName(albumName)
+                    .setUserID(userID)
+                    .setLocalPath(localPath)
+                    .setCloudPath(cloudPath)
+                    .setMediaCount(mediaCount)
+                    .setAlbumThumbnail(albumThumb)
+                    .setHidden(hidden)
+                    .setDownloaded(downloaded)
+                    .setCreatedAt(createdAt));
         }
         cursor.close();
         db.close();
         return albumSchemes;
-    }
-
-    public void updateAlbums(ArrayList<AlbumScheme> albumSchemes) {
-        SQLiteDatabase db = getWritableDatabase();
-
-        for (AlbumScheme albumScheme : albumSchemes) {
-            // Check if album with the same album_name already exists
-            Cursor cursor = db.rawQuery("SELECT 1 FROM albums WHERE album_name = ?", new String[]{albumScheme.albumName});
-            boolean exists = cursor.getCount() > 0;
-            cursor.close();
-            if (exists) {
-                // Album with the same album_name already exists, update the row
-                ContentValues values = new ContentValues();
-                values.put("album_name", albumScheme.albumName);
-                values.put("album_path", albumScheme.albumPath);
-                values.put("album_thumbnail", albumScheme.albumThumb);
-                values.put("album_count", albumScheme.albumCount);
-                values.put("hidden", albumScheme.hidden ? 1 : 0);
-                values.put("created_at", albumScheme.createdAt);
-
-                db.update("albums", values, "album_name = ?", new String[]{albumScheme.albumName});
-            } else {
-                // Album does not exist, insert a new row
-                ContentValues values = new ContentValues();
-                values.put("album_name", albumScheme.albumName);
-                values.put("album_path", albumScheme.albumPath);
-                values.put("album_thumbnail", albumScheme.albumThumb);
-                values.put("album_count", albumScheme.albumCount);
-                values.put("hidden", albumScheme.hidden ? 1 : 0);
-                values.put("created_at", albumScheme.createdAt);
-
-                db.insert("albums", null, values);
-            }
-        }
-
-        db.close();
     }
 
     public void onAlbumCreated(String albumName, String albumPath) {
@@ -244,20 +256,50 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void onAlbumHidden(String albumName) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("UPDATE albums SET hidden = TRUE WHERE album_name = '" + albumName + "'");
+    public ArrayList<MediaModel> getMediaInAlbum(AlbumModel albumModel) {
+        ArrayList<MediaModel> mediaModels = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM media WHERE album_name = ?", new String[]{albumModel.albumName});
+        while (cursor.moveToNext()) {
+            String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
+            String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
+            boolean downloaded = cursor.getInt(cursor.getColumnIndexOrThrow("downloaded")) == 1;
+            String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
+            int duration = cursor.getInt(cursor.getColumnIndexOrThrow("duration"));
+            String location = cursor.getString(cursor.getColumnIndexOrThrow("location"));
+            int mediaID = cursor.getInt(cursor.getColumnIndexOrThrow("media_id"));
+            long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow("date_taken"));
+            mediaModels.add(new MediaModel()
+                    .setLocalPath(localPath)
+                    .setCloudPath(cloudPath)
+                    .setDownloaded(downloaded)
+                    .setAlbumName(albumModel.albumName)
+                    .setType(type)
+                    .setDuration(duration)
+                    .setGeoLocation(location)
+                    .setMediaID(mediaID)
+                    .setDateTaken(dateTaken));
+        }
+        cursor.close();
         db.close();
+        return mediaModels;
     }
 
-    public void onAlbumUnhidden(String albumName) {
+    public void addToAlbumTable(ArrayList<AlbumModel> albumModels) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("UPDATE albums SET hidden = FALSE WHERE album_name = '" + albumName + "'");
+        for (AlbumModel albumModel : albumModels) {
+            ContentValues values = getAlbumValues(albumModel);
+            db.insertWithOnConflict("albums", null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        }
         db.close();
+        Log.d("GalleryDB", "Album table updated");
     }
 
     // END ALBUM
 
+    public void removeFromAlbumTable(ArrayList<AlbumModel> albumModels) {
+        // Not sure how to handle this yet
+    }
 
     // START UPLOAD
     public void onNewImageToUpload(String imagePath) {
@@ -279,14 +321,13 @@ public class GalleryDB extends SQLiteOpenHelper {
         return mediaModels;
     }
 
+    // END UPLOAD
+
     public void onRemoveImageToUpload(String imagePath) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM to_upload WHERE image_path = ?", new String[]{imagePath});
         db.close();
     }
-
-    // END UPLOAD
-
 
     // START MEDIA
     public ArrayList<MediaModel> getAllMedia() {
@@ -294,15 +335,15 @@ public class GalleryDB extends SQLiteOpenHelper {
 
         SQLiteDatabase db = getReadableDatabase();
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String []args;
+        String[] args;
         if (user != null) {
             args = new String[]{user.getUid()};
-        }else {
+        } else {
             args = new String[]{""};
         }
         Cursor cursor = db.rawQuery(
-            "SELECT * FROM media WHERE user_id = ? OR user_id = NULL",
-            args);
+                "SELECT * FROM media WHERE user_id = ? OR user_id = NULL",
+                args);
 
         try {
             while (cursor.moveToNext()) {
@@ -336,6 +377,7 @@ public class GalleryDB extends SQLiteOpenHelper {
         return medialModels;
     }
 
+    // Pending for removal
     public void onNewMedia(String cloudPath) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("INSERT INTO media (user_id, cloud_path) VALUES ('" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "', '" + cloudPath + "')");
@@ -352,7 +394,6 @@ public class GalleryDB extends SQLiteOpenHelper {
         }
         db.close();
         Log.d("GalleryDB", "Media table updated");
-        notifyObservers();
     }
 
     public void removeFromMediaTable(ArrayList<MediaModel> mediaModels) {
@@ -362,23 +403,6 @@ public class GalleryDB extends SQLiteOpenHelper {
         }
         db.close();
         Log.d("GalleryDB", "Media table updated");
-        notifyObservers();
-    }
-
-    @NonNull
-    private static ContentValues getMediaValue(MediaModel mediaModel, String uid) {
-        ContentValues values = new ContentValues();
-        values.put("user_id", uid);
-        values.put("local_path", mediaModel.localPath);
-        values.put("cloud_path", mediaModel.cloudPath);
-        values.put("downloaded", mediaModel.downloaded ? 1 : 0);
-        values.put("album_name", mediaModel.albumName);
-        values.put("type", mediaModel.type);
-        values.put("duration", mediaModel.duration);
-        values.put("location", mediaModel.geoLocation);
-        values.put("media_id", mediaModel.mediaID);
-        values.put("date_taken", mediaModel.dateTaken);
-        return values;
     }
 
     // END MEDIA

@@ -10,6 +10,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.example.gallery.activities.MainActivity;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -28,11 +30,18 @@ public class MediaFetch {
     private static MediaFetch instance;
     private final Context context;
     private final ArrayList<MediaContentObserver.OnMediaUpdateListener> listeners;
-    private ArrayList<MediaModel> mediaModelArrayList;
     public MainActivity mainActivity;
+    private ArrayList<MediaModel> mediaModelArrayList;
 
-    public interface onDeleteCallback {
-        void onDeleteResult();
+    private MediaFetch(@NonNull Context context) {
+        this.context = context;
+        listeners = new ArrayList<>();
+    }
+
+    private MediaFetch(@NonNull Context context, MainActivity mainActivity) {
+        this.context = context;
+        this.mainActivity = mainActivity;
+        listeners = new ArrayList<>();
     }
 
     public static List<String> getBucketIds(Context context) {
@@ -68,15 +77,6 @@ public class MediaFetch {
         Set<String> uniqueBucketIds = new HashSet<>(bucketIds);
         return new ArrayList<>(uniqueBucketIds);
     }
-    private MediaFetch(@NonNull Context context) {
-        this.context = context;
-        listeners = new ArrayList<>();
-    }
-    private MediaFetch(@NonNull Context context, MainActivity mainActivity) {
-        this.context = context;
-        this.mainActivity = mainActivity;
-        listeners = new ArrayList<>();
-    }
 
     public static synchronized MediaFetch getInstance(Context context) {
         if (instance == null && context != null) {
@@ -108,8 +108,7 @@ public class MediaFetch {
                     default:
                         return 0;
                 }
-            }
-            catch (NullPointerException e) {
+            } catch (NullPointerException e) {
                 return 0;
             }
         });
@@ -121,6 +120,72 @@ public class MediaFetch {
                 modelArrayList.stream()
                         .filter(mediaModel -> Objects.equals(mediaModel.bucketID, bucketID))
                         .collect(Collectors.toList());
+    }
+
+    public static void deleteMediaFiles(ContentResolver contentResolver, ArrayList<MediaModel> mediaDelete, onDeleteCallback callback) {
+        if (!mediaDelete.isEmpty()) {
+            Iterator<MediaModel> iterator = mediaDelete.iterator();
+            while (iterator.hasNext()) {
+                MediaModel mediaModel = iterator.next();
+                deleteMediaFile(contentResolver, mediaModel.localPath);
+                iterator.remove();
+            }
+            callback.onDeleteResult();
+        }
+    }
+
+    private static void deleteMediaFile(ContentResolver contentResolver, String filePath) {
+        Uri mediaUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        String selection = MediaStore.Images.Media.DATA + "=?";
+        String[] selectionArgs = new String[]{filePath};
+
+        // Delete the file
+        if (contentResolver.delete(mediaUri, selection, selectionArgs) == 0) {
+            mediaUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+            contentResolver.delete(mediaUri, selection, selectionArgs);
+        }
+    }
+
+    public static String getDirectoryPathFromBucketId(String bucketId) {
+        String directoryPath = null;
+
+        // Define the columns you want to retrieve
+        String[] projection = {MediaStore.Files.FileColumns.DATA};
+
+        // Define the selection criteria
+        String selection = MediaStore.Files.FileColumns.BUCKET_ID + " = ?";
+
+        // Arguments for the selection criteria
+        String[] selectionArgs = {bucketId};
+
+        // Sort the results
+
+        // Execute the query using the content resolver
+        Cursor cursor = instance.context.getContentResolver().query(
+                MediaStore.Files.getContentUri("external"), // URI for both images and videos
+                projection,
+                selection,
+                selectionArgs,
+                null
+        );
+
+        // Check if the cursor is not null and move to the first entry
+        if (cursor != null && cursor.moveToFirst()) {
+            // Get the index of the DATA column
+            int dataIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+
+            // Get the directory path from the cursor
+            directoryPath = cursor.getString(dataIndex);
+        }
+
+        // Close the cursor
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        // Return the directory path
+        return directoryPath.substring(0, directoryPath.lastIndexOf('/'));
     }
 
     public void registerListener(MediaContentObserver.OnMediaUpdateListener listener) {
@@ -152,31 +217,6 @@ public class MediaFetch {
                 e.printStackTrace();
             }
         }).start();
-    }
-
-    public static void deleteMediaFiles(ContentResolver contentResolver, ArrayList<MediaModel> mediaDelete, onDeleteCallback callback) {
-        if(!mediaDelete.isEmpty()) {
-            Iterator<MediaModel> iterator = mediaDelete.iterator();
-            while (iterator.hasNext()) {
-                MediaModel mediaModel = iterator.next();
-                deleteMediaFile(contentResolver, mediaModel.localPath);
-                iterator.remove();
-            }
-            callback.onDeleteResult();
-        }
-    }
-
-    private static void deleteMediaFile(ContentResolver contentResolver, String filePath) {
-        Uri mediaUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        String selection = MediaStore.Images.Media.DATA + "=?";
-        String[] selectionArgs = new String[]{ filePath };
-
-        // Delete the file
-        if(contentResolver.delete(mediaUri, selection, selectionArgs) == 0){
-            mediaUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-            contentResolver.delete(mediaUri, selection, selectionArgs);
-        }
     }
 
     private void notifyMediaUpdate() {
@@ -263,51 +303,14 @@ public class MediaFetch {
         return mediaList;
     }
 
-    public static String getDirectoryPathFromBucketId(String bucketId) {
-        String directoryPath = null;
-
-        // Define the columns you want to retrieve
-        String[] projection = { MediaStore.Files.FileColumns.DATA };
-
-        // Define the selection criteria
-        String selection = MediaStore.Files.FileColumns.BUCKET_ID + " = ?";
-
-        // Arguments for the selection criteria
-        String[] selectionArgs = { bucketId };
-
-        // Sort the results
-
-        // Execute the query using the content resolver
-        Cursor cursor = instance.context.getContentResolver().query(
-                MediaStore.Files.getContentUri("external"), // URI for both images and videos
-                projection,
-                selection,
-                selectionArgs,
-                null
-        );
-
-        // Check if the cursor is not null and move to the first entry
-        if (cursor != null && cursor.moveToFirst()) {
-            // Get the index of the DATA column
-            int dataIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
-
-            // Get the directory path from the cursor
-            directoryPath = cursor.getString(dataIndex);
-        }
-
-        // Close the cursor
-        if (cursor != null) {
-            cursor.close();
-        }
-
-        // Return the directory path
-        return directoryPath.substring(0, directoryPath.lastIndexOf('/'));
-    }
-
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
         Log.d("Media", "MediaFetch is destroyed");
+    }
+
+    public interface onDeleteCallback {
+        void onDeleteResult();
     }
 
 }

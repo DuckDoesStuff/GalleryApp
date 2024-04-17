@@ -6,6 +6,8 @@ import android.os.Environment;
 
 import androidx.annotation.NonNull;
 
+import com.example.gallery.utils.database.GalleryDB;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -35,7 +37,7 @@ public class AlbumManager {
                 GalleryDB db = new GalleryDB(context);
                 db.onRemoveImageToUpload(sourceFilePath);
                 return true;
-            }else
+            } else
                 return false;
         } catch (IOException e) {
             e.printStackTrace();

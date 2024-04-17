@@ -2,6 +2,7 @@ package com.example.gallery.component.dialog;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -10,15 +11,15 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
-import com.example.gallery.utils.AlbumManager;
-import com.example.gallery.utils.GalleryDB;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.database.AlbumModel;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
 
 public class AlbumPickerActivity extends AppCompatActivity implements AlbumPickerAdapter.AlbumPickerListener {
     ArrayList<MediaModel> images;
-    ArrayList<GalleryDB.AlbumScheme> albums;
+    ArrayList<AlbumModel> albums;
     private GalleryDB db;
 
 
@@ -34,7 +35,7 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
         Intent intent = getIntent();
         if (intent != null) {
             images = intent.getParcelableArrayListExtra("images");
-        }else {
+        } else {
             Toast.makeText(this, "No images selected", Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -43,7 +44,7 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
         back.setOnClickListener(v -> finish());
 
         db = new GalleryDB(this);
-        albums = db.getAlbums();
+        albums = db.getAllAlbums();
 
         RecyclerView recyclerView = findViewById(R.id.album_list_picker);
         AlbumPickerAdapter adapter = new AlbumPickerAdapter(albums, this);
@@ -52,19 +53,9 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
     }
 
     @Override
-    public void onAlbumSelected(GalleryDB.AlbumScheme album) {
+    public void onAlbumSelected(AlbumModel album) {
         new Thread(() -> {
-            for (MediaModel image : images) {
-                AlbumManager.moveMedia(this, image.localPath, album.albumPath);
-            }
-            try {
-                GalleryDB db = new GalleryDB(this);
-                ArrayList<GalleryDB.AlbumScheme> temp = new ArrayList<>();
-                temp.add(album);
-                db.updateAlbums(temp);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Log.d("AlbumPickerActivity", "This feature is being developed");
         }).start();
         finish();
     }

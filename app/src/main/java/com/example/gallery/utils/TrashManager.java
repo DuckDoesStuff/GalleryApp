@@ -3,11 +3,10 @@ package com.example.gallery.utils;
 import android.content.Context;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.example.gallery.component.TrashFrameAdapter;
+import com.example.gallery.utils.database.GalleryDB;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +17,7 @@ import java.util.ArrayList;
 public class TrashManager {
 
     private static String trashPath;
+
     private static void notifyMediaStoreScan(Context context, String filePath) {
         MediaScannerConnection.scanFile(context, new String[]{filePath}, null, (path, uri) -> {
             // MediaScannerConnection callback
@@ -27,12 +27,13 @@ public class TrashManager {
     public static ArrayList<String> getFilesFromTrash() {
         File trashDirectory = new File(trashPath);
         File[] files = trashDirectory.listFiles();
-        ArrayList<String> output  = new ArrayList<>();
-        for (File file:files) {
+        ArrayList<String> output = new ArrayList<>();
+        for (File file : files) {
             output.add(file.getAbsolutePath());
         }
         return output;
     }
+
     public static void createTrash() {
         File album = new File(android.os.Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DCIM), ".trash");
@@ -41,6 +42,7 @@ public class TrashManager {
         }
         trashPath = album.getAbsolutePath();
     }
+
     public static boolean moveToTrash(@NonNull Context context, String imgPath) {
         GalleryDB db = new GalleryDB(context);
         db.onNewItemTrashed(imgPath);
@@ -63,13 +65,14 @@ public class TrashManager {
             if (sourceFile.delete()) {
                 notifyMediaStoreScan(context, trashPath);
                 return true;
-            }else
+            } else
                 return false;
         } catch (IOException e) {
             e.printStackTrace();
             return false; // Error occurred while moving file
         }
     }
+
     public static void deleteFromTrash(String trashFilePath) {
         // Tạo đối tượng File từ đường dẫn tệp trong thư mục .trash
         File trashFile = new File(trashFilePath);
@@ -80,6 +83,7 @@ public class TrashManager {
             boolean deleted = trashFile.delete();
         }
     }
+
     public static boolean restoreFromTrash(@NonNull Context context, String imgName, String imgPath) {
         GalleryDB db = new GalleryDB(context);
         String path = db.getOriginalPath(imgName);
@@ -105,7 +109,7 @@ public class TrashManager {
             if (sourceFile.delete()) {
                 notifyMediaStoreScan(context, trashPath);
                 return true;
-            }else
+            } else
                 return false;
         } catch (IOException e) {
             e.printStackTrace();

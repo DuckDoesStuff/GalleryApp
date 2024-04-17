@@ -11,11 +11,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
 import com.example.gallery.component.ImageFrameAdapter;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
 
-public class AlbumActivity extends  AppCompatActivity implements ImageFrameAdapter.ImageFrameListener{
+public class AlbumActivity extends AppCompatActivity implements ImageFrameAdapter.ImageFrameListener {
     ArrayList<MediaModel> images;
     RecyclerView recyclerView;
     ImageFrameAdapter imageFrameAdapter;
@@ -58,6 +58,7 @@ public class AlbumActivity extends  AppCompatActivity implements ImageFrameAdapt
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
 
     }
+
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
         super.onPointerCaptureChanged(hasCapture);

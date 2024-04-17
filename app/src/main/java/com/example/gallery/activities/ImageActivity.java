@@ -11,18 +11,17 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.gallery.R;
 import com.example.gallery.component.ViewPagerAdapter;
-import com.example.gallery.utils.MediaModel;
 import com.example.gallery.utils.TrashManager;
+import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 
 public class ImageActivity extends AppCompatActivity {
+    private static final int EDIT_IMAGE_REQUEST_CODE = 1001;
     ArrayList<MediaModel> images;
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
-    private static final int EDIT_IMAGE_REQUEST_CODE = 1001;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +102,6 @@ public class ImageActivity extends AppCompatActivity {
     public void setViewPagerInputEnabled(boolean enabled) {
         viewPager2.setUserInputEnabled(enabled);
     }
-
 
 
     @Override

@@ -26,9 +26,9 @@
                     android:id="@+id/backButton"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    app:tint="@color/background_dark"
                     android:background="@color/background_light"
-                    android:src="@drawable/back" />
+                    android:src="@drawable/back"
+                    app:tint="@color/background_dark" />
 
                 <FrameLayout
                     android:layout_width="0dp"
@@ -42,14 +42,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="15dp"
-                    android:text="Upload"/>
+                    android:text="Upload" />
             </LinearLayout>
         </androidx.appcompat.widget.Toolbar>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/media_picker_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
 
 
     </LinearLayout>

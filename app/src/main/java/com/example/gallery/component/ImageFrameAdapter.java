@@ -1,10 +1,16 @@
 package com.example.gallery.component;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
+import android.util.Log;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +25,9 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.gallery.R;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.database.MediaModel;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -34,6 +41,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     private Context context;
 
     public ImageFrameAdapter(Context context, int imgSize, ArrayList<MediaModel> images, ArrayList<MediaModel> selectedImages, ImageFrameListener onClickCallback) {
+        this.context = context;
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
         this.selectedImages = selectedImages;
@@ -62,7 +70,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             holder = (FrameViewHolder) itemView.getTag();
         } else {
             // Create a new view holder if none is available
-            holder = new FrameViewHolder(itemView, onClickCallBack);
+            holder = new FrameViewHolder(itemView, imgSize, onClickCallBack);
             itemView.setTag(holder);
         }
         return holder;
@@ -77,9 +85,9 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
         holder.checkBox.setVisibility(selectionModeEnabled ? View.VISIBLE : View.GONE);
 
         if (frameModel.media.type.contains("video")) {
-            holder.play.setVisibility(View.VISIBLE); // Hiển thị nút play cho video
+            holder.play.setVisibility(View.VISIBLE);
         } else {
-            holder.play.setVisibility(View.GONE); // Ẩn nút play cho hình ảnh
+            holder.play.setVisibility(View.GONE);
         }
         holder.itemView.setOnClickListener(v -> {
             if (selectionModeEnabled) {
@@ -88,12 +96,10 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
                 if (frameModel.isSelected) {
                     ColorMatrix colorMatrix = new ColorMatrix();
-                    colorMatrix.setScale(0.7f, 0.7f, 0.7f, 1.0f); // Scale down RGB values to reduce brightness
-
-                    // Create a ColorMatrixColorFilter with the brightness reduction ColorMatrix
+                    // Scale down RGB values to reduce brightness
+                    colorMatrix.setScale(0.7f, 0.7f, 0.7f, 1.0f);
                     ColorMatrixColorFilter colorFilter = new ColorMatrixColorFilter(colorMatrix);
 
-                    // Apply the color filter to the ImageView to reduce brightness
                     holder.imageView.setColorFilter(colorFilter);
                     selectedImages.add(frameModel.media);
                 } else {
@@ -107,7 +113,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                     notifyDataSetChanged();
                 }
             }
-            if(onClickCallBack != null)
+            if (onClickCallBack != null)
                 onClickCallBack.onItemClick(position);
         });
         holder.itemView.setOnLongClickListener(v -> {
@@ -143,12 +149,14 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
         FrameModel frameModel;
 
-        public FrameViewHolder(View itemView, ImageFrameListener listener) {
+        int imgSize;
+
+        public FrameViewHolder(View itemView, int imgSize, ImageFrameListener listener) {
             super(itemView);
             imageView = itemView.findViewById(R.id.frame);
             checkBox = itemView.findViewById(R.id.select_box);
             play = itemView.findViewById(R.id.play_button);
-            Glide.with(itemView).load(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
+            this.imgSize = imgSize;
         }
 
         public void bind(FrameModel frameModel) {
@@ -159,26 +167,43 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             }
             checkBox.setChecked(frameModel.isSelected);
             if (frameModel.isSelected) {
-                // Tạo một ColorMatrix để giảm độ sáng của hình ảnh
                 ColorMatrix colorMatrix = new ColorMatrix();
-                colorMatrix.setScale(0.7f, 0.7f, 0.7f, 1.0f); // Scale down RGB values to reduce brightness
+                // Scale down RGB values to reduce brightness
+                colorMatrix.setScale(0.7f, 0.7f, 0.7f, 1.0f);
 
-                // Create a ColorMatrixColorFilter with the brightness reduction ColorMatrix
                 ColorMatrixColorFilter colorFilter = new ColorMatrixColorFilter(colorMatrix);
-
-                // Apply the color filter to the ImageView to reduce brightness
                 imageView.setColorFilter(colorFilter);
             } else {
-                // Nếu không được chọn, hiển thị hình ảnh bình thường bằng cách xóa bỏ color filter
                 imageView.clearColorFilter();
             }
 
-            Glide.with(itemView).load(frameModel.media.localPath)
-                    .transition(DrawableTransitionOptions
-                    .withCrossFade(200))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(new ColorDrawable(Color.GRAY))
-                    .centerCrop().into(imageView);
+
+            Uri contentUri = ContentUris.withAppendedId(
+                    frameModel.media.type.contains("video") ? android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI : android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    frameModel.media.mediaID);
+            ContentResolver contentResolver = itemView.getContext().getContentResolver();
+            try {
+                Bitmap thumbnail = contentResolver.loadThumbnail(
+                        contentUri, new Size(600, 600), null);
+
+                Glide.with(itemView).load(thumbnail)
+                        .transition(DrawableTransitionOptions
+                                .withCrossFade(200))
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .placeholder(new ColorDrawable(Color.GRAY))
+                        .centerCrop().into(imageView);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.d("ImageFrameAdapter", "Error loading thumbnail for " + frameModel.media.localPath + " with ID " + frameModel.media.mediaID + " and type " + frameModel.media.type);
+
+                Glide.with(itemView).load(frameModel.media.localPath)
+                        .transition(DrawableTransitionOptions
+                                .withCrossFade(200))
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .placeholder(new ColorDrawable(Color.GRAY))
+                        .centerCrop().into(imageView);
+            }
+
         }
     }
 

@@ -1,5 +1,7 @@
 package com.example.gallery.component.dialog;
 
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.gallery.R;
 import com.example.gallery.utils.database.AlbumModel;
 
@@ -34,21 +37,21 @@ public class AlbumPickerAdapter extends RecyclerView.Adapter<AlbumPickerAdapter.
     @Override
     public void onBindViewHolder(@NonNull PickerViewHolder holder, int position) {
         AlbumModel album = albums.get(position);
-        ImageView albumCover = holder.itemView.findViewById(R.id.album_cover);
+        ImageView albumCover = holder.itemView.findViewById(R.id.album_thumbnail);
         TextView albumTitle = holder.itemView.findViewById(R.id.album_title);
         TextView albumCount = holder.itemView.findViewById(R.id.album_count);
 
-        //        if (album.albumThumb != null)
-        //            Glide.with(holder.itemView).load(album.albumThumb).centerCrop().into(albumCover);
-        //        else {
-        //            ColorMatrix matrix = new ColorMatrix();
-        //            matrix.setSaturation(0);
-        //            albumCover.setColorFilter(new ColorMatrixColorFilter(matrix));
-        //        }
-        //        albumTitle.setText(album.albumName);
-        //
-        //        if(album.albumCount != 0)
-        //            albumCount.setText(String.valueOf(album.albumCount));
+                if (album.albumThumbnail != null)
+                    Glide.with(holder.itemView).load(album.albumThumbnail).centerCrop().into(albumCover);
+                else {
+                    ColorMatrix matrix = new ColorMatrix();
+                    matrix.setSaturation(0);
+                    albumCover.setColorFilter(new ColorMatrixColorFilter(matrix));
+                }
+                albumTitle.setText(album.albumName);
+
+                if(album.mediaCount != 0)
+                    albumCount.setText(String.valueOf(album.mediaCount));
 
         holder.itemView.setOnClickListener(v -> {
             listener.onAlbumSelected(album);

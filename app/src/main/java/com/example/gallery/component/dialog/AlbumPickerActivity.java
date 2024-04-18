@@ -2,7 +2,6 @@ package com.example.gallery.component.dialog;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -21,7 +20,6 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
     ArrayList<MediaModel> images;
     ArrayList<AlbumModel> albums;
     private GalleryDB db;
-
 
     public AlbumPickerActivity() {
         // Required empty public constructor
@@ -54,9 +52,10 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
 
     @Override
     public void onAlbumSelected(AlbumModel album) {
-        new Thread(() -> {
-            Log.d("AlbumPickerActivity", "This feature is being developed");
-        }).start();
+        // pass the selected album to the previous activity
+        Intent intent = new Intent();
+        intent.putExtra("album", album);
+        setResult(RESULT_OK, intent);
         finish();
     }
 }

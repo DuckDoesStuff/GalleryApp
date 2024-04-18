@@ -13,7 +13,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.gallery.R;
 import com.example.gallery.activities.MainActivity;
-import com.example.gallery.utils.firebase.UserViewModel;
+import com.example.gallery.component.firebase.UserViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 

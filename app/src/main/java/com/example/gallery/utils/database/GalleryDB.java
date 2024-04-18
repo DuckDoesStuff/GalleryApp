@@ -384,6 +384,16 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.close();
     }
 
+    public void updateMediaPath(MediaModel mediaModel) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("local_path", mediaModel.localPath);
+        values.put("cloud_path", mediaModel.cloudPath);
+        int result = db.updateWithOnConflict("media", values, "media_id = ?", new String[]{String.valueOf(mediaModel.mediaID)}, SQLiteDatabase.CONFLICT_IGNORE);
+        Log.d("GalleryDB", "Media path updated: " + result);
+        db.close();
+    }
+
     public void addToMediaTable(ArrayList<MediaModel> mediaModels) {
         SQLiteDatabase db = getWritableDatabase();
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();

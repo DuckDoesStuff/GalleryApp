@@ -1,5 +1,6 @@
 package com.example.gallery.fragments;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,10 +11,15 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,7 +29,10 @@ import com.example.gallery.activities.MainActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
+import com.example.gallery.component.MediaViewModel;
+import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.TrashManager;
+import com.example.gallery.utils.database.AlbumModel;
 import com.example.gallery.utils.database.DatabaseObserver;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
@@ -39,9 +48,16 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     MainActivity mainActivity;
     ImageFrameAdapter imageFrameAdapter;
     RecyclerView recyclerView;
-    private ArrayList<MediaModel> images;
     private ArrayList<MediaModel> selectedImages;
-    private ArrayList<Integer> selectedPositions;
+
+    ActivityResultLauncher<Intent> albumManagerLauncher;
+
+    ActivityResultLauncher<Intent> albumPickerLauncher;
+
+
+    private MediaViewModel mediaViewModel;
+    private Observer<ArrayList<MediaModel>> mediaObserver;
+    private Observer<ArrayList<MediaModel>> selectedMediaObserver;
 
     public PicutresFragment() {
         // Required empty public constructor
@@ -49,35 +65,29 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     @Override
     public void onDatabaseChanged() {
-        try (GalleryDB db = new GalleryDB(getContext())) {
-            images = db.getAllMedia();
-            images.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
-            mainActivity.runOnUiThread(() -> imageFrameAdapter.initFrameModels(images));
-            Log.d("PicturesFragment", "Pictures fragment got updated");
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d("PicturesFragment", "Error getting media from database onChanged");
-        }
+        getFromDatabase();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainActivity = ((MainActivity) requireActivity());
+        mainActivity = (MainActivity) requireActivity();
         if (selectedImages == null)
             selectedImages = new ArrayList<>();
+        GalleryDB.addAlbumObserver(this);
 
-        if (selectedPositions == null)
-            selectedPositions = new ArrayList<>();
+        mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
+        mediaObserver = mediaModels -> {
+            // Updates UI in here
+            Log.d("PicturesFragment", "Media observer called with " + mediaModels.size() + " items");
+        };
+        mediaViewModel.getMedia().observe(this, mediaObserver);
 
-        try (GalleryDB db = new GalleryDB(getContext())) {
-            images = db.getAllMedia();
-            images.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
-            GalleryDB.addMediaObserver(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d("PicturesFragment", "Error getting media from database");
-        }
+
+        selectedMediaObserver = mediaModels -> {
+            // Updates UI in here
+        };
+        mediaViewModel.getSelectedMedia().observe(this, selectedMediaObserver);
     }
 
     @Override
@@ -112,6 +122,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                     mainActivity.startActivity(intent);
                     return true;
                 } else if (item.getItemId() == R.id.choice2) {
+                    Log.d("PicturesFragment", "Selected size: " + selectedImages.size());
                     return true;
                 } else if (item.getItemId() == R.id.choice3) {
                     return true;
@@ -151,9 +162,58 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         int imgSize = screenWidth / spanCount;
 
         if (imageFrameAdapter == null)
-            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
+            imageFrameAdapter = new ImageFrameAdapter(imgSize, mediaViewModel, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
+
+        albumManagerLauncher =
+                registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                        result -> {
+                            if (result.getResultCode() == Activity.RESULT_OK) {
+                                selectedImages.clear();
+                                imageFrameAdapter.selectionModeEnabled = false;
+                                imageFrameAdapter.notifyDataSetChanged();
+                                onHideBottomSheet();
+                                Toast.makeText(getContext(), "Media added to album", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+        albumPickerLauncher =
+                registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                        result -> {
+                            if (result.getResultCode() == Activity.RESULT_OK) {
+                                Intent resultData = result.getData();
+                                if (resultData != null) {
+                                    AlbumModel pickedAlbum = resultData.getParcelableExtra("album");
+                                    if (pickedAlbum != null) {
+                                        Log.d("PicturesFragment", "Starting AlbumManager");
+                                        Intent newIntent = new Intent(mainActivity, AlbumManager.class);
+                                        newIntent.putExtra("mediaModels", selectedImages);
+                                        newIntent.putExtra("albumModel", pickedAlbum);
+                                        newIntent.putExtra("action", "add");
+                                        albumManagerLauncher.launch(newIntent);
+                                    }
+                                }
+                            }
+                        });
+    }
+
+    private void getFromDatabase() {
+        try(GalleryDB db = new GalleryDB(getContext())) {
+            ArrayList<MediaModel> mediaModels = db.getAllMedia();
+            mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
+            mediaViewModel.getMedia().setValue(mediaModels);
+            Log.d("PicturesFragment", "Pictures fragment got updated");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("PicturesFragment", "Error getting media from database");
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        getFromDatabase();
     }
 
     private void setUpBottomSheet() {
@@ -173,27 +233,20 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         Button addBtn = bottomSheet.findViewById(R.id.addToBtn);
         addBtn.setOnClickListener(v -> {
-            imageFrameAdapter.selectionModeEnabled = false;
-
-            imageFrameAdapter.notifyDataSetChanged();
-            onHideBottomSheet();
-
             Intent intent = new Intent(mainActivity, AlbumPickerActivity.class);
-            intent.putParcelableArrayListExtra("images", selectedImages);
-            mainActivity.startActivity(intent);
-            imageFrameAdapter.initFrameModels(images);
-            selectedImages.clear();
+            intent.putParcelableArrayListExtra("mediaModels", mediaViewModel.getSelectedMedia().getValue());
+            albumPickerLauncher.launch(intent);
         });
     }
 
     @Override
     public void onItemClick(int position) {
         // Hide bottom sheet if not selecting any images
-        if (selectedImages.isEmpty() && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+        if (!imageFrameAdapter.selectionModeEnabled && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
             onHideBottomSheet();
         } else if (viewMode) {
             Intent intent = new Intent(getContext(), ImageActivity.class);
-            intent.putExtra("images", images);
+            intent.putExtra("mediaModels", mediaViewModel.getMedia().getValue());
             intent.putExtra("initial", position);
             mainActivity.startActivity(intent);
         }

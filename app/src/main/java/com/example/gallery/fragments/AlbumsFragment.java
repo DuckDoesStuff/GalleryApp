@@ -1,5 +1,8 @@
 package com.example.gallery.fragments;
 
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -7,10 +10,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,7 +26,9 @@ import com.example.gallery.R;
 import com.example.gallery.activities.AlbumActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.component.AlbumFrameAdapter;
-import com.example.gallery.component.dialog.BottomDialog;
+import com.example.gallery.component.AlbumViewModel;
+import com.example.gallery.component.dialog.BottomDialogAddAlbum;
+import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.database.AlbumModel;
 import com.example.gallery.utils.database.DatabaseObserver;
 import com.example.gallery.utils.database.GalleryDB;
@@ -30,40 +40,58 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
     boolean viewMode;
     AlbumFrameAdapter albumFrameAdapter;
     MainActivity mainActivity;
-    private ArrayList<AlbumModel> albums;
-    private ArrayList<AlbumFrameAdapter.AlbumFrameModel> selectedAlbums;
+    private ActivityResultLauncher<Intent> createAlbumLauncher;
+
+    private AlbumViewModel albumViewModel;
+    private Observer<ArrayList<AlbumModel>> albumObserver;
+    private Observer<ArrayList<AlbumModel>> selectedAlbumObserver;
 
     public AlbumsFragment() {
         // Required empty public constructor
     }
 
-
-    @Override
-    public void onDatabaseChanged() {
+    private void getFromDatabase() {
         try (GalleryDB db = new GalleryDB(this.requireContext())) {
-            albums = db.getAllAlbums();
+            ArrayList<AlbumModel> albums = db.getAllAlbums();
+            albums.sort((a, b) -> a.albumName.compareTo(b.albumName));
+            albumViewModel.getAlbums().setValue(albums);
             Log.d("AlbumsFragment", "Albums fragment got updated");
         } catch (Exception e) {
             e.printStackTrace();
             Log.d("AlbumsFragment", "Error getting albums");
         }
-        mainActivity.runOnUiThread(() -> albumFrameAdapter.initFrameModels(albums));
+    }
+
+
+    @Override
+    public void onDatabaseChanged() {
+        getFromDatabase();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        selectedAlbums = new ArrayList<>();
         viewMode = true;
         mainActivity = ((MainActivity) requireActivity());
+        GalleryDB.addAlbumObserver(this);
 
-        try (GalleryDB db = new GalleryDB(this.requireContext())) {
-            albums = db.getAllAlbums();
-            GalleryDB.addAlbumObserver(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d("AlbumsFragment", "Error getting albums");
-        }
+        albumViewModel = new ViewModelProvider(this).get(AlbumViewModel.class);
+        albumObserver = albums -> {
+            // Updates UI in here
+            Log.d("AlbumsFragment", "Album observer called with " + albums.size() + " items");
+        };
+        albumViewModel.getAlbums().observe(this, albumObserver);
+
+        selectedAlbumObserver = selectedAlbum -> {
+            // Updates UI in here
+        };
+        albumViewModel.getSelectedAlbums().observe(this, selectedAlbumObserver);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        getFromDatabase();
     }
 
     @Override
@@ -76,10 +104,28 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        createAlbumLauncher =
+                registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                        result -> {
+                            if (result.getResultCode() == RESULT_OK) {
+                                getFromDatabase();
+                            }else if (result.getResultCode() == RESULT_CANCELED) {
+                                Toast.makeText(getContext(), "Failed to create album", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
         ImageButton newAlbumButton = view.findViewById(R.id.plus);
         newAlbumButton.setOnClickListener(v -> {
             // Show dialog to create new album
-            new BottomDialog(null).show(getParentFragmentManager(), "bottom_dialog");
+            new BottomDialogAddAlbum((albumName) -> {
+                if(albumName != null) {
+                    // Album name typed in
+                    Intent intent = new Intent(mainActivity, AlbumManager.class);
+                    intent.putExtra("action", "create");
+                    intent.putExtra("albumName", albumName);
+                    createAlbumLauncher.launch(intent);
+                }
+            }).show(getParentFragmentManager(), "add_album");
         });
 
         int spanCount = 3; // Change this to change the number of columns
@@ -87,7 +133,8 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
         int albSize = screenWidth / spanCount;
 
         RecyclerView recyclerView = view.findViewById(R.id.album_grid);
-        albumFrameAdapter = new AlbumFrameAdapter(this, albums);
+        if(albumFrameAdapter == null)
+            albumFrameAdapter = new AlbumFrameAdapter(this, albumViewModel);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setAdapter(albumFrameAdapter);
     }
@@ -95,8 +142,6 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_albums, container, false);
-        mainActivity = ((MainActivity) requireActivity());
-
 
         return view;
     }
@@ -105,6 +150,7 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
     public void onItemClick(int position) {
         AlbumFrameAdapter.AlbumFrameListener.super.onItemClick(position);
         ArrayList<MediaModel> mediaList = new ArrayList<>();
+        ArrayList<AlbumModel> albums = albumViewModel.getAlbums().getValue();
 
         // Get media in the same bucket here
         try (GalleryDB db = new GalleryDB(this.requireContext())) {
@@ -115,9 +161,8 @@ public class AlbumsFragment extends Fragment implements AlbumFrameAdapter.AlbumF
         }
 
         Intent intent = new Intent(getContext(), AlbumActivity.class);
-        intent.putExtra("images", mediaList);
+        intent.putExtra("mediaModels", mediaList);
         intent.putExtra("name", albums.get(position).albumName);
-        intent.putExtra("initial", position);
         mainActivity.startActivity(intent);
     }
 

@@ -25,7 +25,7 @@
         android:theme="@style/Theme.Gallery"
         tools:targetApi="31">
         <activity
-            android:name=".utils.firebase.AuthActivity"
+            android:name=".component.firebase.AuthActivity"
             android:exported="false"
             android:label="@string/title_activity_auth" />
         <activity
@@ -47,11 +47,13 @@
         <activity
             android:name=".component.dialog.AlbumPickerActivity"
             android:exported="false" />
-        <activity
-            android:name=".utils.firebase.UploadChooserActivity"
+        <activity android:name=".utils.AlbumManager"
             android:exported="false" />
         <activity
-            android:name=".utils.firebase.UploadActivity"
+            android:name=".component.firebase.UploadChooserActivity"
+            android:exported="false" />
+        <activity
+            android:name=".component.firebase.UploadActivity"
             android:exported="false" />
 
         <meta-data

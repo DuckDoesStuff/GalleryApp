@@ -2,6 +2,7 @@ package com.example.gallery.component;
 
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -24,9 +26,27 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
     private final AlbumFrameAdapter.AlbumFrameListener onClickCallBack;
     private ArrayList<AlbumFrameModel> frameModels;
 
-    public AlbumFrameAdapter(AlbumFrameListener onClickCallBack, ArrayList<AlbumModel> albums) {
+    private AlbumViewModel albumViewModel;
+    private Observer<ArrayList<AlbumModel>> albumObserver;
+    private Observer<ArrayList<AlbumModel>> selectedAlbumObserver;
+
+    public AlbumFrameAdapter(AlbumFrameListener onClickCallBack, AlbumViewModel albumViewModel) {
         this.onClickCallBack = onClickCallBack;
-        initFrameModels(albums);
+        this.albumViewModel = albumViewModel;
+        frameModels = new ArrayList<>();
+
+        albumObserver = albums -> {
+            // Do things
+            initFrameModels(albums);
+            Log.d("AlbumFrameAdapter", "Album observer called with " + albums.size() + " items");
+        };
+        albumViewModel.getAlbums().observeForever(albumObserver);
+
+        selectedAlbumObserver = selectedAlbums -> {
+            // Do things
+            Log.d("AlbumFrameAdapter", "Selected album observer called with " + selectedAlbums.size() + " items");
+        };
+        albumViewModel.getSelectedAlbums().observeForever(selectedAlbumObserver);
     }
 
     @NonNull
@@ -107,12 +127,12 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
 
         public void bind(AlbumFrameModel albumFrameModel) {
             this.albumFrameModel = albumFrameModel;
-
             if (Objects.equals(albumFrameModel.album.albumThumbnail, "")) {
                 ColorMatrix matrix = new ColorMatrix();
                 matrix.setSaturation(0);
                 albumThumbnail.setColorFilter(new ColorMatrixColorFilter(matrix));
             } else {
+                albumThumbnail.clearColorFilter();
                 Glide.with(itemView)
                         .load(albumFrameModel.album.albumThumbnail)
                         .centerCrop()
@@ -122,5 +142,13 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
             albumName.setText(albumFrameModel.album.albumName);
             albumCount.setText(String.valueOf(albumFrameModel.album.mediaCount));
         }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        albumViewModel.getAlbums().removeObserver(albumObserver);
+        albumViewModel.getSelectedAlbums().removeObserver(selectedAlbumObserver);
+        Log.d("AlbumFrameAdapter", "Finalized ImageFrameAdapter");
     }
 }

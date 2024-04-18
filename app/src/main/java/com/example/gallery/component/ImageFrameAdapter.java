@@ -2,7 +2,6 @@ package com.example.gallery.component;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
@@ -19,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -37,15 +37,29 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     public boolean selectionModeEnabled = false;
     public boolean canSelect = true;
     private ArrayList<FrameModel> frameModels;
-    private ArrayList<MediaModel> selectedImages;
-    private Context context;
 
-    public ImageFrameAdapter(Context context, int imgSize, ArrayList<MediaModel> images, ArrayList<MediaModel> selectedImages, ImageFrameListener onClickCallback) {
-        this.context = context;
+    private MediaViewModel mediaViewModel;
+    private Observer<ArrayList<MediaModel>> mediaObserver;
+    private Observer<ArrayList<MediaModel>> selectedMediaObserver;
+
+
+    public ImageFrameAdapter(int imgSize, MediaViewModel mediaViewModel, ImageFrameListener onClickCallback) {
         this.imgSize = imgSize;
         this.onClickCallBack = onClickCallback;
-        this.selectedImages = selectedImages;
-        initFrameModels(images);
+        this.mediaViewModel = mediaViewModel;
+        frameModels = new ArrayList<>();
+
+        mediaObserver = media -> {
+            // Do things
+            initFrameModels(media);
+            Log.d("ImageFrameAdapter", "Media observer called with " + media.size() + " items");
+        };
+        mediaViewModel.getMedia().observeForever(mediaObserver);
+
+        selectedMediaObserver = selectedMedia -> {
+            // Updates UI in here
+        };
+        mediaViewModel.getSelectedMedia().observeForever(selectedMediaObserver);
     }
 
     public void initFrameModels(ArrayList<MediaModel> images) {
@@ -57,8 +71,10 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                 frameModels.add(new FrameModel(media));
             }
         }
+        Log.d("ImageFrameAdapter", "Frame models initialized with " + frameModels.size() + " items");
         notifyDataSetChanged();
     }
+
 
     @NonNull
     @Override
@@ -101,17 +117,17 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
                     ColorMatrixColorFilter colorFilter = new ColorMatrixColorFilter(colorMatrix);
 
                     holder.imageView.setColorFilter(colorFilter);
-                    selectedImages.add(frameModel.media);
+//                    selectedImages.add(frameModel.media);
                 } else {
                     holder.imageView.clearColorFilter();
-                    selectedImages.remove(frameModel.media);
+//                    selectedImages.remove(frameModel.media);
                 }
 
                 // Turn off selection mode if not selecting any images
-                if (selectedImages.isEmpty()) {
-                    selectionModeEnabled = false;
-                    notifyDataSetChanged();
-                }
+//                if (selectedImages.isEmpty()) {
+//                    selectionModeEnabled = false;
+//                    notifyDataSetChanged();
+//                }
             }
             if (onClickCallBack != null)
                 onClickCallBack.onItemClick(position);
@@ -120,7 +136,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             selectionModeEnabled = true;
             frameModel.isSelected = true;
 
-            selectedImages.add(frameModel.media);
+//            selectedImages.add(frameModel.media);
             if (onClickCallBack != null)
                 onClickCallBack.onItemLongClick(position);
 
@@ -215,5 +231,13 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             this.media = media;
             isSelected = false;
         }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        mediaViewModel.getMedia().removeObserver(mediaObserver);
+        mediaViewModel.getSelectedMedia().removeObserver(selectedMediaObserver);
+        Log.d("ImageFrameAdapter", "Finalized ImageFrameAdapter");
     }
 }

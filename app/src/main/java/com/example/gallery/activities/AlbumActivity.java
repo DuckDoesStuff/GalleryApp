@@ -2,50 +2,65 @@ package com.example.gallery.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
 import com.example.gallery.component.ImageFrameAdapter;
+import com.example.gallery.component.MediaViewModel;
 import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
 
 public class AlbumActivity extends AppCompatActivity implements ImageFrameAdapter.ImageFrameListener {
-    ArrayList<MediaModel> images;
     RecyclerView recyclerView;
     ImageFrameAdapter imageFrameAdapter;
 
     boolean viewMode = true;
     MainActivity mainActivity;
 
-    private ArrayList<MediaModel> selectedImages;
-    private ArrayList<Integer> selectedPositions;
+
+    private MediaViewModel mediaViewModel;
+    private Observer<ArrayList<MediaModel>> mediaObserver;
+    private Observer<ArrayList<MediaModel>> selectedMediaObserver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_album);
 
-        Intent intent = getIntent();
         ImageButton backBtn = findViewById(R.id.back_button_album);
         backBtn.setOnClickListener(v -> finish());
 
-        TextView albumName = findViewById(R.id.album_name);
-        albumName.setText(intent.getStringExtra("name"));
-
-        final int position;
+        Intent intent = getIntent();
+        ArrayList<MediaModel> mediaModels;
         if (intent != null) {
-            images = intent.getParcelableArrayListExtra("images");
-            position = intent.getIntExtra("initial", 0);
+            mediaModels = intent.getParcelableArrayListExtra("mediaModels");
         } else {
-            images = new ArrayList<>();
-            position = -1;
+            mediaModels = new ArrayList<>();
         }
+
+        mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
+        mediaViewModel.getMedia().setValue(mediaModels);
+        mediaObserver = media -> {
+            // Updates UI in here
+            Log.d("AlbumActivity", "Media observer called with " + media.size() + " items");
+        };
+        mediaViewModel.getMedia().observe(this, mediaObserver);
+        selectedMediaObserver = selectedMedia -> {
+            // Updates UI in here
+        };
+        mediaViewModel.getSelectedMedia().observe(this, selectedMediaObserver);
+
+        TextView albumName = findViewById(R.id.album_name);
+        albumName.setText(intent != null ? intent.getStringExtra("name") : "");
 
         recyclerView = findViewById(R.id.photo_album_grid);
         int spanCount = 3; // Change this to change the number of columns
@@ -53,7 +68,7 @@ public class AlbumActivity extends AppCompatActivity implements ImageFrameAdapte
         int imgSize = screenWidth / spanCount;
 
         if (imageFrameAdapter == null)
-            imageFrameAdapter = new ImageFrameAdapter(this, imgSize, images, selectedImages, this);
+            imageFrameAdapter = new ImageFrameAdapter(imgSize, mediaViewModel, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
 
@@ -68,7 +83,7 @@ public class AlbumActivity extends AppCompatActivity implements ImageFrameAdapte
     public void onItemClick(int position) {
         ImageFrameAdapter.ImageFrameListener.super.onItemClick(position);
         Intent intent = new Intent(this, ImageActivity.class);
-        intent.putExtra("images", images);
+        intent.putExtra("mediaModels", mediaViewModel.getMedia().getValue());
         intent.putExtra("initial", position);
         this.startActivity(intent);
     }

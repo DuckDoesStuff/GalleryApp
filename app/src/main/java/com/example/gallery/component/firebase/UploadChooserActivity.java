@@ -1,4 +1,4 @@
-package com.example.gallery.utils.firebase;
+package com.example.gallery.component.firebase;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,8 +7,6 @@ import android.widget.ImageButton;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
 import com.example.gallery.component.ImageFrameAdapter;
@@ -52,10 +50,11 @@ public class UploadChooserActivity extends AppCompatActivity implements ImageFra
             startActivity(uploadIntent);
         });
 
-        RecyclerView recyclerView = findViewById(R.id.media_picker_recycler_view);
-        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(this, imgSize, foundImages, selectedImages, this);
-        recyclerView.setAdapter(imageFrameAdapter);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+//        RecyclerView recyclerView = findViewById(R.id.media_picker_recycler_view);
+//        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(this, imgSize, selectedImages, this);
+//        imageFrameAdapter.initFrameModels(foundImages);
+//        recyclerView.setAdapter(imageFrameAdapter);
+//        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
     }
 
     @Override

@@ -56,13 +56,13 @@
                     />
 
                 <Button
-                    android:id="@+id/deleteBtn"
+                    android:id="@+id/trashBtn"
                     style="@style/Widget.Material3.Button.ElevatedButton.Icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10dp"
                     android:elevation="1dp"
-                    android:text="Delete"
+                    android:text="Move to trash"
                     app:icon="@drawable/delete"
 
 
@@ -75,7 +75,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10dp"
                     android:elevation="1dp"
-                    android:text="Delete"
+                    android:text="Delete permanently"
                     app:icon="@drawable/delete"
 
 
@@ -83,23 +83,23 @@
             </LinearLayout>
         </HorizontalScrollView>
 
-        <com.google.android.material.divider.MaterialDivider
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="5dp" />
+<!--        <com.google.android.material.divider.MaterialDivider-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="2dp"-->
+<!--            android:layout_marginHorizontal="20dp"-->
+<!--            android:layout_marginTop="5dp" />-->
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="15dp"
-            android:text="Send"
-            android:textColor="@color/bottom_navigation_text_color"
-            android:textSize="20dp" />
+<!--        <TextView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_margin="15dp"-->
+<!--            android:text="Send"-->
+<!--            android:textColor="@color/bottom_navigation_text_color"-->
+<!--            android:textSize="20dp" />-->
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+<!--        <androidx.recyclerview.widget.RecyclerView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent" />-->
     </LinearLayout>
 
 

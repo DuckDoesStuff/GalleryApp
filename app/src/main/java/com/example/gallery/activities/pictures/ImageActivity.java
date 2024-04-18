@@ -1,4 +1,4 @@
-package com.example.gallery.activities;
+package com.example.gallery.activities.pictures;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.gallery.R;
-import com.example.gallery.component.ViewPagerAdapter;
 import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;

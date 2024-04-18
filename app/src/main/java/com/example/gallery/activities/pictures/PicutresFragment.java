@@ -1,4 +1,4 @@
-package com.example.gallery.fragments;
+package com.example.gallery.activities.pictures;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -24,12 +24,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
-import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.activities.TrashActivity;
-import com.example.gallery.component.ImageFrameAdapter;
-import com.example.gallery.component.MediaViewModel;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
+import com.example.gallery.fragments.SearchViewFragment;
 import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.database.AlbumModel;
@@ -222,7 +220,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     }
 
     private void setUpBottomSheet() {
-        Button deleteBtn = bottomSheet.findViewById(R.id.deleteBtn);
+        Button deleteBtn = bottomSheet.findViewById(R.id.trashBtn);
         deleteBtn.setOnClickListener(v -> {
             imageFrameAdapter.selectionModeEnabled = false;
             imageFrameAdapter.notifyDataSetChanged();

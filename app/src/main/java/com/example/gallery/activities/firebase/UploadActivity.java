@@ -1,4 +1,4 @@
-package com.example.gallery.component.firebase;
+package com.example.gallery.activities.firebase;
 
 import android.content.Intent;
 import android.net.Uri;

@@ -1,4 +1,4 @@
-package com.example.gallery.component.firebase;
+package com.example.gallery.activities.firebase;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;

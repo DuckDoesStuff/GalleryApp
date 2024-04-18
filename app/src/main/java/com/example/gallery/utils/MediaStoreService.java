@@ -1,4 +1,4 @@
-package com.example.gallery.utils.media;
+package com.example.gallery.utils;
 
 import android.app.Service;
 import android.content.Intent;

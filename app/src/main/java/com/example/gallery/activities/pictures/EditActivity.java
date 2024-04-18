@@ -1,4 +1,4 @@
-package com.example.gallery.activities;
+package com.example.gallery.activities.pictures;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.gallery.R;
+import com.example.gallery.activities.ChangeBrightnessActivity;
 import com.squareup.picasso.Picasso;
 import com.yalantis.ucrop.UCrop;
 

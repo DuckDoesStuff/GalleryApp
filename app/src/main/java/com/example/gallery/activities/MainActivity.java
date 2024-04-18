@@ -20,21 +20,20 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.gallery.R;
+import com.example.gallery.activities.album.AlbumsFragment;
+import com.example.gallery.activities.firebase.GuestFragment;
+import com.example.gallery.activities.firebase.UploadChooserActivity;
+import com.example.gallery.activities.firebase.UserFragment;
+import com.example.gallery.activities.firebase.UserViewModel;
+import com.example.gallery.activities.pictures.PicutresFragment;
 import com.example.gallery.databinding.ActivityMainBinding;
-import com.example.gallery.fragments.AlbumsFragment;
-import com.example.gallery.fragments.GuestFragment;
 import com.example.gallery.fragments.HomeFragment;
-import com.example.gallery.fragments.PicutresFragment;
-import com.example.gallery.fragments.UserFragment;
-import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaStoreService;
 import com.example.gallery.utils.PermissionUtils;
 import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.database.DatabaseQuery;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
-import com.example.gallery.component.firebase.UploadChooserActivity;
-import com.example.gallery.component.firebase.UserViewModel;
-import com.example.gallery.utils.media.MediaStoreService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
@@ -71,8 +70,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         databaseQuery = new DatabaseQuery(this);
-
-        MediaFetch.getInstance(getApplicationContext(), this).fetchMedia(true);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

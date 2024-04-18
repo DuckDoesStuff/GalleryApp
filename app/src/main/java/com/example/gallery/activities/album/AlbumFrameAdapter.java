@@ -1,4 +1,4 @@
-package com.example.gallery.component;
+package com.example.gallery.activities.album;
 
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;

@@ -1,4 +1,4 @@
-package com.example.gallery.component;
+package com.example.gallery.activities.pictures;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;

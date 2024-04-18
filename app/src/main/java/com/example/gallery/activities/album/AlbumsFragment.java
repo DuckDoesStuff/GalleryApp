@@ -1,4 +1,4 @@
-package com.example.gallery.fragments;
+package com.example.gallery.activities.album;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -23,10 +23,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
-import com.example.gallery.activities.AlbumActivity;
 import com.example.gallery.activities.MainActivity;
-import com.example.gallery.component.AlbumFrameAdapter;
-import com.example.gallery.component.AlbumViewModel;
 import com.example.gallery.component.dialog.BottomDialogAddAlbum;
 import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.database.AlbumModel;

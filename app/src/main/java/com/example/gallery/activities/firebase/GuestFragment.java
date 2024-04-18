@@ -1,4 +1,4 @@
-package com.example.gallery.fragments;
+package com.example.gallery.activities.firebase;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -17,8 +17,6 @@ import androidx.fragment.app.Fragment;
 
 import com.example.gallery.R;
 import com.example.gallery.activities.MainActivity;
-import com.example.gallery.component.firebase.AuthActivity;
-import com.example.gallery.component.firebase.UserViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class GuestFragment extends Fragment {

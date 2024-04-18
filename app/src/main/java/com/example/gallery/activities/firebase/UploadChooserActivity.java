@@ -1,4 +1,4 @@
-package com.example.gallery.component.firebase;
+package com.example.gallery.activities.firebase;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.gallery.R;
-import com.example.gallery.component.ImageFrameAdapter;
+import com.example.gallery.activities.pictures.ImageFrameAdapter;
 import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;

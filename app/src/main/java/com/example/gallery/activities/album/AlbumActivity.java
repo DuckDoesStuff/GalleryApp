@@ -1,4 +1,4 @@
-package com.example.gallery.activities;
+package com.example.gallery.activities.album;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,8 +13,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
-import com.example.gallery.component.ImageFrameAdapter;
-import com.example.gallery.component.MediaViewModel;
+import com.example.gallery.activities.MainActivity;
+import com.example.gallery.activities.pictures.ImageActivity;
+import com.example.gallery.activities.pictures.ImageFrameAdapter;
+import com.example.gallery.activities.pictures.MediaViewModel;
 import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.example.gallery.component;
+package com.example.gallery.activities.pictures;
 
 import android.graphics.Color;
 import android.graphics.ColorMatrix;

@@ -1,4 +1,4 @@
-package com.example.gallery.component;
+package com.example.gallery.activities.pictures;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
@@ -23,7 +23,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.gallery.R;
-import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.utils.database.MediaModel;
 import com.ortiz.touchview.TouchImageView;
 

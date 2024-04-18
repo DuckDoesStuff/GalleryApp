@@ -28,8 +28,8 @@ import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
-import com.example.gallery.component.dialog.AlbumPickerActivity;
 import com.example.gallery.component.MediaViewModel;
+import com.example.gallery.component.dialog.AlbumPickerActivity;
 import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.database.AlbumModel;
@@ -39,6 +39,7 @@ import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
 
@@ -56,8 +57,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
 
     private MediaViewModel mediaViewModel;
-    private Observer<ArrayList<MediaModel>> mediaObserver;
-    private Observer<ArrayList<MediaModel>> selectedMediaObserver;
 
     public PicutresFragment() {
         // Required empty public constructor
@@ -74,20 +73,27 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         mainActivity = (MainActivity) requireActivity();
         if (selectedImages == null)
             selectedImages = new ArrayList<>();
-        GalleryDB.addAlbumObserver(this);
+        GalleryDB.addMediaObserver(this);
 
         mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
-        mediaObserver = mediaModels -> {
+        // Updates UI in here
+        Observer<ArrayList<MediaModel>> mediaObserver = mediaModels -> {
             // Updates UI in here
             Log.d("PicturesFragment", "Media observer called with " + mediaModels.size() + " items");
         };
         mediaViewModel.getMedia().observe(this, mediaObserver);
 
-
-        selectedMediaObserver = mediaModels -> {
+        mediaViewModel.getSelectedMedia().setValue(new ArrayList<>());
+        // Updates UI in here
+        Observer<ArrayList<Integer>> selectedMediaObserver = selectedMedia -> {
             // Updates UI in here
+            if (!selectedMedia.isEmpty()) onShowBottomSheet();
+            else onHideBottomSheet();
+            Log.d("PicturesFragment", "Selected media observer called with " + selectedMedia.size() + " items");
         };
         mediaViewModel.getSelectedMedia().observe(this, selectedMediaObserver);
+
+        Log.d("PicturesFragment", "Initialized");
     }
 
     @Override
@@ -103,8 +109,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         recyclerView = view.findViewById(R.id.photo_grid);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemViewCacheSize(10);
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
 
 
         ImageButton dropdownButton = view.findViewById(R.id.settings);
@@ -122,7 +126,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                     mainActivity.startActivity(intent);
                     return true;
                 } else if (item.getItemId() == R.id.choice2) {
-                    Log.d("PicturesFragment", "Selected size: " + selectedImages.size());
+                    Log.d("PicturesFragment", "Selected size: " + Objects.requireNonNull(mediaViewModel.getSelectedMedia().getValue()).size());
                     return true;
                 } else if (item.getItemId() == R.id.choice3) {
                     return true;
@@ -161,20 +165,19 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int imgSize = screenWidth / spanCount;
 
-        if (imageFrameAdapter == null)
-            imageFrameAdapter = new ImageFrameAdapter(imgSize, mediaViewModel, this);
+        imageFrameAdapter = new ImageFrameAdapter(imgSize, this, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
 
         albumManagerLauncher =
                 registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                         result -> {
+                            selectedImages.clear();
+                            mediaViewModel.clearSelectedMedia();
                             if (result.getResultCode() == Activity.RESULT_OK) {
-                                selectedImages.clear();
-                                imageFrameAdapter.selectionModeEnabled = false;
-                                imageFrameAdapter.notifyDataSetChanged();
-                                onHideBottomSheet();
                                 Toast.makeText(getContext(), "Media added to album", Toast.LENGTH_SHORT).show();
+                            } else if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                                Toast.makeText(getContext(), "Failed to add media to album", Toast.LENGTH_SHORT).show();
                             }
                         });
 
@@ -194,6 +197,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                                         albumManagerLauncher.launch(newIntent);
                                     }
                                 }
+                            }else if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                                selectedImages.clear();
+                                mediaViewModel.clearSelectedMedia();
                             }
                         });
     }
@@ -205,7 +211,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             mediaViewModel.getMedia().setValue(mediaModels);
             Log.d("PicturesFragment", "Pictures fragment got updated");
         } catch (Exception e) {
-            e.printStackTrace();
             Log.d("PicturesFragment", "Error getting media from database");
         }
     }
@@ -234,28 +239,25 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         Button addBtn = bottomSheet.findViewById(R.id.addToBtn);
         addBtn.setOnClickListener(v -> {
             Intent intent = new Intent(mainActivity, AlbumPickerActivity.class);
-            intent.putParcelableArrayListExtra("mediaModels", mediaViewModel.getSelectedMedia().getValue());
+            ArrayList<Integer> selectedPositions = mediaViewModel.getSelectedMedia().getValue();
+            if (selectedPositions != null) {
+                selectedImages.clear();
+                for (int position : selectedPositions) {
+                    selectedImages.add(mediaViewModel.getMedia(position));
+                }
+            }
+            intent.putParcelableArrayListExtra("mediaModels", selectedImages);
             albumPickerLauncher.launch(intent);
         });
     }
 
     @Override
     public void onItemClick(int position) {
-        // Hide bottom sheet if not selecting any images
-        if (!imageFrameAdapter.selectionModeEnabled && bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
-            onHideBottomSheet();
-        } else if (viewMode) {
-            Intent intent = new Intent(getContext(), ImageActivity.class);
-            intent.putExtra("mediaModels", mediaViewModel.getMedia().getValue());
+        if (viewMode) {
+            Intent intent = new Intent(mainActivity, ImageActivity.class);
+            intent.putParcelableArrayListExtra("mediaModels", mediaViewModel.getMedia().getValue());
             intent.putExtra("initial", position);
             mainActivity.startActivity(intent);
-        }
-    }
-
-    @Override
-    public void onItemLongClick(int position) {
-        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
-            onShowBottomSheet();
         }
     }
 

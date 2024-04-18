@@ -18,6 +18,13 @@ public class AlbumViewModel extends ViewModel {
         return albumModels;
     }
 
+    public AlbumModel getAlbum(int index) {
+        if (albumModels == null || albumModels.getValue() == null) {
+            return null;
+        }
+        return albumModels.getValue().get(index);
+    }
+
     public MutableLiveData<ArrayList<AlbumModel>> getSelectedAlbums() {
         if (selectedAlbums == null) {
             selectedAlbums = new MutableLiveData<>();

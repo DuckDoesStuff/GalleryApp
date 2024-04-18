@@ -15,9 +15,10 @@ import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class AlbumPickerActivity extends AppCompatActivity implements AlbumPickerAdapter.AlbumPickerListener {
-    ArrayList<MediaModel> images;
+    ArrayList<MediaModel> mediaModels;
     ArrayList<AlbumModel> albums;
     private GalleryDB db;
 
@@ -32,14 +33,24 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
 
         Intent intent = getIntent();
         if (intent != null) {
-            images = intent.getParcelableArrayListExtra("images");
+            mediaModels = intent.getParcelableArrayListExtra("mediaModels");
         } else {
-            Toast.makeText(this, "No images selected", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No media selected", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_CANCELED);
+            finish();
+        }
+
+        if (Objects.requireNonNull(mediaModels).isEmpty()) {
+            Toast.makeText(this, "No media selected", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_CANCELED);
             finish();
         }
 
         ImageButton back = findViewById(R.id.back_button);
-        back.setOnClickListener(v -> finish());
+        back.setOnClickListener(v -> {
+            setResult(RESULT_CANCELED);
+            finish();
+        });
 
         db = new GalleryDB(this);
         albums = db.getAllAlbums();

@@ -11,7 +11,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -24,52 +26,45 @@ import java.util.Objects;
 
 public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.AlbumViewHolder> {
     private final AlbumFrameAdapter.AlbumFrameListener onClickCallBack;
-    private ArrayList<AlbumFrameModel> frameModels;
+    private final AlbumViewModel albumViewModel;
 
-    private AlbumViewModel albumViewModel;
-    private Observer<ArrayList<AlbumModel>> albumObserver;
-    private Observer<ArrayList<AlbumModel>> selectedAlbumObserver;
-
-    public AlbumFrameAdapter(AlbumFrameListener onClickCallBack, AlbumViewModel albumViewModel) {
+    public AlbumFrameAdapter(Fragment fragment, AlbumFrameListener onClickCallBack) {
         this.onClickCallBack = onClickCallBack;
-        this.albumViewModel = albumViewModel;
-        frameModels = new ArrayList<>();
 
-        albumObserver = albums -> {
+        albumViewModel = new ViewModelProvider(fragment).get(AlbumViewModel.class);
+        // Do things
+        Observer<ArrayList<AlbumModel>> albumObserver = albums -> {
             // Do things
-            initFrameModels(albums);
+            notifyItemRangeChanged(0, albums.size());
             Log.d("AlbumFrameAdapter", "Album observer called with " + albums.size() + " items");
         };
-        albumViewModel.getAlbums().observeForever(albumObserver);
+        albumViewModel.getAlbums().observe(fragment.getViewLifecycleOwner(), albumObserver);
 
-        selectedAlbumObserver = selectedAlbums -> {
+        // Do things
+        Observer<ArrayList<AlbumModel>> selectedAlbumObserver = selectedAlbums -> {
             // Do things
             Log.d("AlbumFrameAdapter", "Selected album observer called with " + selectedAlbums.size() + " items");
         };
-        albumViewModel.getSelectedAlbums().observeForever(selectedAlbumObserver);
+        albumViewModel.getSelectedAlbums().observe(fragment.getViewLifecycleOwner(), selectedAlbumObserver);
     }
 
     @NonNull
     @Override
     public AlbumFrameAdapter.AlbumViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate the layout for the RecyclerView item
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.album_frame, parent, false);
 
-        // Create a new ViewHolder with the inflated layout
-        AlbumViewHolder viewHolder = new AlbumViewHolder(itemView);
-
-        return viewHolder;
+        return new AlbumViewHolder(itemView);
     }
 
     @Override
     public void onBindViewHolder(@NonNull AlbumFrameAdapter.AlbumViewHolder holder, int position) {
-        holder.bind(frameModels.get(position));
+        AlbumModel albumModel = albumViewModel.getAlbum(position);
+        holder.bind(albumModel);
         holder.itemView.setOnClickListener(v -> {
-            if (frameModels.get(position).album.mediaCount != 0)
+            if (albumModel.mediaCount != 0)
                 onClickCallBack.onItemClick(position);
             else
                 Toast.makeText(v.getContext(), "This album is empty!", Toast.LENGTH_SHORT).show();
-
         });
     }
 
@@ -80,19 +75,7 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
 
     @Override
     public int getItemCount() {
-        return frameModels.size();
-    }
-
-    public void initFrameModels(ArrayList<AlbumModel> albums) {
-        if (albums == null || albums.isEmpty()) {
-            frameModels = new ArrayList<>();
-        } else {
-            frameModels = new ArrayList<>();
-            for (AlbumModel albumModel : albums) {
-                frameModels.add(new AlbumFrameModel(albumModel));
-            }
-        }
-        notifyDataSetChanged();
+        return Objects.requireNonNull(albumViewModel.getAlbums().getValue()).size();
     }
 
     public interface AlbumFrameListener {
@@ -104,16 +87,8 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
         }
     }
 
-    public static class AlbumFrameModel {
-        public AlbumModel album;
-
-        public AlbumFrameModel(AlbumModel albumModel) {
-            album = albumModel;
-        }
-    }
-
-    static class AlbumViewHolder extends RecyclerView.ViewHolder {
-        AlbumFrameModel albumFrameModel;
+    public static class AlbumViewHolder extends RecyclerView.ViewHolder {
+        AlbumModel albumModel;
         ImageView albumThumbnail;
         TextView albumName;
         TextView albumCount;
@@ -125,30 +100,28 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
             albumCount = itemView.findViewById(R.id.album_count);
         }
 
-        public void bind(AlbumFrameModel albumFrameModel) {
-            this.albumFrameModel = albumFrameModel;
-            if (Objects.equals(albumFrameModel.album.albumThumbnail, "")) {
+        public void bind(AlbumModel albumModel) {
+            this.albumModel = albumModel;
+            if (Objects.equals(albumModel.albumThumbnail, "")) {
                 ColorMatrix matrix = new ColorMatrix();
                 matrix.setSaturation(0);
                 albumThumbnail.setColorFilter(new ColorMatrixColorFilter(matrix));
             } else {
                 albumThumbnail.clearColorFilter();
                 Glide.with(itemView)
-                        .load(albumFrameModel.album.albumThumbnail)
+                        .load(albumModel.albumThumbnail)
                         .centerCrop()
                         .into(albumThumbnail);
             }
 
-            albumName.setText(albumFrameModel.album.albumName);
-            albumCount.setText(String.valueOf(albumFrameModel.album.mediaCount));
+            albumName.setText(albumModel.albumName);
+            albumCount.setText(String.valueOf(albumModel.mediaCount));
         }
     }
 
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        albumViewModel.getAlbums().removeObserver(albumObserver);
-        albumViewModel.getSelectedAlbums().removeObserver(selectedAlbumObserver);
         Log.d("AlbumFrameAdapter", "Finalized ImageFrameAdapter");
     }
 }

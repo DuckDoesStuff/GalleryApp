@@ -26,10 +26,9 @@ public class AlbumActivity extends AppCompatActivity implements ImageFrameAdapte
     boolean viewMode = true;
     MainActivity mainActivity;
 
-
     private MediaViewModel mediaViewModel;
     private Observer<ArrayList<MediaModel>> mediaObserver;
-    private Observer<ArrayList<MediaModel>> selectedMediaObserver;
+    private Observer<ArrayList<Integer>> selectedMediaObserver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +53,11 @@ public class AlbumActivity extends AppCompatActivity implements ImageFrameAdapte
             Log.d("AlbumActivity", "Media observer called with " + media.size() + " items");
         };
         mediaViewModel.getMedia().observe(this, mediaObserver);
+        mediaViewModel.getSelectedMedia().setValue(new ArrayList<>());
         selectedMediaObserver = selectedMedia -> {
             // Updates UI in here
+            // Add bottom sheet controller here
+            Log.d("AlbumActivity", "Selected media observer called with " + selectedMedia.size() + " items");
         };
         mediaViewModel.getSelectedMedia().observe(this, selectedMediaObserver);
 
@@ -68,7 +70,7 @@ public class AlbumActivity extends AppCompatActivity implements ImageFrameAdapte
         int imgSize = screenWidth / spanCount;
 
         if (imageFrameAdapter == null)
-            imageFrameAdapter = new ImageFrameAdapter(imgSize, mediaViewModel, this);
+            imageFrameAdapter = new ImageFrameAdapter(imgSize, this, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
 
@@ -81,11 +83,10 @@ public class AlbumActivity extends AppCompatActivity implements ImageFrameAdapte
 
     @Override
     public void onItemClick(int position) {
-        ImageFrameAdapter.ImageFrameListener.super.onItemClick(position);
         Intent intent = new Intent(this, ImageActivity.class);
         intent.putExtra("mediaModels", mediaViewModel.getMedia().getValue());
         intent.putExtra("initial", position);
-        this.startActivity(intent);
+        startActivity(intent);
     }
 
     @Override

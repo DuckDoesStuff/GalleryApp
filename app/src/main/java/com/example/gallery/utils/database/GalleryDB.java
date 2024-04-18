@@ -285,6 +285,14 @@ public class GalleryDB extends SQLiteOpenHelper {
         return mediaModels;
     }
 
+    public void updateAlbum(AlbumModel albumModel) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = getAlbumValues(albumModel);
+        int result = db.updateWithOnConflict("albums", values, "local_path = ?", new String[]{albumModel.localPath}, SQLiteDatabase.CONFLICT_IGNORE);
+        Log.d("GalleryDB", "Album updated: " + result);
+        db.close();
+    }
+
     public void addToAlbumTable(ArrayList<AlbumModel> albumModels) {
         SQLiteDatabase db = getWritableDatabase();
         for (AlbumModel albumModel : albumModels) {
@@ -295,9 +303,9 @@ public class GalleryDB extends SQLiteOpenHelper {
         Log.d("GalleryDB", "Album table updated");
     }
 
+    public void removeFromAlbumTable(ArrayList<AlbumModel> albumModels) {
     // END ALBUM
 
-    public void removeFromAlbumTable(ArrayList<AlbumModel> albumModels) {
         // Not sure how to handle this yet
     }
 
@@ -384,13 +392,13 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void updateMediaPath(MediaModel mediaModel) {
+    public void updateMedia(MediaModel mediaModel) {
         SQLiteDatabase db = getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("local_path", mediaModel.localPath);
-        values.put("cloud_path", mediaModel.cloudPath);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = user != null ? user.getUid() : "";
+        ContentValues values = getMediaValue(mediaModel, uid);
         int result = db.updateWithOnConflict("media", values, "media_id = ?", new String[]{String.valueOf(mediaModel.mediaID)}, SQLiteDatabase.CONFLICT_IGNORE);
-        Log.d("GalleryDB", "Media path updated: " + result);
+        Log.d("GalleryDB", "Media updated: " + result);
         db.close();
     }
 

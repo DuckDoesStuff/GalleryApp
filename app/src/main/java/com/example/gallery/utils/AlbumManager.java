@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
 
 public class AlbumManager extends AppCompatActivity {
     @Override
@@ -37,8 +38,10 @@ public class AlbumManager extends AppCompatActivity {
             if (action.equals("add")) {
                 ArrayList<MediaModel> mediaModels = intent.getParcelableArrayListExtra("mediaModels");
                 AlbumModel albumModel = intent.getParcelableExtra("albumModel");
-                boolean result = moveMedia(this, mediaModels, albumModel);
-                Log.d("AlbumManager", "Media moved: " + result);
+                boolean result = false;
+                if (mediaModels != null) {
+                    result = moveMedia(this, mediaModels, albumModel);
+                }
                 setResult(result ? RESULT_OK : RESULT_CANCELED);
                 finish();
             }else if(action.equals("create")) {
@@ -85,7 +88,7 @@ public class AlbumManager extends AppCompatActivity {
             if (albumModel.localPath.isEmpty()) {
                 return false; // AlbumModel does not have a local path
             }
-            String destinationPath = albumModel.localPath;
+            String destinationPath = albumModel.localPath + "/" + sourceFile.getName();
             File destinationFile = new File(destinationPath);
 
             FileInputStream inputStream = new FileInputStream(sourceFile);
@@ -106,7 +109,11 @@ public class AlbumManager extends AppCompatActivity {
 
             if (sourceFile.delete()) {
                 GalleryDB db = new GalleryDB(context);
-                db.updateMediaPath(mediaModel);
+                if(Objects.equals(albumModel.albumThumbnail, "")) {
+                    albumModel.albumThumbnail = mediaModel.localPath;
+                    db.updateAlbum(albumModel);
+                }
+                db.updateMedia(mediaModel);
                 return true;
             } else
                 return false;

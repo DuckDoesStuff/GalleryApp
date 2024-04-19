@@ -22,7 +22,10 @@ public class GalleryDB extends SQLiteOpenHelper {
     private static final String SQL_CREATE_TRASH_TABLE =
             "CREATE TABLE IF NOT EXISTS trash (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "original_path TEXT NOT NULL," +
+                    "local_path TEXT," +
+                    "cloud_path TEXT," +
+                    "trash_path TEXT," +
+                    "type TEXT," +
                     "trashed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
     private static final String SQL_CREATE_ALBUM_TABLE =
             "CREATE TABLE IF NOT EXISTS albums (" +
@@ -58,7 +61,7 @@ public class GalleryDB extends SQLiteOpenHelper {
     // START observers
     static volatile ArrayList<DatabaseObserver> mediaObservers = new ArrayList<>();
     static volatile ArrayList<DatabaseObserver> albumObservers = new ArrayList<>();
-
+    static volatile ArrayList<DatabaseObserver> trashObservers = new ArrayList<>();
 
     // END observers
 
@@ -101,6 +104,23 @@ public class GalleryDB extends SQLiteOpenHelper {
         }
     }
 
+    public static void addTrashObservers(DatabaseObserver observer) {
+        Log.d("GalleryDB", "Observer added");
+        trashObservers.add(observer);
+    }
+
+    public static void removeTrashObservers(DatabaseObserver observer) {
+        Log.d("GalleryDB", "Observer removed");
+        trashObservers.remove(observer);
+    }
+
+    public static void notifyTrashObservers() {
+        for (DatabaseObserver observer : trashObservers) {
+            observer.onDatabaseChanged();
+            Log.d("GalleryDB", "Observer notified");
+        }
+    }
+
     @NonNull
     private static ContentValues getAlbumValues(AlbumModel albumModel) {
         ContentValues values = new ContentValues();
@@ -116,7 +136,9 @@ public class GalleryDB extends SQLiteOpenHelper {
     }
 
     @NonNull
-    private static ContentValues getMediaValue(MediaModel mediaModel, String uid) {
+    private static ContentValues getMediaValue(MediaModel mediaModel) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = user != null ? user.getUid() : "";
         ContentValues values = new ContentValues();
         values.put("user_id", uid);
         values.put("local_path", mediaModel.localPath);
@@ -151,16 +173,35 @@ public class GalleryDB extends SQLiteOpenHelper {
     }
 
     // START TRASH
-    public void onNewItemTrashed(String originalPath) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("INSERT INTO trash (original_path) VALUES ('" + originalPath + "')");
+    public ArrayList<MediaModel> getAllTrash() {
+        SQLiteDatabase db = getReadableDatabase();
+        ArrayList<MediaModel> mediaModels = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT * FROM trash", null);
+        while (cursor.moveToNext()) {
+            String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
+            String trashPath = cursor.getString(cursor.getColumnIndexOrThrow("trash_path"));
+            String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
+            mediaModels.add(new MediaModel().setLocalPath(trashPath).setCloudPath(cloudPath).setType(type));
+        }
+        cursor.close();
         db.close();
-        onRemoveImageToUpload(originalPath);
+        return mediaModels;
     }
 
-    public void onItemRestored(String originalPath) {
+    public void addToTrashTable(MediaModel mediaModel, String trashPath) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("DELETE FROM trash WHERE original_path = '" + originalPath + "'");
+        ContentValues values = new ContentValues();
+        values.put("local_path", mediaModel.localPath);
+        values.put("cloud_path", mediaModel.cloudPath);
+        values.put("trash_path", trashPath);
+        values.put("type", mediaModel.type);
+        db.insertWithOnConflict("trash", null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        db.close();
+    }
+
+    public void removeFromTrashTable(MediaModel mediaModel) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("DELETE FROM trash WHERE original_path = '" + mediaModel.localPath + "'");
         db.close();
     }
 
@@ -248,12 +289,6 @@ public class GalleryDB extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return albumSchemes;
-    }
-
-    public void onAlbumCreated(String albumName, String albumPath) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("INSERT INTO albums (album_name, album_path) VALUES ('" + albumName + "', '" + albumPath + "')");
-        db.close();
     }
 
     public ArrayList<MediaModel> getMediaInAlbum(AlbumModel albumModel) {
@@ -394,9 +429,7 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     public void updateMedia(MediaModel mediaModel) {
         SQLiteDatabase db = getWritableDatabase();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = user != null ? user.getUid() : "";
-        ContentValues values = getMediaValue(mediaModel, uid);
+        ContentValues values = getMediaValue(mediaModel);
         int result = db.updateWithOnConflict("media", values, "media_id = ?", new String[]{String.valueOf(mediaModel.mediaID)}, SQLiteDatabase.CONFLICT_IGNORE);
         Log.d("GalleryDB", "Media updated: " + result);
         db.close();
@@ -404,10 +437,8 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     public void addToMediaTable(ArrayList<MediaModel> mediaModels) {
         SQLiteDatabase db = getWritableDatabase();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = user != null ? user.getUid() : "";
         for (MediaModel mediaModel : mediaModels) {
-            ContentValues values = getMediaValue(mediaModel, uid);
+            ContentValues values = getMediaValue(mediaModel);
             db.insertWithOnConflict("media", null, values, SQLiteDatabase.CONFLICT_IGNORE);
         }
         db.close();

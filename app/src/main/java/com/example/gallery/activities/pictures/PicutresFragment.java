@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
-
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
     boolean viewMode = true;
@@ -48,10 +47,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     ImageFrameAdapter imageFrameAdapter;
     RecyclerView recyclerView;
     private ArrayList<MediaModel> selectedImages;
-
     ActivityResultLauncher<Intent> albumManagerLauncher;
-
     ActivityResultLauncher<Intent> albumPickerLauncher;
+    ActivityResultLauncher<Intent> trashManagerLauncher;
 
 
     private MediaViewModel mediaViewModel;
@@ -110,7 +108,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
 
         ImageButton dropdownButton = view.findViewById(R.id.settings);
-
         dropdownButton.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(getContext(), v);
             popupMenu.getMenuInflater().inflate(R.menu.setting_dropdown, popupMenu.getMenu());
@@ -118,9 +115,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             popupMenu.setOnMenuItemClickListener(item -> {
                 // Handle menu item click
                 if (item.getItemId() == R.id.trash) {
-                    ArrayList<String> intentIn = TrashManager.getFilesFromTrash();
                     Intent intent = new Intent(getContext(), TrashActivity.class);
-                    intent.putStringArrayListExtra("imagesPath", intentIn);
                     mainActivity.startActivity(intent);
                     return true;
                 } else if (item.getItemId() == R.id.choice2) {
@@ -200,6 +195,18 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                                 mediaViewModel.clearSelectedMedia();
                             }
                         });
+
+        trashManagerLauncher =
+                registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                        result -> {
+                            selectedImages.clear();
+                            mediaViewModel.clearSelectedMedia();
+                            if (result.getResultCode() == Activity.RESULT_OK) {
+                                Toast.makeText(getContext(), "Media moved to trash", Toast.LENGTH_SHORT).show();
+                            } else if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                                Toast.makeText(getContext(), "Failed to move media to trash", Toast.LENGTH_SHORT).show();
+                            }
+                        });
     }
 
     private void getFromDatabase() {
@@ -220,18 +227,19 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     }
 
     private void setUpBottomSheet() {
-        Button deleteBtn = bottomSheet.findViewById(R.id.trashBtn);
-        deleteBtn.setOnClickListener(v -> {
-            imageFrameAdapter.selectionModeEnabled = false;
-            imageFrameAdapter.notifyDataSetChanged();
-            onHideBottomSheet();
-            new Thread(() -> {
-                for (MediaModel image : selectedImages) {
-                    TrashManager.moveToTrash(requireContext(), image.localPath);
-                }
+        Button trashBtn = bottomSheet.findViewById(R.id.trashBtn);
+        trashBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(mainActivity, TrashManager.class);
+            ArrayList<Integer> selectedPositions = mediaViewModel.getSelectedMedia().getValue();
+            if (selectedPositions != null) {
                 selectedImages.clear();
-            }).start();
-
+                for (int position : selectedPositions) {
+                    selectedImages.add(mediaViewModel.getMedia(position));
+                }
+            }
+            intent.putParcelableArrayListExtra("mediaModels", selectedImages);
+            intent.putExtra("action", "trash");
+            trashManagerLauncher.launch(intent);
         });
 
         Button addBtn = bottomSheet.findViewById(R.id.addToBtn);

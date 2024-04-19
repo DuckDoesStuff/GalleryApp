@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.gallery.R;
-import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -39,7 +38,6 @@ public class ImageActivity extends AppCompatActivity {
         imageButton.setOnClickListener(v -> finish());
 
         ImageButton editButton = findViewById(R.id.edit_btn);
-
         ImageButton deleteButton = findViewById(R.id.trash_btn);
         deleteButton.setOnClickListener(v -> {
             new MaterialAlertDialogBuilder(this)
@@ -60,8 +58,8 @@ public class ImageActivity extends AppCompatActivity {
                         }
                     }
 
-                    String currentImagePath = mediaModels.get(currentPosition).localPath;
-                    TrashManager.moveToTrash(ImageActivity.this, currentImagePath);
+//                    String currentImagePath = mediaModels.get(currentPosition).localPath;
+//                    TrashManager.moveToTrash(ImageActivity.this, currentImagePath);
 
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> {
@@ -70,7 +68,6 @@ public class ImageActivity extends AppCompatActivity {
                 })
                 .show();
         });
-
         editButton.setOnClickListener(v -> {
             String currentImagePath = mediaModels.get(viewPager2.getCurrentItem()).localPath;
 

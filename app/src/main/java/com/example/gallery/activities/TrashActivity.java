@@ -1,162 +1,97 @@
 package com.example.gallery.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
-import com.example.gallery.component.TrashFrameAdapter;
-import com.example.gallery.utils.TrashManager;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.example.gallery.activities.pictures.ImageFrameAdapter;
+import com.example.gallery.activities.pictures.MediaViewModel;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Objects;
 
-public class TrashActivity extends AppCompatActivity implements TrashFrameAdapter.TrashFrameListener {
-    ArrayList<String> images;
-    RecyclerView recyclerView;
-    TrashFrameAdapter trashFrameAdapter;
-
+public class TrashActivity extends AppCompatActivity implements ImageFrameAdapter.ImageFrameListener {
     boolean viewMode = true;
-    MainActivity mainActivity;
-
-    TextView restoreBtn;
-    TextView deleteBtn;
-
-    private ArrayList<String> selectedImages;
-    private ArrayList<Integer> selectedPositions;
-
+    private MediaViewModel mediaViewModel;
+    private Observer<ArrayList<MediaModel>> mediaObserver;
+    private Observer<ArrayList<Integer>> selectedMediaObserver;
+    private Button restoreBtn;
+    private Button deleteBtn;
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trash);
 
-        Intent intent = getIntent();
-        ImageButton backBtn = findViewById(R.id.back_button_trash);
-        backBtn.setOnClickListener(v -> finish());
-        restoreBtn = findViewById(R.id.edit_button);
-        deleteBtn = findViewById(R.id.empty_button);
-        restoreBtn.setVisibility(View.GONE);
-        deleteBtn.setVisibility(View.GONE);
-
-
-        final int position;
-        if (intent != null) {
-            images = intent.getStringArrayListExtra("imagesPath");
-
-            position = intent.getIntExtra("initial", 0);
-        } else {
-            images = new ArrayList<>();
-            position = -1;
+        mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
+        try (GalleryDB db = new GalleryDB(this)) {
+            ArrayList<MediaModel> trash = db.getAllTrash();
+            mediaViewModel.getMedia().setValue(trash);
+            Log.d("TrashActivity", "Trash size: " + trash.size());
+        } catch (Exception e) {
+            Log.e("TrashActivity", "Error getting trash", e);
+            mediaViewModel.getMedia().setValue(new ArrayList<>());
         }
 
-        recyclerView = findViewById(R.id.photo_album_grid);
+        mediaObserver = mediaModels -> {
+            // Do things
+            Log.d("TrashActivity", "Media observer called with: " + mediaModels.size() + " items");
+        };
+        mediaViewModel.getMedia().observe(this, mediaObserver);
+
+        mediaViewModel.getSelectedMedia().setValue(new ArrayList<>());
+        selectedMediaObserver = selectedMedia -> {
+            // Do things
+            viewMode = selectedMedia.isEmpty();
+            restoreBtn.setVisibility(viewMode ? View.INVISIBLE : View.VISIBLE);
+            deleteBtn.setVisibility(viewMode ? View.INVISIBLE : View.VISIBLE);
+            Log.d("TrashActivity", "Selected media observer called with: " + selectedMedia.size() + " items");
+        };
+        mediaViewModel.getSelectedMedia().observe(this, selectedMediaObserver);
+
+
+        ImageButton backBtn = findViewById(R.id.back_button);
+        backBtn.setOnClickListener(v -> finish());
+        restoreBtn = findViewById(R.id.restore_button);
+        deleteBtn = findViewById(R.id.delete_button);
+        restoreBtn.setVisibility(View.INVISIBLE);
+        deleteBtn.setVisibility(View.INVISIBLE);
+        TextView trashCount = findViewById(R.id.trash_count);
+        trashCount.setText(Objects.requireNonNull(mediaViewModel.getMedia().getValue()).size() + " items");
+
+
+        RecyclerView recyclerView = findViewById(R.id.trash_grid);
+
         int spanCount = 3; // Change this to change the number of columns
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int imgSize = screenWidth / spanCount;
-        selectedImages = new ArrayList<>();
-        if (trashFrameAdapter == null)
-            trashFrameAdapter = new TrashFrameAdapter(this, imgSize, selectedPositions, images, selectedImages, this);
 
-        recyclerView.setAdapter(trashFrameAdapter);
+        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(imgSize, this, this);
+        recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
-
-        restoreBtn.setOnClickListener(v -> {
-            new MaterialAlertDialogBuilder(this)
-                    .setTitle("Restore file")
-                    .setMessage("Restore " + selectedImages.size() + " files")
-                    .setPositiveButton("OK", (dialog, which) -> {
-                        // Xử lý khi nhấn nút OK
-
-                        new Thread(() -> {
-                            for (String image : selectedImages) {
-                                File temp = new File(image);
-                                TrashManager.restoreFromTrash(this, temp.getName(), image);
-                                images.remove(image);
-                            }
-                            selectedImages.clear();
-                        }).start();
-                        trashFrameAdapter.selectionModeEnabled = false;
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                runOnUiThread(() -> {
-                                    trashFrameAdapter.initFrameModels(images);
-                                });
-                            }
-                        }, 1000);
-
-
-                    })
-                    .setNegativeButton("Cancel", (dialog, which) -> {
-                        // Xử lý khi nhấn nút Cancel
-
-                    })
-                    .show();
-        });
-        deleteBtn.setOnClickListener(v -> {
-            new MaterialAlertDialogBuilder(this)
-                    .setTitle("Delete file forever")
-                    .setMessage("If you delete these " + selectedImages.size() + " files, you can not restore")
-                    .setPositiveButton("OK", (dialog, which) -> {
-                        // Xử lý khi nhấn nút OK
-
-                        new Thread(() -> {
-                            for (String image : selectedImages) {
-                                TrashManager.deleteFromTrash(image);
-                                images.remove(image);
-                            }
-                            selectedImages.clear();
-                        }).start();
-                        trashFrameAdapter.selectionModeEnabled = false;
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                runOnUiThread(() -> {
-                                    trashFrameAdapter.initFrameModels(images);
-                                });
-                            }
-                        }, 1000);
-
-
-                    })
-                    .setNegativeButton("Cancel", (dialog, which) -> {
-                        // Xử lý khi nhấn nút Cancel
-
-                    })
-                    .show();
-        });
-
     }
 
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-        super.onPointerCaptureChanged(hasCapture);
-    }
-
-    // Override phương thức onItemClick() và onItemLongClick()
     @Override
     public void onItemClick(int position) {
-        // Xử lý sự kiện click item
-        if (selectedImages.isEmpty()) {
-            restoreBtn.setVisibility(View.GONE);
-            deleteBtn.setVisibility(View.GONE);
-        }
-    }
-
-    @Override
-    public void onItemLongClick(int position) {
-        // Xử lý sự kiện long click item
-        if (!selectedImages.isEmpty()) {
-            restoreBtn.setVisibility(View.VISIBLE);
-            deleteBtn.setVisibility(View.VISIBLE);
+        if (viewMode) {
+            Intent intent = new Intent(this, TrashViewActivity.class);
+            intent.putParcelableArrayListExtra("mediaModels", mediaViewModel.getMedia().getValue());
+            intent.putExtra("initial", position);
+            startActivity(intent);
         }
     }
 }

@@ -30,7 +30,6 @@ import com.example.gallery.databinding.ActivityMainBinding;
 import com.example.gallery.fragments.HomeFragment;
 import com.example.gallery.utils.MediaStoreService;
 import com.example.gallery.utils.PermissionUtils;
-import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.database.DatabaseQuery;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
@@ -105,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
                     1
             );
         }
-        TrashManager.createTrash();
 
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         userObserver = firebaseUser -> {

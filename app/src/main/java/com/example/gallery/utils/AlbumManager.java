@@ -34,27 +34,36 @@ public class AlbumManager extends AppCompatActivity {
         if (intent != null) {
             // Handle intent
             String action = intent.getStringExtra("action");
-            if(action == null) finish();
-            if (action.equals("add")) {
-                ArrayList<MediaModel> mediaModels = intent.getParcelableArrayListExtra("mediaModels");
-                AlbumModel albumModel = intent.getParcelableExtra("albumModel");
-                boolean result = false;
-                if (mediaModels != null) {
-                    result = moveMedia(this, mediaModels, albumModel);
-                }
-                setResult(result ? RESULT_OK : RESULT_CANCELED);
+            if(action == null) {
+                setResult(RESULT_CANCELED);
                 finish();
-            }else if(action.equals("create")) {
-                String albumName = intent.getStringExtra("albumName");
-                AlbumModel albumModel = createNewAlbum(this, albumName);
-                if(albumModel != null) {
-                    setResult(RESULT_OK);
-                    Log.d("AlbumManager", "Album created successfully");
-                } else {
-                    setResult(RESULT_CANCELED);
-                    Log.d("AlbumManager", "Album failed to create");
+                return;
+            }
+            switch (action) {
+                case "add": {
+                    ArrayList<MediaModel> mediaModels = intent.getParcelableArrayListExtra("mediaModels");
+                    AlbumModel albumModel = intent.getParcelableExtra("albumModel");
+                    boolean result = false;
+                    if (mediaModels != null) {
+                        result = moveMedia(this, mediaModels, albumModel);
+                    }
+                    setResult(result ? RESULT_OK : RESULT_CANCELED);
+                    finish();
+                    break;
                 }
-                finish();
+                case "create": {
+                    String albumName = intent.getStringExtra("albumName");
+                    AlbumModel albumModel = createNewAlbum(this, albumName);
+                    if (albumModel != null) {
+                        setResult(RESULT_OK);
+                        Log.d("AlbumManager", "Album created successfully");
+                    } else {
+                        setResult(RESULT_CANCELED);
+                        Log.d("AlbumManager", "Album failed to create");
+                    }
+                    finish();
+                    break;
+                }
             }
 
         }
@@ -63,7 +72,7 @@ public class AlbumManager extends AppCompatActivity {
         }
     }
 
-    public boolean moveMedia(Context context, ArrayList<MediaModel> mediaModels, AlbumModel albumModel) {
+    private boolean moveMedia(Context context, ArrayList<MediaModel> mediaModels, AlbumModel albumModel) {
         boolean success = true;
         boolean applyToAll = false;
         for (MediaModel mediaModel : mediaModels) {
@@ -71,7 +80,7 @@ public class AlbumManager extends AppCompatActivity {
                 success = false;
             }
         }
-        notifyMediaStoreScan(context, albumModel.localPath);
+        notifyMediaStoreScan(albumModel.localPath);
         return success;
     }
 
@@ -108,15 +117,17 @@ public class AlbumManager extends AppCompatActivity {
             Log.d("AlbumManager", "Album: " + albumModel.localPath);
 
             if (sourceFile.delete()) {
-                GalleryDB db = new GalleryDB(context);
-                if(Objects.equals(albumModel.albumThumbnail, "")) {
-                    albumModel.albumThumbnail = mediaModel.localPath;
-                    db.updateAlbum(albumModel);
+                try (GalleryDB db = new GalleryDB(context)) {
+                    if(Objects.equals(albumModel.albumThumbnail, "")) {
+                        albumModel.albumThumbnail = mediaModel.localPath;
+                        db.updateAlbum(albumModel);
+                    }
+                    db.updateMedia(mediaModel);
                 }
-                db.updateMedia(mediaModel);
                 return true;
-            } else
+            } else {
                 return false;
+            }
         } catch (IOException e) {
             e.printStackTrace();
             Log.d("AlbumManager", "Error moving file");
@@ -124,13 +135,7 @@ public class AlbumManager extends AppCompatActivity {
         }
     }
 
-    public static void notifyMediaStoreScan(Context context, String filePath) {
-        MediaScannerConnection.scanFile(context, new String[]{filePath}, null, (path, uri) -> {
-            // MediaScannerConnection callback
-        });
-    }
-
-    public AlbumModel createNewAlbum(@NonNull Context context, String albumName) {
+    private AlbumModel createNewAlbum(@NonNull Context context, String albumName) {
         File album = new File(android.os.Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DCIM), albumName);
 
@@ -143,8 +148,13 @@ public class AlbumManager extends AppCompatActivity {
                         .setLocalPath(albumPath)
                         .setCreatedAt(System.currentTimeMillis());
 
-                GalleryDB db = new GalleryDB(context);
-                db.addToAlbumTable(new ArrayList<>(Collections.singletonList(albumModel)));
+                try(GalleryDB db = new GalleryDB(context)) {
+                    db.addToAlbumTable(new ArrayList<>(Collections.singletonList(albumModel)));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.d("AlbumManager", "Error adding to database");
+                    return null; // Error occurred while adding to database
+                }
 
                 return albumModel;
             }
@@ -168,5 +178,11 @@ public class AlbumManager extends AppCompatActivity {
             return albumModel;
         }
         return null; // Error occurred while creating album
+    }
+
+    private void notifyMediaStoreScan(String filePath) {
+        MediaScannerConnection.scanFile(getApplicationContext(), new String[]{filePath}, null, (path, uri) -> {
+            // MediaScannerConnection callback
+        });
     }
 }

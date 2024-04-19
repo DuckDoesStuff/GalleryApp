@@ -13,6 +13,7 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
@@ -31,12 +32,12 @@ import java.util.ArrayList;
 
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewPagerViewHolder> {
-    static ImageActivity imageActivity;
+    AppCompatActivity activity;
     ArrayList<MediaModel> images;
 
-    public ViewPagerAdapter(ArrayList<MediaModel> images, ImageActivity imageActivity) {
+    public ViewPagerAdapter(ArrayList<MediaModel> images, AppCompatActivity activity) {
         this.images = images;
-        ViewPagerAdapter.imageActivity = imageActivity;
+        this.activity = activity;
     }
 
     @NonNull
@@ -50,7 +51,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull ViewPagerAdapter.ViewPagerViewHolder holder, int position) {
-        holder.onBind(images.get(position));
+        holder.bind(images.get(position));
     }
 
     @Override
@@ -85,7 +86,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         }
     }
 
-    public static class ViewPagerViewHolder extends RecyclerView.ViewHolder {
+    public class ViewPagerViewHolder extends RecyclerView.ViewHolder {
         FrameLayout frameLayout;
         TouchImageView touchImageView;
         PlayerView playerView;
@@ -98,9 +99,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         }
 
         @SuppressLint("ClickableViewAccessibility")
-        public void onBind(MediaModel mediaModel) {
+        public void bind(MediaModel mediaModel) {
             this.mediaModel = mediaModel;
-
             // If media is an image
             if (mediaModel.type.contains("image")) {
                 // First inflate mediaView with the ImageView
@@ -110,7 +110,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
                 frameLayout.removeAllViews();
                 frameLayout.addView(touchImageView);
 
-                Glide.with(itemView).asBitmap().load(new File(mediaModel.localPath)).diskCacheStrategy(DiskCacheStrategy.ALL).into(new CustomTarget<Bitmap>() {
+                Glide.with(itemView)
+                        .asBitmap()
+                        .load(new File(mediaModel.localPath))
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
                         touchImageView.setImageBitmap(resource);
@@ -122,12 +126,13 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
                     }
                 });
 
-                //                touchImageView.setImageURI(Uri.fromFile(new File(mediaModel.localPath)));
-
                 touchImageView.setOnTouchListener((view, event) -> {
                     boolean result = true;
-                    if (event.getPointerCount() >= 2 || view.canScrollHorizontally(1) && view.canScrollHorizontally(-1)) {
-                        if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE) {
+                    if (event.getPointerCount() >= 2 ||
+                        view.canScrollHorizontally(1) &&
+                        view.canScrollHorizontally(-1)) {
+                        if (event.getAction() == MotionEvent.ACTION_DOWN ||
+                            event.getAction() == MotionEvent.ACTION_MOVE) {
                             // Disallow RecyclerView to intercept touch events.
                             view.getParent().requestDisallowInterceptTouchEvent(true);
                             result = false;
@@ -145,8 +150,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
         }
 
         public void setupPlayerView() {
-            playerView = new PlayerView(imageActivity);
-            player = new ExoPlayer.Builder(imageActivity).build();
+            playerView = new PlayerView(activity);
+            player = new ExoPlayer.Builder(activity).build();
 
             MediaItem mediaItem = MediaItem.fromUri(Uri.fromFile(new File(mediaModel.localPath)));
             player.setMediaItem(mediaItem);

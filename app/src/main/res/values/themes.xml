@@ -1,10 +1,11 @@
 <resources>
     <!-- Base application theme. -->
     <style name="Base.Theme.Gallery" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Customize your light theme here. -->@color/gray
-        <item name="colorPrimary">#6F6F6F</item>
-        <item name="toolbarIconColor">@color/icon_button_color_light</item>
+        <!-- Customize your light theme here. -->@color/black
+        <item name="colorPrimary">#000000</item>
+        <item name="colorSecondary">#FFFFFF</item>
 
+        <item name="toolbarIconColor">@color/icon_button_color_light</item>
     </style>
 
     <style name="Theme.Gallery" parent="Base.Theme.Gallery" />

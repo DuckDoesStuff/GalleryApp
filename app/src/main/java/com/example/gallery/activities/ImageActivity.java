@@ -1,6 +1,9 @@
 package com.example.gallery.activities;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -8,6 +11,7 @@ import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.gallery.R;
@@ -44,6 +48,31 @@ public class ImageActivity extends AppCompatActivity {
         imageButton.setOnClickListener(v -> finish());
 
         ImageButton editButton = findViewById(R.id.edit_btn);
+
+        ImageButton shareButton = findViewById(R.id.share_button);
+
+        shareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Lấy đường dẫn của hình ảnh đang hiển thị trong ViewPager2
+                String currentImagePath = images.get(viewPager2.getCurrentItem()).path;
+
+                // Tạo một Uri từ đường dẫn của hình ảnh
+                Uri imageUri = FileProvider.getUriForFile(ImageActivity.this,
+                        "com.example.gallery", new File(currentImagePath));
+
+                // Tạo Intent để chia sẻ hình ảnh
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("image/*");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+
+                // Cho phép các ứng dụng khác đọc dữ liệu từ FileProvider của bạn
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                // Mở Activity chia sẻ và chọn ứng dụng để chia sẻ hình ảnh
+                startActivity(Intent.createChooser(shareIntent, "Share Image"));
+            }
+        });
 
         ImageButton deleteButton = findViewById(R.id.trash_btn);
         deleteButton.setOnClickListener(v -> {

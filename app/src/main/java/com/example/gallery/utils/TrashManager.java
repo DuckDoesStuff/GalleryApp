@@ -1,52 +1,109 @@
 package com.example.gallery.utils;
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.MediaScannerConnection;
+import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.gallery.component.TrashFrameAdapter;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Objects;
 
-public class TrashManager {
+public class TrashManager extends AppCompatActivity {
 
-    private static String trashPath;
-    private static void notifyMediaStoreScan(Context context, String filePath) {
+    private String trashPath;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        createTrash();
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            String action = intent.getStringExtra("action");
+            if(action == null) {
+                setResult(RESULT_CANCELED);
+                finish();
+                return;
+            }
+
+            ArrayList<MediaModel> mediaModels = intent.getParcelableArrayListExtra("mediaModels");
+            if (Objects.requireNonNull(mediaModels).isEmpty()) {
+                setResult(RESULT_CANCELED);
+                finish();
+                return;
+            }
+
+            switch (action) {
+                case "trash":
+                    setResult(moveToTrash(this, mediaModels) ? RESULT_OK : RESULT_CANCELED);
+                    finish();
+                    break;
+                case "restore":
+
+                    break;
+                case "delete":
+
+                    break;
+            }
+        }
+    }
+
+
+
+    private void notifyMediaStoreScan(Context context, String filePath) {
         MediaScannerConnection.scanFile(context, new String[]{filePath}, null, (path, uri) -> {
             // MediaScannerConnection callback
         });
     }
 
-    public static ArrayList<String> getFilesFromTrash() {
-        File trashDirectory = new File(trashPath);
-        File[] files = trashDirectory.listFiles();
-        ArrayList<String> output  = new ArrayList<>();
-        for (File file:files) {
-            output.add(file.getAbsolutePath());
-        }
-        return output;
-    }
-    public static void createTrash() {
-        File album = new File(android.os.Environment.getExternalStoragePublicDirectory(
+    private void createTrash() {
+        File trashAlbum = new File(android.os.Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DCIM), ".trash");
-        if (!album.exists()) {
-            album.mkdirs();
-        }
-        trashPath = album.getAbsolutePath();
+        if (!trashAlbum.exists())
+            if(trashAlbum.mkdirs())
+                trashPath = trashAlbum.getAbsolutePath();
+            else {
+                trashPath = null;
+                Toast.makeText(this, "Error creating trash directory", Toast.LENGTH_SHORT).show();
+            }
+        else
+            trashPath = trashAlbum.getAbsolutePath();
     }
-    public static boolean moveToTrash(@NonNull Context context, String imgPath) {
-        GalleryDB db = new GalleryDB(context);
-        db.onNewItemTrashed(imgPath);
+
+    private boolean moveToTrash(Context context, ArrayList<MediaModel> mediaModels) {
+        boolean success = true;
+        for (MediaModel mediaModel : mediaModels) {
+            if (!moveToTrash(context, mediaModel)) {
+                success = false;
+            }
+        }
+        notifyMediaStoreScan(context, trashPath);
+        GalleryDB.notifyMediaObservers();
+        GalleryDB.notifyAlbumObservers();
+        return success;
+    }
+
+    private boolean moveToTrash(Context context, MediaModel mediaModel) {
         try {
-            File sourceFile = new File(imgPath);
-            File destinationFile = new File(trashPath + "/" + sourceFile.getName());
+            String mediaPath = mediaModel.localPath;
+
+            File sourceFile = new File(mediaPath);
+            String destinationPath = trashPath + "/" + sourceFile.getName();
+            File destinationFile = new File(destinationPath);
 
             FileInputStream inputStream = new FileInputStream(sourceFile);
             FileOutputStream outputStream = new FileOutputStream(destinationFile);
@@ -61,55 +118,19 @@ public class TrashManager {
             outputStream.close();
 
             if (sourceFile.delete()) {
-                notifyMediaStoreScan(context, trashPath);
+                try (GalleryDB db = new GalleryDB(context)) {
+                    db.addToTrashTable(mediaModel, destinationPath);
+                    db.removeFromMediaTable(new ArrayList<>(Collections.singletonList(mediaModel)));
+                }
                 return true;
-            }else
+            } else {
                 return false;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false; // Error occurred while moving file
-        }
-    }
-    public static void deleteFromTrash(String trashFilePath) {
-        // Tạo đối tượng File từ đường dẫn tệp trong thư mục .trash
-        File trashFile = new File(trashFilePath);
-
-        // Kiểm tra xem tệp tồn tại trước khi xóa
-        if (trashFile.exists()) {
-            // Xóa tệp từ thư mục .trash
-            boolean deleted = trashFile.delete();
-        }
-    }
-    public static boolean restoreFromTrash(@NonNull Context context, String imgName, String imgPath) {
-        GalleryDB db = new GalleryDB(context);
-        String path = db.getOriginalPath(imgName);
-
-        try {
-            File sourceFile = new File(imgPath);
-            File destinationFile = new File(path);
-
-            FileInputStream inputStream = new FileInputStream(sourceFile);
-            FileOutputStream outputStream = new FileOutputStream(destinationFile);
-
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
             }
-
-            db.onItemRestored(path);
-
-            inputStream.close();
-            outputStream.close();
-
-            if (sourceFile.delete()) {
-                notifyMediaStoreScan(context, trashPath);
-                return true;
-            }else
-                return false;
         } catch (IOException e) {
             e.printStackTrace();
-            return false; // Error occurred while moving file
+            Log.d("AlbumManager", "Error trashing item");
+            return false;
         }
     }
+
 }

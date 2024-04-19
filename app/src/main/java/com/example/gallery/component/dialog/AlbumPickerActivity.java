@@ -10,17 +10,17 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
-import com.example.gallery.utils.AlbumManager;
-import com.example.gallery.utils.GalleryDB;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.database.AlbumModel;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class AlbumPickerActivity extends AppCompatActivity implements AlbumPickerAdapter.AlbumPickerListener {
-    ArrayList<MediaModel> images;
-    ArrayList<GalleryDB.AlbumScheme> albums;
+    ArrayList<MediaModel> mediaModels;
+    ArrayList<AlbumModel> albums;
     private GalleryDB db;
-
 
     public AlbumPickerActivity() {
         // Required empty public constructor
@@ -33,17 +33,27 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
 
         Intent intent = getIntent();
         if (intent != null) {
-            images = intent.getParcelableArrayListExtra("images");
-        }else {
-            Toast.makeText(this, "No images selected", Toast.LENGTH_SHORT).show();
+            mediaModels = intent.getParcelableArrayListExtra("mediaModels");
+        } else {
+            Toast.makeText(this, "No media selected", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_CANCELED);
+            finish();
+        }
+
+        if (Objects.requireNonNull(mediaModels).isEmpty()) {
+            Toast.makeText(this, "No media selected", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_CANCELED);
             finish();
         }
 
         ImageButton back = findViewById(R.id.back_button);
-        back.setOnClickListener(v -> finish());
+        back.setOnClickListener(v -> {
+            setResult(RESULT_CANCELED);
+            finish();
+        });
 
         db = new GalleryDB(this);
-        albums = db.getAlbums();
+        albums = db.getAllAlbums();
 
         RecyclerView recyclerView = findViewById(R.id.album_list_picker);
         AlbumPickerAdapter adapter = new AlbumPickerAdapter(albums, this);
@@ -52,20 +62,11 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
     }
 
     @Override
-    public void onAlbumSelected(GalleryDB.AlbumScheme album) {
-        new Thread(() -> {
-            for (MediaModel image : images) {
-                AlbumManager.moveMedia(this, image.path, album.albumPath);
-            }
-            try {
-                GalleryDB db = new GalleryDB(this);
-                ArrayList<GalleryDB.AlbumScheme> temp = new ArrayList<>();
-                temp.add(album);
-                db.updateAlbums(temp);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+    public void onAlbumSelected(AlbumModel album) {
+        // pass the selected album to the previous activity
+        Intent intent = new Intent();
+        intent.putExtra("album", album);
+        setResult(RESULT_OK, intent);
         finish();
     }
 }

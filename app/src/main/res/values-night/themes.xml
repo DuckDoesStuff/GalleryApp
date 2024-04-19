@@ -2,7 +2,9 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.Gallery" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your night theme here. -->@color/gray
-        <item name="colorPrimary">#00565656</item>
+        <item name="colorPrimary">#8D8D8D</item>
+        <item name="colorSecondary">#000000</item>
+
         <item name="toolbarIconColor">@color/icon_button_color_night</item>
     </style>
 

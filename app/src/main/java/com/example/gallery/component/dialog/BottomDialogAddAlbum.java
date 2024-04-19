@@ -11,24 +11,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.gallery.R;
-import com.example.gallery.utils.AlbumManager;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.textfield.TextInputEditText;
 
-public class BottomDialog extends BottomSheetDialogFragment {
-    public interface onBottomSheetListener {
-        void onAlbumCreated();
+public class BottomDialogAddAlbum extends BottomSheetDialogFragment {
+    public static interface OnAddDialogListener {
+        void onAlbumCreated(String albumName);
     }
-
-    private onBottomSheetListener listener;
-
-    public BottomDialog(onBottomSheetListener listener) {
+    private OnAddDialogListener listener;
+    public BottomDialogAddAlbum(OnAddDialogListener listener) {
         this.listener = listener;
     }
-
-    public BottomDialog() {
-    }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -38,33 +31,30 @@ public class BottomDialog extends BottomSheetDialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_bottom_dialog, container, false);
+        return inflater.inflate(R.layout.fragment_bottom_dialog_add_album, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        setCancelable(false);
         TextInputEditText albumName = view.findViewById(R.id.set_album_name);
 
 
         Button cancelBtn = view.findViewById(R.id.btn_cancel);
-        cancelBtn.setOnClickListener(v -> dismiss());
+        cancelBtn.setOnClickListener(v -> {
+            listener.onAlbumCreated(null);
+            dismiss();
+        });
 
         Button createAlbumBtn = view.findViewById(R.id.btn_create);
         createAlbumBtn.setOnClickListener(v -> {
             String albumNameStr = albumName.getText().toString();
-            if(albumNameStr.isEmpty()) {
+            if (albumNameStr.isEmpty()) {
                 Toast.makeText(getContext(), "Please enter album name", Toast.LENGTH_SHORT).show();
-            }else {
-                if (AlbumManager.createNewAlbum(requireContext(), albumNameStr) != null) {
-                    Toast.makeText(getContext(), "Album created successfully", Toast.LENGTH_SHORT).show();
-                    if (listener != null)
-                        listener.onAlbumCreated();
-                    dismiss();
-                } else {
-                    Toast.makeText(getContext(), "Album already exist", Toast.LENGTH_SHORT).show();
-                }
+            } else {
+                listener.onAlbumCreated(albumNameStr);
+                dismiss();
             }
         });
 

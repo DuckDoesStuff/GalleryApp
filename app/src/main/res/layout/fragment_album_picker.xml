@@ -7,30 +7,30 @@
     <androidx.appcompat.widget.Toolbar
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <ImageButton
             android:id="@+id/back_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="10dp"
             android:background="#FFFFFF"
-            android:src="@drawable/back_black"/>
+            android:src="@drawable/back_black" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="30dp"
-            android:textStyle="bold"
-            android:layout_marginVertical="10dp"
             android:layout_marginHorizontal="20dp"
-            android:text="Albums"/>
+            android:layout_marginVertical="10dp"
+            android:text="Albums"
+            android:textSize="30dp"
+            android:textStyle="bold" />
 
     </androidx.appcompat.widget.Toolbar>
-
 
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/album_list_picker"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginHorizontal="20dp"/>
+        android:layout_marginHorizontal="20dp" />
 </LinearLayout>

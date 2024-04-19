@@ -36,13 +36,14 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
         this.selectedImages = selectedImages;
         initFrameModels(images);
     }
+
     public void initFrameModels(ArrayList<String> images) {
         if (images == null || images.isEmpty()) {
             frameModels = new ArrayList<>();
             // TODO: Remember to remove this
         } else {
             frameModels = new ArrayList<>();
-            for (String file:images) {
+            for (String file : images) {
                 frameModels.add(new TrashFrameAdapter.FrameModel(file));
 
             }
@@ -65,6 +66,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
         }
         return holder;
     }
+
     @Override
     public void onBindViewHolder(@NonNull FrameViewHolder holder, int position) {
         holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
@@ -138,6 +140,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
 
             Glide.with(itemView).load(new ColorDrawable(Color.GRAY)).centerCrop().into(imageView);
         }
+
         public void bind(FrameModel frameModel) {
             this.frameModel = frameModel;
             checkBox.setChecked(frameModel.isSelected);
@@ -163,6 +166,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
                     .centerCrop().into(imageView);
         }
     }
+
     private static class FrameModel {
         private final String file;
         private boolean isSelected;

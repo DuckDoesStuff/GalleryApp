@@ -213,6 +213,7 @@ public class MediaFetch {
                 null,
                 MediaStore.MediaColumns.BUCKET_ID + " ASC"
         );
+        GalleryDB db = new GalleryDB(context);
         if (imageCursor != null) {
             try {
                 while (imageCursor.moveToNext()) {
@@ -224,7 +225,9 @@ public class MediaFetch {
                     String duration = imageCursor.getString(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
                     String type = "image";
                     String name = path.substring(path.lastIndexOf('/') + 1);
+                    db.onNewImageToUpload(path);
                     MediaModel mediaModel = new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type);
+                    mediaModel.isLocal = true;
                     mediaList.add(mediaModel);
                 }
             } finally {
@@ -250,7 +253,9 @@ public class MediaFetch {
                     String duration = videoCursor.getString(videoCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION));
                     String type = "video";
                     String name = path.substring(path.lastIndexOf('/') + 1);
+                    db.onNewImageToUpload(path);
                     MediaModel mediaModel = new MediaModel(bucketName, bucketID, path, name, dateTaken, dateAdded, duration, type);
+                    mediaModel.isLocal = true;
                     mediaList.add(mediaModel);
                 }
             } finally {

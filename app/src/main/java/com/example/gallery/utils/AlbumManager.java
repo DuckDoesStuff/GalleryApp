@@ -32,6 +32,8 @@ public class AlbumManager {
 
             if (sourceFile.delete()) {
                 notifyMediaStoreScan(context, destinationPath);
+                GalleryDB db = new GalleryDB(context);
+                db.onRemoveImageToUpload(sourceFilePath);
                 return true;
             }else
                 return false;

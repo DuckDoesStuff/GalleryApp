@@ -25,9 +25,20 @@ public class MediaModel implements Parcelable {
     public String dateAdded;
     public String duration;
     public String type;
-    public boolean isLocal = false;
+    public boolean isLocal = true;
     public boolean isSynced = false;
 
+
+    public MediaModel(String path) {
+        this.path = path;
+        albumName = "";
+        bucketID = "";
+        name = "";
+        dateTaken = "";
+        dateAdded = "";
+        duration = "";
+        type = "";
+    }
 
     public MediaModel(String albumName, String bucketID, String path, String name, String dateTaken, String dateAdded, String duration, String type) {
         this.albumName = albumName;

@@ -19,9 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.gallery.R;
-import com.example.gallery.utils.MediaFetch;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.FrameViewHolder> {
@@ -30,6 +28,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
     public boolean selectionModeEnabled = false;
     private ArrayList<FrameModel> frameModels;
     private ArrayList<String> selectedImages;
+
 
     public TrashFrameAdapter(Context context, int imgSize, ArrayList<Integer> selectedPositions, ArrayList<String> images, ArrayList<String> selectedImages, TrashFrameListener onClickCallback) {
         this.imgSize = imgSize;
@@ -48,6 +47,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
 
             }
         }
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -66,7 +66,7 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
         return holder;
     }
     @Override
-    public void onBindViewHolder(@NonNull TrashFrameAdapter.FrameViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull FrameViewHolder holder, int position) {
         holder.imageView.setLayoutParams(new LinearLayout.LayoutParams(imgSize, imgSize));
         FrameModel frameModel = frameModels.get(position);
         holder.bind(frameModel);
@@ -95,23 +95,22 @@ public class TrashFrameAdapter extends RecyclerView.Adapter<TrashFrameAdapter.Fr
                 // Turn off selection mode if not selecting any images
                 if (selectedImages.isEmpty()) {
                     selectionModeEnabled = false;
+                    notifyDataSetChanged();
                 }
             }
             onClickCallBack.onItemClick(position);
         });
         holder.itemView.setOnLongClickListener(v -> {
+
+            Log.d("debug", "log duoc ne");
             selectionModeEnabled = true;
             frameModel.isSelected = true;
-
             selectedImages.add(frameModel.file);
             onClickCallBack.onItemLongClick(position);
-
+            notifyDataSetChanged();
             return true;
         });
     }
-
-
-
 
     @Override
     public int getItemCount() {

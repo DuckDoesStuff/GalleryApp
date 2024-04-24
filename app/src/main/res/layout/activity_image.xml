@@ -76,11 +76,12 @@
                 android:src="@drawable/edit" />
 
             <ImageButton
+                android:id="@+id/trash_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@null"
 
+                android:background="@null"
                 android:src="@drawable/delete" />
 
             <ImageButton

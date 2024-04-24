@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.provider.Settings;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -24,14 +25,19 @@ import com.example.gallery.fragments.GuestFragment;
 import com.example.gallery.fragments.HomeFragment;
 import com.example.gallery.fragments.PicutresFragment;
 import com.example.gallery.fragments.UserFragment;
-import com.example.gallery.utils.AlbumManager;
+import com.example.gallery.utils.GalleryDB;
 import com.example.gallery.utils.MediaFetch;
+import com.example.gallery.utils.MediaModel;
 import com.example.gallery.utils.PermissionUtils;
 import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.UserViewModel;
+import com.example.gallery.utils.firebase.UploadChooserActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -96,8 +102,11 @@ public class MainActivity extends AppCompatActivity {
             BottomNavigationView bottomNavigationView = binding.bottomNavigationView;
             user = firebaseUser;
             if (bottomNavigationView.getSelectedItemId() == R.id.profile) {
-                if (firebaseUser != null)
+                if (firebaseUser != null) {
                     profileFragment = new UserFragment();
+                    GalleryDB db = new GalleryDB(this);
+                    db.updateImages(this);
+                }
                 else
                     profileFragment = new GuestFragment();
                 replaceFragment(profileFragment);
@@ -174,4 +183,39 @@ public class MainActivity extends AppCompatActivity {
         binding.bottomNavigationView.setVisibility(visibility);
     }
 
+    public void startUploadActivity(ArrayList<MediaModel> foundImages) {
+        Intent intent = new Intent(this, UploadChooserActivity.class);
+        intent.putExtra("foundImages", foundImages);
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        if(user == null) return;
+
+        GalleryDB db = new GalleryDB(this);
+        ArrayList<MediaModel> imagesToUpload = db.getImagesToUpload();
+
+        if(imagesToUpload.isEmpty()) return;
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Upload new media")
+                .setMessage("Gallery found " + imagesToUpload.size() + " media you might want to upload. \nSelect the media you want to upload.")
+                .setPositiveButton("OK", (dialog, which) -> {
+                    try {
+                        startUploadActivity(imagesToUpload);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                })
+                .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }

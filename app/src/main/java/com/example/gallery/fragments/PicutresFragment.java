@@ -55,6 +55,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mainActivity = ((MainActivity) requireActivity());
         if(selectedImages == null)
             selectedImages = new ArrayList<>();
 
@@ -75,6 +76,13 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     public void onMediaUpdate(ArrayList<MediaModel> modelArrayList) {
         // Ensure running on UI thread
         images = modelArrayList;
+//        try {
+//            GalleryDB db = new GalleryDB(requireContext());
+//            ArrayList<MediaModel> mediaFromCloud = db.getImageFromCloud();
+//            mediaList.addAll(mediaFromCloud);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         MediaFetch.sortArrayListModel(images, MediaFetch.SORT_BY_DATE_TAKEN, MediaFetch.SORT_DESC);
         requireActivity().runOnUiThread(() -> {
             imageFrameAdapter.selectionModeEnabled = false;
@@ -147,7 +155,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         int imgSize = screenWidth / spanCount;
 
         if (imageFrameAdapter == null)
-            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, selectedPositions, images, selectedImages, this);
+            imageFrameAdapter = new ImageFrameAdapter(getContext(), imgSize, images, selectedImages, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
     }
@@ -155,7 +163,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     private void setUpBottomSheet() {
         Button deleteBtn = bottomSheet.findViewById(R.id.deleteBtn);
         deleteBtn.setOnClickListener(v -> {
-            //MediaFetch.deleteMediax`Files(requireActivity().getContentResolver(), selectedImages, this);
             imageFrameAdapter.selectionModeEnabled = false;
             imageFrameAdapter.notifyDataSetChanged();
             onHideBottomSheet();

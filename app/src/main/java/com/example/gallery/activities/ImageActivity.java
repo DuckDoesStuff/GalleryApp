@@ -2,6 +2,7 @@ package com.example.gallery.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -12,7 +13,10 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.example.gallery.R;
 import com.example.gallery.component.ViewPagerAdapter;
 import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.TrashManager;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class ImageActivity extends AppCompatActivity {
@@ -40,6 +44,42 @@ public class ImageActivity extends AppCompatActivity {
         imageButton.setOnClickListener(v -> finish());
 
         ImageButton editButton = findViewById(R.id.edit_btn);
+
+        ImageButton deleteButton = findViewById(R.id.trash_btn);
+        deleteButton.setOnClickListener(v -> {
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Delete this file")
+                    .setMessage("Are you sure to delete this file?")
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        // Xử lý khi nhấn nút OK
+                        int currentPosition = viewPager2.getCurrentItem();
+                        images.remove(currentPosition); // Xóa hình ảnh khỏi danh sách
+                        viewPagerAdapter.notifyDataSetChanged(); // Cập nhật lại adapter của ViewPager2
+
+                        // Kiểm tra nếu danh sách images rỗng, kết thúc hoạt động ImageActivity
+                        if (images.isEmpty()) {
+                            finish();
+                        } else {
+                            // Hiển thị hình ảnh tiếp theo sau khi xóa
+                            if (currentPosition < images.size()) {
+                                viewPager2.setCurrentItem(currentPosition, false);
+                            } else {
+                                viewPager2.setCurrentItem(currentPosition - 1, false);
+                            }
+                        }
+
+                        // Di chuyển hình ảnh đã xóa vào thùng rác
+                        String currentImagePath = images.get(currentPosition).path;
+                        TrashManager.moveToTrash(ImageActivity.this, currentImagePath);
+
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> {
+                        // Xử lý khi nhấn nút Cancel
+
+                    })
+                    .show();
+        });
+
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

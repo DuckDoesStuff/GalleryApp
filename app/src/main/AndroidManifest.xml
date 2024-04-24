@@ -50,6 +50,12 @@
         <activity
             android:name=".component.dialog.AlbumPickerActivity"
             android:exported="false" />
+        <activity
+            android:name=".utils.firebase.UploadChooserActivity"
+            android:exported="false" />
+        <activity
+            android:name=".utils.firebase.UploadActivity"
+            android:exported="false" />
 
         <meta-data
             android:name="com.google.android.actions"

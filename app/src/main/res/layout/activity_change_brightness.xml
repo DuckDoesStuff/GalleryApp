@@ -22,7 +22,6 @@
                 android:layout_height="match_parent"
                 android:src="@drawable/back"
                 android:background="@null"
-                android:id="@+id/back_button"
                 />
             <FrameLayout
                 android:layout_width="0dp"
@@ -179,6 +178,20 @@
             android:background="@null"
             android:id="@+id/exposure_btn"
             android:layout_weight="1" />
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/brightness"
+                android:background="@null"
+                android:id="@+id/gamma_btn"
+                android:layout_weight="1" />
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/brightness"
+                android:background="@null"
+                android:id="@+id/saturation_btn"
+                android:layout_weight="1" />
 
 
         </LinearLayout>

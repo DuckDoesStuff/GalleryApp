@@ -20,7 +20,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.ImageActivity;
 import com.example.gallery.activities.MainActivity;
-import com.example.gallery.activities.SearchActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.ImageFrameAdapter;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
@@ -36,6 +35,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     LinearLayout bottomSheet;
+    SearchViewFragment searchViewFragment;
     boolean viewMode = true;
     MainActivity mainActivity;
     ImageFrameAdapter imageFrameAdapter;
@@ -128,11 +128,11 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
             popupMenu.show();
         });
-
         ImageButton searchButton = view.findViewById(R.id.search);
         searchButton.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), SearchActivity.class);
-            startActivity(intent);
+            if (getActivity() != null && getActivity() instanceof MainActivity) {
+                mainActivity.replaceFragment(new SearchViewFragment());
+            }
         });
 
         return view;

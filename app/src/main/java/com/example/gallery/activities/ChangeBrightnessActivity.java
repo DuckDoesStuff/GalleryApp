@@ -57,7 +57,7 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
 
         editedImagePath = imagePath;
 
-
+        funcText.findViewById(R.id.function);
         ImageButton backBtn = findViewById(R.id.back_button);
         backBtn.setOnClickListener(v -> finish());
 

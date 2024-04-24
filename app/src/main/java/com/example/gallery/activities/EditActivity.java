@@ -1,10 +1,9 @@
 package com.example.gallery.activities;
 
-import static com.yalantis.ucrop.util.FileUtils.copyFile;
-
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.media.ExifInterface;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,27 +13,17 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-
-import com.bumptech.glide.Glide;
 import com.example.gallery.R;
-import com.example.gallery.activities.ChangeBrightnessActivity;
 import com.squareup.picasso.Picasso;
 import com.yalantis.ucrop.UCrop;
-import com.yalantis.ucrop.util.FileUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class EditActivity extends AppCompatActivity {
     private String imgPath;
@@ -139,6 +128,7 @@ public class EditActivity extends AppCompatActivity {
             }
         }
     }
+    
     private void saveEditedImage() {
         File editedImageFile = new File(imgPath);
 
@@ -147,6 +137,15 @@ public class EditActivity extends AppCompatActivity {
             Toast.makeText(this, "Edited image not found", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // Lấy thông tin Exif từ hình gốc
+        ExifInterface originalExif = null;
+        try {
+            originalExif = new ExifInterface(tempImagePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         // Lấy tên tệp ảnh gốc
         String originalFileName = new File(tempImagePath).getName();
@@ -169,25 +168,47 @@ public class EditActivity extends AppCompatActivity {
 
             outputStream = new FileOutputStream(savedImageFile);
 
+            // Sao chép dữ liệu từ ảnh đã chỉnh sửa sang tệp mới
             byte[] buffer = new byte[1024];
             int length;
             while ((length = inputStream.read(buffer)) > 0) {
                 outputStream.write(buffer, 0, length);
             }
+            if (outputStream != null) {
+                outputStream.close();
+            }
+
+            // Đặt thuộc tính Exif cho ảnh mới từ hình gốc
+            if (originalExif != null) {
+                ExifInterface newExif = new ExifInterface(savedImagePath);
+                String dateTime = originalExif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL);
+
+
+                if (dateTime!=null)
+                {
+                    newExif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, dateTime);
+                }
+                newExif.saveAttributes();
+            }
+
+
 
             Toast.makeText(this, "Image saved successfully", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
+
+
         } finally {
             // Đóng luồng
             try {
                 if (inputStream != null) {
                     inputStream.close();
                 }
-                if (outputStream != null) {
-                    outputStream.close();
-                }
+
+                MediaScannerConnection.scanFile(this, new String[]{savedImagePath}, null, (path, uri) -> {
+                    // MediaScannerConnection callback
+                });
             } catch (IOException e) {
                 e.printStackTrace();
             }

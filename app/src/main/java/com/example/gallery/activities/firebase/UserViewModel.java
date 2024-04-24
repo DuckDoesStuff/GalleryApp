@@ -1,4 +1,4 @@
-package com.example.gallery.utils;
+package com.example.gallery.activities.firebase;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -9,7 +9,7 @@ public class UserViewModel extends ViewModel {
     private MutableLiveData<FirebaseUser> currentUser;
 
     public MutableLiveData<FirebaseUser> getCurrentUser() {
-        if(currentUser == null) {
+        if (currentUser == null) {
             currentUser = new MutableLiveData<>();
         }
         return currentUser;

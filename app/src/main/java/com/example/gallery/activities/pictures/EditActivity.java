@@ -13,17 +13,27 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+
+import com.bumptech.glide.Glide;
 import com.example.gallery.R;
+import com.example.gallery.activities.ChangeBrightnessActivity;
 import com.squareup.picasso.Picasso;
 import com.yalantis.ucrop.UCrop;
+import com.yalantis.ucrop.util.FileUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EditActivity extends AppCompatActivity {
     private String imgPath;
@@ -128,7 +138,6 @@ public class EditActivity extends AppCompatActivity {
             }
         }
     }
-    
     private void saveEditedImage() {
         File editedImageFile = new File(imgPath);
 
@@ -197,18 +206,15 @@ public class EditActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
-
-
         } finally {
             // Đóng luồng
             try {
                 if (inputStream != null) {
                     inputStream.close();
                 }
-
-                MediaScannerConnection.scanFile(this, new String[]{savedImagePath}, null, (path, uri) -> {
-                    // MediaScannerConnection callback
-                });
+                if (outputStream != null) {
+                    outputStream.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

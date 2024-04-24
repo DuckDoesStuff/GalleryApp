@@ -1,30 +1,27 @@
-package com.example.gallery.activities;
+package com.example.gallery.activities.pictures;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.gallery.R;
-import com.example.gallery.component.ViewPagerAdapter;
-import com.example.gallery.utils.MediaModel;
-import com.example.gallery.utils.TrashManager;
+import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
 
 public class ImageActivity extends AppCompatActivity {
-    ArrayList<MediaModel> images;
+    ArrayList<MediaModel> mediaModels;
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
-    private static final int EDIT_IMAGE_REQUEST_CODE = 1001;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,43 +31,61 @@ public class ImageActivity extends AppCompatActivity {
         Intent intent = getIntent();
         final int position;
         if (intent != null) {
-            images = intent.getParcelableArrayListExtra("images");
+            mediaModels = intent.getParcelableArrayListExtra("mediaModels");
             position = intent.getIntExtra("initial", 0);
         } else {
-            images = new ArrayList<>();
+            mediaModels = new ArrayList<>();
             position = -1;
         }
         ImageButton imageButton = findViewById(R.id.back_button);
         imageButton.setOnClickListener(v -> finish());
 
         ImageButton editButton = findViewById(R.id.edit_btn);
-
         ImageButton deleteButton = findViewById(R.id.trash_btn);
+        ImageButton shareButton = findViewById(R.id.share_button);
+        shareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Lấy đường dẫn của hình ảnh đang hiển thị trong ViewPager2
+                String currentImagePath = mediaModels.get(viewPager2.getCurrentItem()).localPath;
+
+                // Tạo một Uri từ đường dẫn của hình ảnh
+                Uri imageUri = FileProvider.getUriForFile(com.example.gallery.activities.pictures.ImageActivity.this,
+                        "com.example.gallery", new File(currentImagePath));
+
+                // Tạo Intent để chia sẻ hình ảnh
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("image/*");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+
+                // Cho phép các ứng dụng khác đọc dữ liệu từ FileProvider của bạn
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                // Mở Activity chia sẻ và chọn ứng dụng để chia sẻ hình ảnh
+                startActivity(Intent.createChooser(shareIntent, "Share Image"));
+            }
+        });
         deleteButton.setOnClickListener(v -> {
             new MaterialAlertDialogBuilder(this)
                     .setTitle("Delete this file")
                     .setMessage("Are you sure to delete this file?")
                     .setPositiveButton("OK", (dialog, which) -> {
-                        // Xử lý khi nhấn nút OK
                         int currentPosition = viewPager2.getCurrentItem();
-                        images.remove(currentPosition); // Xóa hình ảnh khỏi danh sách
-                        viewPagerAdapter.notifyDataSetChanged(); // Cập nhật lại adapter của ViewPager2
+                        mediaModels.remove(currentPosition);
+                        viewPagerAdapter.notifyDataSetChanged();
 
-                        // Kiểm tra nếu danh sách images rỗng, kết thúc hoạt động ImageActivity
-                        if (images.isEmpty()) {
+                        if (mediaModels.isEmpty()) {
                             finish();
                         } else {
-                            // Hiển thị hình ảnh tiếp theo sau khi xóa
-                            if (currentPosition < images.size()) {
+                            if (currentPosition < mediaModels.size()) {
                                 viewPager2.setCurrentItem(currentPosition, false);
                             } else {
                                 viewPager2.setCurrentItem(currentPosition - 1, false);
                             }
                         }
 
-                        // Di chuyển hình ảnh đã xóa vào thùng rác
-                        String currentImagePath = images.get(currentPosition).path;
-                        TrashManager.moveToTrash(ImageActivity.this, currentImagePath);
+//                    String currentImagePath = mediaModels.get(currentPosition).localPath;
+//                    TrashManager.moveToTrash(ImageActivity.this, currentImagePath);
 
                     })
                     .setNegativeButton("Cancel", (dialog, which) -> {
@@ -79,34 +94,22 @@ public class ImageActivity extends AppCompatActivity {
                     })
                     .show();
         });
+        editButton.setOnClickListener(v -> {
+            String currentImagePath = mediaModels.get(viewPager2.getCurrentItem()).localPath;
 
-        editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String currentImagePath = images.get(viewPager2.getCurrentItem()).path;
-
-                Intent editIntent = new Intent(ImageActivity.this, EditActivity.class);
-                editIntent.putExtra("imagePath", currentImagePath);
-                startActivity(editIntent);
-            }
+            Intent editIntent = new Intent(ImageActivity.this, EditActivity.class);
+            editIntent.putExtra("imagePath", currentImagePath);
+            startActivity(editIntent);
         });
 
         viewPager2 = findViewById(R.id.view_pager);
-        viewPagerAdapter = new ViewPagerAdapter(images, this);
+        viewPagerAdapter = new ViewPagerAdapter(mediaModels, this);
         viewPager2.setAdapter(viewPagerAdapter);
         viewPager2.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
         viewPager2.setOffscreenPageLimit(3);
         viewPager2.setCurrentItem(position, false);
-        viewPager2.setDrawingCacheEnabled(true);
-        viewPager2.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
 
     }
-
-    public void setViewPagerInputEnabled(boolean enabled) {
-        viewPager2.setUserInputEnabled(enabled);
-    }
-
-
 
     @Override
     protected void onDestroy() {

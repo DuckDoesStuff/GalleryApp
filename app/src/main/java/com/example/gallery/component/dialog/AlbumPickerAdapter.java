@@ -13,18 +13,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.gallery.R;
-import com.example.gallery.utils.GalleryDB;
+import com.example.gallery.utils.database.AlbumModel;
 
 import java.util.ArrayList;
 
 public class AlbumPickerAdapter extends RecyclerView.Adapter<AlbumPickerAdapter.PickerViewHolder> {
     private final AlbumPickerListener listener;
+    ArrayList<AlbumModel> albums;
 
-    public interface AlbumPickerListener {
-        void onAlbumSelected(GalleryDB.AlbumScheme albumScheme);
-    }
-    ArrayList<GalleryDB.AlbumScheme> albums;
-    public AlbumPickerAdapter(ArrayList<GalleryDB.AlbumScheme> albums, AlbumPickerListener listener) {
+    public AlbumPickerAdapter(ArrayList<AlbumModel> albums, AlbumPickerListener listener) {
         this.albums = albums;
         this.listener = listener;
     }
@@ -39,22 +36,22 @@ public class AlbumPickerAdapter extends RecyclerView.Adapter<AlbumPickerAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull PickerViewHolder holder, int position) {
-        GalleryDB.AlbumScheme album = albums.get(position);
-        ImageView albumCover = holder.itemView.findViewById(R.id.album_cover);
+        AlbumModel album = albums.get(position);
+        ImageView albumCover = holder.itemView.findViewById(R.id.album_thumbnail);
         TextView albumTitle = holder.itemView.findViewById(R.id.album_title);
         TextView albumCount = holder.itemView.findViewById(R.id.album_count);
 
-        if (album.albumThumb != null)
-            Glide.with(holder.itemView).load(album.albumThumb).centerCrop().into(albumCover);
-        else {
-            ColorMatrix matrix = new ColorMatrix();
-            matrix.setSaturation(0);
-            albumCover.setColorFilter(new ColorMatrixColorFilter(matrix));
-        }
-        albumTitle.setText(album.albumName);
+                if (album.albumThumbnail != null)
+                    Glide.with(holder.itemView).load(album.albumThumbnail).centerCrop().into(albumCover);
+                else {
+                    ColorMatrix matrix = new ColorMatrix();
+                    matrix.setSaturation(0);
+                    albumCover.setColorFilter(new ColorMatrixColorFilter(matrix));
+                }
+                albumTitle.setText(album.albumName);
 
-        if(album.albumCount != 0)
-            albumCount.setText(String.valueOf(album.albumCount));
+                if(album.mediaCount != 0)
+                    albumCount.setText(String.valueOf(album.mediaCount));
 
         holder.itemView.setOnClickListener(v -> {
             listener.onAlbumSelected(album);
@@ -64,6 +61,10 @@ public class AlbumPickerAdapter extends RecyclerView.Adapter<AlbumPickerAdapter.
     @Override
     public int getItemCount() {
         return albums.size();
+    }
+
+    public interface AlbumPickerListener {
+        void onAlbumSelected(AlbumModel albumScheme);
     }
 
     public static class PickerViewHolder extends RecyclerView.ViewHolder {

@@ -1,4 +1,4 @@
-package com.example.gallery.utils.firebase;
+package com.example.gallery.activities.firebase;
 
 import android.content.Context;
 import android.content.Intent;
@@ -29,31 +29,31 @@ public class AuthActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> launcher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 GoogleSignIn.getSignedInAccountFromIntent(result.getData())
-                .addOnSuccessListener(googleSignInAccount -> {
-                    Log.d("SignIn", "signInWithGoogle:success");
-                    SharedPreferences sharedPreferences = getSharedPreferences("user_session", Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("user_id", googleSignInAccount.getId());
-                    editor.putString("user_email", googleSignInAccount.getEmail());
-                    editor.putString("username", googleSignInAccount.getDisplayName());
-                    editor.apply();
-                    //Log.d("SignIn", googleSignInAccount.getId() + " " + googleSignInAccount.getEmail() + " " + googleSignInAccount.getIdToken());
-                    AuthCredential credential = GoogleAuthProvider.getCredential(googleSignInAccount.getIdToken(), null);
-                    auth.signInWithCredential(credential)
-                            .addOnSuccessListener(authResult -> {
-                                Log.d("SignIn", "signInWithCredential:success");
-                                setResult(RESULT_OK);
-                                Log.d("Auth", "AuthActivity: Successfully logged in");
-                                finish();
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.d("SignIn", "signInWithCredential:failed");
-                            });
-                })
-                .addOnFailureListener(e -> {
-                    Log.d("SignIn", "signInWithGoogle:failed");
-                    finish();
-                });
+                        .addOnSuccessListener(googleSignInAccount -> {
+                            Log.d("SignIn", "signInWithGoogle:success");
+                            SharedPreferences sharedPreferences = getSharedPreferences("user_session", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("user_id", googleSignInAccount.getId());
+                            editor.putString("user_email", googleSignInAccount.getEmail());
+                            editor.putString("username", googleSignInAccount.getDisplayName());
+                            editor.apply();
+                            //Log.d("SignIn", googleSignInAccount.getId() + " " + googleSignInAccount.getEmail() + " " + googleSignInAccount.getIdToken());
+                            AuthCredential credential = GoogleAuthProvider.getCredential(googleSignInAccount.getIdToken(), null);
+                            auth.signInWithCredential(credential)
+                                    .addOnSuccessListener(authResult -> {
+                                        Log.d("SignIn", "signInWithCredential:success");
+                                        setResult(RESULT_OK);
+                                        Log.d("Auth", "AuthActivity: Successfully logged in");
+                                        finish();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.d("SignIn", "signInWithCredential:failed");
+                                    });
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.d("SignIn", "signInWithGoogle:failed");
+                            finish();
+                        });
             }
     );
 

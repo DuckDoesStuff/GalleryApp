@@ -43,6 +43,7 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
 
     private static final int DELAY_MILLIS = 300;
     private String editedImagePath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -190,17 +191,14 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
                 applyFilterInBackground(brightnessValue, contrastValue,gammaValue,saturationValue,exposureValue);
             }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
-
-
-
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
         }
 
 
@@ -253,7 +251,7 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
 
     private void onExposureButtonClick() {
 
-        
+
 
 
         gammaSeekBar.setVisibility(View.INVISIBLE);
@@ -313,7 +311,7 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
+                        gpuImageView.setScaleType(GPUImage.ScaleType.CENTER_INSIDE);
 
                         gpuImageView.setImage(scaledBitmap);
                     }

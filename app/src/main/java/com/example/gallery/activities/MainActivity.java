@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,19 +20,19 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.gallery.R;
+import com.example.gallery.activities.album.AlbumsFragment;
+import com.example.gallery.activities.firebase.GuestFragment;
+import com.example.gallery.activities.firebase.UploadChooserActivity;
+import com.example.gallery.activities.firebase.UserFragment;
+import com.example.gallery.activities.firebase.UserViewModel;
+import com.example.gallery.activities.pictures.PicutresFragment;
 import com.example.gallery.databinding.ActivityMainBinding;
-import com.example.gallery.fragments.AlbumsFragment;
-import com.example.gallery.fragments.GuestFragment;
 import com.example.gallery.fragments.HomeFragment;
-import com.example.gallery.fragments.PicutresFragment;
-import com.example.gallery.fragments.UserFragment;
-import com.example.gallery.utils.GalleryDB;
-import com.example.gallery.utils.MediaFetch;
-import com.example.gallery.utils.MediaModel;
+import com.example.gallery.utils.MediaStoreService;
 import com.example.gallery.utils.PermissionUtils;
-import com.example.gallery.utils.TrashManager;
-import com.example.gallery.utils.UserViewModel;
-import com.example.gallery.utils.firebase.UploadChooserActivity;
+import com.example.gallery.utils.database.DatabaseQuery;
+import com.example.gallery.utils.database.GalleryDB;
+import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,17 +42,24 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
+    public UserViewModel userViewModel;
     ActivityMainBinding binding;
     Fragment currentFragment;
     PicutresFragment picutresFragment;
     HomeFragment homeFragment;
     AlbumsFragment albumsFragment;
     Fragment profileFragment;
-    public UserViewModel userViewModel;
     Observer<FirebaseUser> userObserver;
     FirebaseUser user;
 
+    DatabaseQuery databaseQuery;
+
     PermissionUtils.PermissionCallback permissionCallback = () -> {
+        Intent serviceIntent = new Intent(this, MediaStoreService.class);
+        startService(serviceIntent);
+
+        new Thread(this::startDatabase).start();
+
         picutresFragment = new PicutresFragment();
         replaceFragment(picutresFragment);
     };
@@ -59,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MediaFetch.getInstance(getApplicationContext(), this).fetchMedia(true);
+
+        databaseQuery = new DatabaseQuery(this);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -87,15 +96,14 @@ public class MainActivity extends AppCompatActivity {
             PermissionUtils.requestMultipleActivityPermissions(
                     this,
                     new String[]
-                    {
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    },
+                            {
+                                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            },
                     permissionCallback,
                     1
             );
         }
-        TrashManager.createTrash();
 
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         userObserver = firebaseUser -> {
@@ -104,10 +112,7 @@ public class MainActivity extends AppCompatActivity {
             if (bottomNavigationView.getSelectedItemId() == R.id.profile) {
                 if (firebaseUser != null) {
                     profileFragment = new UserFragment();
-                    GalleryDB db = new GalleryDB(this);
-                    db.updateImages(this);
-                }
-                else
+                } else
                     profileFragment = new GuestFragment();
                 replaceFragment(profileFragment);
             }
@@ -133,9 +138,9 @@ public class MainActivity extends AppCompatActivity {
                 }
                 replaceFragment(albumsFragment);
             } else if (itemId == R.id.profile) {
-                if(user != null) {
+                if (user != null) {
                     profileFragment = new UserFragment();
-                }else {
+                } else {
                     profileFragment = new GuestFragment();
                 }
                 replaceFragment(profileFragment);
@@ -192,12 +197,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        if(user == null) return;
+        if (user == null) return;
 
         GalleryDB db = new GalleryDB(this);
-        ArrayList<MediaModel> imagesToUpload = db.getImagesToUpload();
+        ArrayList<MediaModel> imagesToUpload = db.getMediaToUpload();
 
-        if(imagesToUpload.isEmpty()) return;
+        if (imagesToUpload.isEmpty()) return;
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Upload new media")
@@ -214,8 +219,20 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    private void startDatabase() {
+        // Query the MediaStore for new media here
+        databaseQuery.queryMedia();
+        databaseQuery.queryAlbum();
+        // Update SQLite database with the retrieved information here
+        databaseQuery.addToMediaTable(databaseQuery.mediaModelsToAdd);
+        databaseQuery.addToAlbumTable(databaseQuery.albumModelsToAdd);
+        databaseQuery.removeFromMediaTable(databaseQuery.mediaModelsToDelete);
+        databaseQuery.removeFromAlbumTable(databaseQuery.albumModelsToDelete);
+        // Sync with firestore if authenticated
+
+
+        GalleryDB.notifyMediaObservers();
+        GalleryDB.notifyAlbumObservers();
+        Log.d("MainActivity", "Database refreshed");
     }
 }

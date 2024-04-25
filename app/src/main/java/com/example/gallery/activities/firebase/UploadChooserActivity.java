@@ -7,17 +7,22 @@ import android.widget.ImageButton;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
 import com.example.gallery.activities.pictures.ImageFrameAdapter;
+import com.example.gallery.activities.pictures.MediaViewModel;
 import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
 
 public class UploadChooserActivity extends AppCompatActivity implements ImageFrameAdapter.ImageFrameListener {
-    private ArrayList<MediaModel> foundImages;
-    private ArrayList<MediaModel> selectedImages;
+    private ArrayList<MediaModel> selectedMedia;
     private Button uploadBtn;
+
+    private MediaViewModel mediaViewModel;
 
 
     @Override
@@ -25,11 +30,14 @@ public class UploadChooserActivity extends AppCompatActivity implements ImageFra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_media_picker);
 
+        mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
+
         Intent intent = getIntent();
+        ArrayList<MediaModel> mediaModels;
         if (intent != null) {
-            foundImages = new ArrayList<>();
-            foundImages = intent.getParcelableArrayListExtra("foundImages");
-            selectedImages = new ArrayList<>();
+            mediaModels = intent.getParcelableArrayListExtra("mediaToUpload");
+            mediaViewModel.getMedia().setValue(mediaModels);
+            selectedMedia = new ArrayList<>();
         } else {
             finish();
         }
@@ -41,29 +49,27 @@ public class UploadChooserActivity extends AppCompatActivity implements ImageFra
         ImageButton backBtn = findViewById(R.id.backButton);
         backBtn.setOnClickListener(v -> finish());
 
-
         uploadBtn = findViewById(R.id.uploadButton);
         uploadBtn.setEnabled(false);
         uploadBtn.setOnClickListener(v -> {
             Intent uploadIntent = new Intent(this, UploadActivity.class);
-            uploadIntent.putParcelableArrayListExtra("selectedImages", selectedImages);
+            uploadIntent.putParcelableArrayListExtra("selectedMedia", selectedMedia);
             startActivity(uploadIntent);
         });
 
-//        RecyclerView recyclerView = findViewById(R.id.media_picker_recycler_view);
-//        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(this, imgSize, selectedImages, this);
-//        imageFrameAdapter.initFrameModels(foundImages);
-//        recyclerView.setAdapter(imageFrameAdapter);
-//        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+        RecyclerView recyclerView = findViewById(R.id.media_picker_recycler_view);
+        ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(imgSize, this, this);
+        recyclerView.setAdapter(imageFrameAdapter);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
     }
 
     @Override
     public void onItemClick(int position) {
-        uploadBtn.setEnabled(!selectedImages.isEmpty());
+
     }
 
     @Override
     public void onItemLongClick(int position) {
-        uploadBtn.setEnabled(!selectedImages.isEmpty());
+
     }
 }

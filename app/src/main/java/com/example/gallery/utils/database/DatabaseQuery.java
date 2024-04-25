@@ -54,7 +54,6 @@ public class DatabaseQuery {
                         dateTaken = imageCursor.getLong(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED));
                     }
                     int duration = imageCursor.getInt(imageCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DURATION));
-                    db.onNewImageToUpload(localPath);
                     MediaModel mediaModel = new MediaModel();
                     mediaModel.setBucketID(bucketID)
                             .setAlbumName(albumName)
@@ -116,11 +115,19 @@ public class DatabaseQuery {
 
         // Check for new media
         mediaModelsToAdd = new ArrayList<>();
-        mediaModelsToAdd = mediaList.stream().filter(mediaModel -> !dbAllMedia.contains(mediaModel)).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+        mediaModelsToAdd =
+            mediaList
+            .stream()
+            .filter(mediaModel -> !dbAllMedia.contains(mediaModel))
+            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 
         // Check for deleted media
         mediaModelsToDelete = new ArrayList<>();
-        mediaModelsToDelete = dbAllMedia.stream().filter(mediaModel -> !mediaList.contains(mediaModel)).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+        mediaModelsToDelete =
+            dbAllMedia
+            .stream()
+            .filter(mediaModel -> !mediaList.contains(mediaModel))
+            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
     public void addToMediaTable(ArrayList<MediaModel> mediaModels) {

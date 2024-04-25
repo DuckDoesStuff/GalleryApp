@@ -51,7 +51,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     ActivityResultLauncher<Intent> albumPickerLauncher;
     ActivityResultLauncher<Intent> trashManagerLauncher;
 
-
     private MediaViewModel mediaViewModel;
 
     public PicutresFragment() {
@@ -91,6 +90,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         Log.d("PicturesFragment", "Initialized");
     }
+
 
     @Override
     public void onDestroy() {

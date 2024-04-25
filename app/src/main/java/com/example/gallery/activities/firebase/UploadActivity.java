@@ -137,7 +137,7 @@ public class UploadActivity extends AppCompatActivity {
             currentProgress++;
             circularProgressIndicator.setProgress((currentProgress / totalProgress) * 100);
             try {
-                db.onRemoveImageToUpload(localPath);
+//                db.onRemoveImageToUpload(localPath);
                 // Update firestore
                 FirebaseFirestore fs = FirebaseFirestore.getInstance();
                 CollectionReference userCollection = fs.collection(user.getUid());

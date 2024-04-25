@@ -22,7 +22,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.gallery.R;
 import com.example.gallery.activities.album.AlbumsFragment;
 import com.example.gallery.activities.firebase.GuestFragment;
-import com.example.gallery.activities.firebase.UploadChooserActivity;
 import com.example.gallery.activities.firebase.UserFragment;
 import com.example.gallery.activities.firebase.UserViewModel;
 import com.example.gallery.activities.pictures.PicutresFragment;
@@ -32,13 +31,9 @@ import com.example.gallery.utils.MediaStoreService;
 import com.example.gallery.utils.PermissionUtils;
 import com.example.gallery.utils.database.DatabaseQuery;
 import com.example.gallery.utils.database.GalleryDB;
-import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-
-import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -67,8 +62,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        databaseQuery = new DatabaseQuery(this);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -188,38 +181,14 @@ public class MainActivity extends AppCompatActivity {
         binding.bottomNavigationView.setVisibility(visibility);
     }
 
-    public void startUploadActivity(ArrayList<MediaModel> foundImages) {
-        Intent intent = new Intent(this, UploadChooserActivity.class);
-        intent.putExtra("foundImages", foundImages);
-        startActivity(intent);
-    }
-
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        if (user == null) return;
-
-        GalleryDB db = new GalleryDB(this);
-        ArrayList<MediaModel> imagesToUpload = db.getMediaToUpload();
-
-        if (imagesToUpload.isEmpty()) return;
-
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("Upload new media")
-                .setMessage("Gallery found " + imagesToUpload.size() + " media you might want to upload. \nSelect the media you want to upload.")
-                .setPositiveButton("OK", (dialog, which) -> {
-                    try {
-                        startUploadActivity(imagesToUpload);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> {
-                })
-                .show();
     }
 
     private void startDatabase() {
+        databaseQuery = new DatabaseQuery(this);
+
         // Query the MediaStore for new media here
         databaseQuery.queryMedia();
         databaseQuery.queryAlbum();

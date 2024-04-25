@@ -3,6 +3,7 @@ package com.example.gallery.utils.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -153,6 +154,55 @@ public class GalleryDB extends SQLiteOpenHelper {
         return values;
     }
 
+    private MediaModel getMediaModelFromCursor(Cursor cursor) {
+        ContentValues values = new ContentValues();
+        DatabaseUtils.cursorRowToContentValues(cursor, values);
+
+        int mediaID = values.getAsInteger("media_id");
+        String localPath = values.getAsString("local_path");
+        String cloudPath = values.getAsString("cloud_path");
+        boolean downloaded = values.getAsBoolean("downloaded");
+        String albumName = values.getAsString("album_name");
+        String type = values.getAsString("type");
+        int duration = values.getAsInteger("duration");
+        String location = values.getAsString("location");
+        long dateTaken = values.getAsLong("date_taken");
+
+        return new MediaModel()
+                .setLocalPath(localPath)
+                .setCloudPath(cloudPath)
+                .setDownloaded(downloaded)
+                .setAlbumName(albumName)
+                .setType(type)
+                .setDuration(duration)
+                .setGeoLocation(location)
+                .setMediaID(mediaID)
+                .setDateTaken(dateTaken);
+    }
+
+    private AlbumModel getAlbumModelFromCursor(Cursor cursor) {
+        ContentValues values = new ContentValues();
+        DatabaseUtils.cursorRowToContentValues(cursor, values);
+
+        String userID = values.getAsString("user_id");
+        String albumName = values.getAsString("album_name");
+        String localPath = values.getAsString("local_path");
+        String cloudPath = values.getAsString("cloud_path");
+        String albumThumb = values.getAsString("album_thumb");
+        boolean hidden = values.getAsBoolean("hidden");
+        boolean downloaded = values.getAsBoolean("downloaded");
+        long createdAt = values.getAsLong("created_at");
+
+        return new AlbumModel()
+                .setUserID(userID)
+                .setAlbumName(albumName)
+                .setLocalPath(localPath)
+                .setCloudPath(cloudPath)
+                .setAlbumThumbnail(albumThumb)
+                .setHidden(hidden)
+                .setDownloaded(downloaded)
+                .setCreatedAt(createdAt);
+    }
     // END SQLITE HELPER
 
     @Override
@@ -258,33 +308,16 @@ public class GalleryDB extends SQLiteOpenHelper {
         ArrayList<AlbumModel> albumSchemes = new ArrayList<>();
         Cursor cursor = db.rawQuery("SELECT * FROM albums", null);
         while (cursor.moveToNext()) {
-            String userID = cursor.getString(cursor.getColumnIndexOrThrow("user_id"));
-            String albumName = cursor.getString(cursor.getColumnIndexOrThrow("album_name"));
-            String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
-            String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
-            String albumThumb = cursor.getString(cursor.getColumnIndexOrThrow("album_thumb"));
-            boolean hidden = cursor.getInt(cursor.getColumnIndexOrThrow("hidden")) == 1;
-            boolean downloaded = cursor.getInt(cursor.getColumnIndexOrThrow("downloaded")) == 1;
-            long createdAt = cursor.getLong(cursor.getColumnIndexOrThrow("created_at"));
+            AlbumModel albumModel = getAlbumModelFromCursor(cursor);
 
-            Cursor getMediaCount = db.rawQuery("SELECT COUNT(*) FROM media WHERE album_name = ?", new String[]{albumName});
+            Cursor getMediaCount = db.rawQuery("SELECT COUNT(*) FROM media WHERE album_name = ?", new String[]{albumModel.albumName});
             int mediaCount = 0;
             if (getMediaCount.moveToFirst()) {
                 mediaCount = getMediaCount.getInt(0);
             }
             getMediaCount.close();
 
-
-            albumSchemes.add(new AlbumModel()
-                    .setAlbumName(albumName)
-                    .setUserID(userID)
-                    .setLocalPath(localPath)
-                    .setCloudPath(cloudPath)
-                    .setMediaCount(mediaCount)
-                    .setAlbumThumbnail(albumThumb)
-                    .setHidden(hidden)
-                    .setDownloaded(downloaded)
-                    .setCreatedAt(createdAt));
+            albumSchemes.add(albumModel.setMediaCount(mediaCount));
         }
         cursor.close();
         db.close();
@@ -296,24 +329,7 @@ public class GalleryDB extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM media WHERE album_name = ?", new String[]{albumModel.albumName});
         while (cursor.moveToNext()) {
-            String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
-            String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
-            boolean downloaded = cursor.getInt(cursor.getColumnIndexOrThrow("downloaded")) == 1;
-            String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
-            int duration = cursor.getInt(cursor.getColumnIndexOrThrow("duration"));
-            String location = cursor.getString(cursor.getColumnIndexOrThrow("location"));
-            int mediaID = cursor.getInt(cursor.getColumnIndexOrThrow("media_id"));
-            long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow("date_taken"));
-            mediaModels.add(new MediaModel()
-                    .setLocalPath(localPath)
-                    .setCloudPath(cloudPath)
-                    .setDownloaded(downloaded)
-                    .setAlbumName(albumModel.albumName)
-                    .setType(type)
-                    .setDuration(duration)
-                    .setGeoLocation(location)
-                    .setMediaID(mediaID)
-                    .setDateTaken(dateTaken));
+            mediaModels.add(getMediaModelFromCursor(cursor).setAlbumName(albumModel.albumName));
         }
         cursor.close();
         db.close();
@@ -345,12 +361,13 @@ public class GalleryDB extends SQLiteOpenHelper {
     }
 
     // START UPLOAD
+    //delete
     public void onNewImageToUpload(String imagePath) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("INSERT OR IGNORE INTO to_upload (image_path) VALUES ('" + imagePath + "')");
         db.close();
     }
-
+    //delete
     public ArrayList<MediaModel> getMediaToUpload() {
         SQLiteDatabase db = getReadableDatabase();
         ArrayList<MediaModel> mediaModels = new ArrayList<>();
@@ -363,14 +380,24 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.close();
         return mediaModels;
     }
-
-    // END UPLOAD
-
+    //delete
     public void onRemoveImageToUpload(String imagePath) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM to_upload WHERE image_path = ?", new String[]{imagePath});
         db.close();
     }
+
+    public ArrayList<MediaModel> getNotSynced() {
+        ArrayList<MediaModel> mediaModels = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM media WHERE user_id = ''", null);
+        while (cursor.moveToNext()) {
+            mediaModels.add(getMediaModelFromCursor(cursor));
+        }
+        return mediaModels;
+    }
+
+    // END UPLOAD
 
     // START MEDIA
     public ArrayList<MediaModel> getAllMedia() {
@@ -385,30 +412,12 @@ public class GalleryDB extends SQLiteOpenHelper {
             args = new String[]{""};
         }
         Cursor cursor = db.rawQuery(
-                "SELECT * FROM media WHERE user_id = ? OR user_id = NULL",
+                "SELECT * FROM media WHERE user_id = ? OR user_id = ''",
                 args);
 
         try {
             while (cursor.moveToNext()) {
-                String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
-                String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
-                boolean downloaded = cursor.getInt(cursor.getColumnIndexOrThrow("downloaded")) == 1;
-                String albumName = cursor.getString(cursor.getColumnIndexOrThrow("album_name"));
-                String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
-                int duration = cursor.getInt(cursor.getColumnIndexOrThrow("duration"));
-                String location = cursor.getString(cursor.getColumnIndexOrThrow("location"));
-                int mediaID = cursor.getInt(cursor.getColumnIndexOrThrow("media_id"));
-                long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow("date_taken"));
-                medialModels.add(new MediaModel()
-                        .setLocalPath(localPath)
-                        .setCloudPath(cloudPath)
-                        .setDownloaded(downloaded)
-                        .setAlbumName(albumName)
-                        .setType(type)
-                        .setDuration(duration)
-                        .setGeoLocation(location)
-                        .setMediaID(mediaID)
-                        .setDateTaken(dateTaken));
+                medialModels.add(getMediaModelFromCursor(cursor));
             }
         } catch (Exception e) {
             e.printStackTrace();

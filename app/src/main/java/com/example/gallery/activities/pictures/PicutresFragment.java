@@ -2,6 +2,7 @@ package com.example.gallery.activities.pictures;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +18,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -36,6 +38,7 @@ import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -255,6 +258,34 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             intent.putParcelableArrayListExtra("mediaModels", selectedImages);
             albumPickerLauncher.launch(intent);
         });
+        Button shareBtn = bottomSheet.findViewById(R.id.shareBtn);
+        shareBtn.setOnClickListener(v -> {
+            ArrayList<Integer> selectedPositions = mediaViewModel.getSelectedMedia().getValue();
+            if (selectedPositions != null) {
+                ArrayList<Uri> imageUris = new ArrayList<>();
+                selectedImages.clear();
+                Log.d("hii","share");
+                for (int position : selectedPositions) {
+                    // Use position to retrieve MediaModel from selectedImages list
+                    selectedImages.add(mediaViewModel.getMedia(position));
+                    MediaModel mediaModel = mediaViewModel.getMedia(position);
+                    String imagePath = mediaModel.localPath;
+                    File imageFile = new File(imagePath);
+                    Uri imageUri = FileProvider.getUriForFile(requireContext(),
+                            "com.example.gallery", imageFile);
+                    imageUris.add(imageUri);
+                }
+
+                Intent shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                shareIntent.setType("image/*");
+                shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, imageUris);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                startActivity(Intent.createChooser(shareIntent, "Share Images"));
+                mediaViewModel.clearSelectedMedia();
+            }
+        });
+
     }
 
     @Override

@@ -1,28 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#000000">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FFFFFF"
         android:orientation="vertical">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FFFFFF"
             android:minHeight="?attr/actionBarSize"
             android:theme="?attr/actionBarTheme">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#FFFFFF"
                 android:orientation="horizontal">
 
                 <ImageButton
@@ -30,8 +25,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginEnd="20dp"
-                    android:background="#FFFFFF"
-                    app:srcCompat="@drawable/back_black" />
+                    android:background="@color/transparent"
+                    android:src="@drawable/back_black" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -69,14 +64,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:layout_marginHorizontal="10dp"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:background="@color/transparent"
                         android:src="@drawable/search" />
 
                     <ImageButton
                         android:id="@+id/settings"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:background="@color/transparent"
                         android:src="@drawable/setting" />
                 </LinearLayout>
 

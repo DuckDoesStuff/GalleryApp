@@ -64,6 +64,7 @@ public class UserFragment extends Fragment {
             ArrayList<MediaModel> mediaModels;
             try(GalleryDB db = new GalleryDB(getContext())) {
                 mediaModels = db.getNotSynced();
+                mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.d("UserFragment", "Error fetching local only media from database");

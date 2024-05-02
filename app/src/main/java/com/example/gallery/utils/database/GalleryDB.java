@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 
@@ -138,10 +137,8 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     @NonNull
     private static ContentValues getMediaValue(MediaModel mediaModel) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = user != null ? user.getUid() : "";
         ContentValues values = new ContentValues();
-        values.put("user_id", uid);
+        values.put("user_id", "");
         values.put("local_path", mediaModel.localPath);
         values.put("cloud_path", mediaModel.cloudPath);
         values.put("downloaded", mediaModel.downloaded ? 1 : 0);
@@ -390,7 +387,7 @@ public class GalleryDB extends SQLiteOpenHelper {
     public ArrayList<MediaModel> getNotSynced() {
         ArrayList<MediaModel> mediaModels = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM media WHERE user_id = ''", null);
+        Cursor cursor = db.rawQuery("SELECT * FROM media WHERE user_id = '' OR user_id = NULL OR (local_path != '' AND cloud_path = '')", null);
         while (cursor.moveToNext()) {
             mediaModels.add(getMediaModelFromCursor(cursor));
         }
@@ -404,16 +401,9 @@ public class GalleryDB extends SQLiteOpenHelper {
         ArrayList<MediaModel> medialModels = new ArrayList<>();
 
         SQLiteDatabase db = getReadableDatabase();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String[] args;
-        if (user != null) {
-            args = new String[]{user.getUid()};
-        } else {
-            args = new String[]{""};
-        }
         Cursor cursor = db.rawQuery(
-                "SELECT * FROM media WHERE user_id = ? OR user_id = ''",
-                args);
+                "SELECT * FROM media WHERE user_id = '' OR user_id = NULL",
+                null);
 
         try {
             while (cursor.moveToNext()) {

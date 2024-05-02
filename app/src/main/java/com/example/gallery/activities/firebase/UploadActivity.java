@@ -1,114 +1,90 @@
 package com.example.gallery.activities.firebase;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.example.gallery.R;
+import com.example.gallery.utils.UploadService;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 public class UploadActivity extends AppCompatActivity {
     private final Semaphore semaphore = new Semaphore(5); // Limit the number of concurrent uploads
     private CircularProgressIndicator circularProgressIndicator;
     private ArrayList<MediaModel> selectedImages;
-    private FirebaseStorage storage;
     private StorageReference userRoot;
     private int totalProgress;
     private int currentProgress = 0;
     private TextView progressText;
     private GalleryDB db;
     private FirebaseUser user;
+    private Snackbar uploadSnackbar;
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+                Intent serviceIntent = new Intent(this, UploadService.class);
+                startForegroundService(serviceIntent);
+            } else {
+                // Permission denied
+                // Show a message to the user
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle("Permission Denied")
+                        .setMessage("Android requires you to turn on notification for background upload.")
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            // Close the activity
+                            finish();
+                        })
+                        .show();
+            }
+        }
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        setContentView(R.layout.activity_upload);
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        user = auth.getCurrentUser();
-
-        db = new GalleryDB(this);
-
-        Intent intent = getIntent();
-        if (intent == null) {
-            finish();
-            return;
-        }
-        selectedImages = intent.getParcelableArrayListExtra("selectedImages");
-        if (user == null || selectedImages == null) {
-            finish();
-            return;
-        }
-
-        totalProgress = selectedImages.size();
-
-        storage = FirebaseStorage.getInstance();
-        String userFolder = user.getUid();
-        userRoot = storage.getReference(userFolder);
-
-        circularProgressIndicator = findViewById(R.id.progressIndicator);
-        circularProgressIndicator.setVisibility(CircularProgressIndicator.VISIBLE);
-
-        progressText = findViewById(R.id.progressText);
-        progressText.setText("Uploading 0/" + totalProgress);
-
-        Button doneButton = findViewById(R.id.doneButton);
-        doneButton.setEnabled(false);
-        doneButton.setOnClickListener(v -> finish());
-        ImageButton backBtn = findViewById(R.id.backButton);
-
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        executorService.execute(() -> {
-            for (MediaModel mediaModel : selectedImages) {
-                uploadMedia(mediaModel.localPath);
-            }
-
-            handler.post(() -> {
-                doneButton.setEnabled(true);
-                backBtn.setVisibility(ImageButton.INVISIBLE);
-                backBtn.setEnabled(false);
-            });
-        });
-
-        backBtn.setOnClickListener(v -> {
-            new MaterialAlertDialogBuilder(this)
-                    .setTitle("Cancel Upload")
-                    .setMessage("You sure you want to cancel the upload?")
-                    .setPositiveButton("OK", (dialog, which) -> {
-                        executorService.shutdownNow();
-                    })
-                    .setNegativeButton("Cancel", (dialog, which) -> {
-                    })
-                    .show();
-        });
-
-
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_upload);
+
+        Intent serviceIntent = new Intent(this, UploadService.class);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+        }else {
+            startForegroundService(serviceIntent);
+        }
+
+        ImageButton backBtn = findViewById(R.id.backButton);
+        backBtn.setOnClickListener(v -> {
+            finish();
+        });
+
+
     }
 
     private void uploadMedia(String localPath) {

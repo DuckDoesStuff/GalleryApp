@@ -3,6 +3,9 @@ package com.example.gallery.activities.pictures;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.transition.Slide;
+import android.transition.TransitionManager;
+import android.transition.TransitionSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -227,6 +230,12 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     }
 
     private void setUpBottomSheet() {
+        TransitionSet transitionSet = new TransitionSet()
+                .addTransition(new Slide())
+                .setDuration(400);
+
+        TransitionManager.beginDelayedTransition(bottomSheet, transitionSet);
+
         Button trashBtn = bottomSheet.findViewById(R.id.trashBtn);
         trashBtn.setOnClickListener(v -> {
             Intent intent = new Intent(mainActivity, TrashManager.class);
@@ -270,6 +279,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     private void onShowBottomSheet() {
         viewMode = false;
         mainActivity.setBottomNavigationViewVisibility(View.GONE);
+        recyclerView.setPadding(0, 0, 0, bottomSheet.getHeight());
         requireView().post(() -> {
             bottomSheetBehavior.setHideable(false);
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
@@ -280,6 +290,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         viewMode = true;
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        recyclerView.setPadding(0, 0, 0, 0);
         requireView().post(() -> {
             mainActivity.setBottomNavigationViewVisibility(View.VISIBLE);
         });

@@ -1,6 +1,7 @@
 package com.example.gallery.activities.pictures;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
+import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
 import com.example.gallery.R;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -98,10 +101,17 @@ public class ImageActivity extends AppCompatActivity {
         });
         editButton.setOnClickListener(v -> {
             String currentImagePath = mediaModels.get(viewPager2.getCurrentItem()).localPath;
+            File currentImageFile = new File(currentImagePath);
+            File currentImageDirectory = currentImageFile.getParentFile();
+            Intent editIntent = new Intent(ImageActivity.this, DsPhotoEditorActivity.class);
+            editIntent.setData(Uri.fromFile(new File(currentImagePath)));
+            editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, currentImageDirectory.getAbsolutePath());
+            editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+            // Set background color
+            editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+            startActivity(editIntent); // Khởi động hoạt động
 
-            Intent editIntent = new Intent(ImageActivity.this, EditActivity.class);
-            editIntent.putExtra("imagePath", currentImagePath);
-            startActivity(editIntent);
+
         });
 
         viewPager2 = findViewById(R.id.view_pager);

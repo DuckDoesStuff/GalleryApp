@@ -7,10 +7,9 @@ plugins {
 android {
     namespace = "com.example.gallery"
     compileSdk = 34
-
     defaultConfig {
         applicationId = "com.example.gallery"
-        minSdk = 29
+        minSdk = 24
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
@@ -19,6 +18,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        renderscriptSupportModeEnabled = true
+
+        renderscriptTargetApi = 21
     }
     buildFeatures {
         viewBinding = true
@@ -53,8 +55,8 @@ android {
 
 dependencies {
     implementation("jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1")
-
     implementation("com.squareup.picasso:picasso:2.8")
+
 
     implementation("com.github.yalantis:ucrop:2.2.8-native")
     // For loading images
@@ -103,4 +105,17 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    // ds-photo-editor-sdk (assuming it's an AAR library)
+    implementation(files("libs/ds-photo-editor-sdk-v10.aar"))
+
+    // SDK related dependencies
+    implementation("io.reactivex.rxjava2:rxjava:2.1.0")
+    implementation("io.reactivex.rxjava2:rxandroid:2.0.1")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
+
+
+
+
 }

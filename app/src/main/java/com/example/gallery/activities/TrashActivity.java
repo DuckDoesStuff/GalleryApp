@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -18,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.pictures.ImageFrameAdapter;
 import com.example.gallery.activities.pictures.MediaViewModel;
+import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 
@@ -31,6 +34,9 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
     private Observer<ArrayList<Integer>> selectedMediaObserver;
     private Button restoreBtn;
     private Button deleteBtn;
+
+    ActivityResultLauncher<Intent> trashManagerLauncher;
+
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +89,30 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
         ImageFrameAdapter imageFrameAdapter = new ImageFrameAdapter(imgSize, this, this);
         recyclerView.setAdapter(imageFrameAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+
+        trashManagerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        // Do something here on success
+                    }
+                });
+
+        restoreBtn.setOnClickListener(v -> {
+            ArrayList<Integer> selectedMedia = mediaViewModel.getSelectedMedia().getValue();
+            if (selectedMedia != null) {
+                // Get MediaModels from selectedMedia
+                ArrayList<MediaModel> mediaModels = new ArrayList<>();
+                for (int i : selectedMedia) {
+                    mediaModels.add(mediaViewModel.getMedia(i));
+                }
+                // Start TrashManager with action "restore"
+                Intent intent = new Intent(this, TrashManager.class);
+                intent.putExtra("action", "restore");
+                intent.putParcelableArrayListExtra("mediaModels", mediaModels);
+                trashManagerLauncher.launch(intent);
+            }
+        });
     }
 
     @Override

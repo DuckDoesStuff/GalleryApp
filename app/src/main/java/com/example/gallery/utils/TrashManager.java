@@ -53,17 +53,16 @@ public class TrashManager extends AppCompatActivity {
                     finish();
                     break;
                 case "restore":
-
+                    setResult(restoreFromTrash(this, mediaModels) ? RESULT_OK : RESULT_CANCELED);
+                    finish();
                     break;
                 case "delete":
-
+                    setResult(deleteFromTrash(this, mediaModels) ? RESULT_OK : RESULT_CANCELED);
+                    finish();
                     break;
             }
         }
     }
-
-
-
     private void notifyMediaStoreScan(Context context, String filePath) {
         MediaScannerConnection.scanFile(context, new String[]{filePath}, null, (path, uri) -> {
             // MediaScannerConnection callback
@@ -82,6 +81,87 @@ public class TrashManager extends AppCompatActivity {
             }
         else
             trashPath = trashAlbum.getAbsolutePath();
+    }
+
+    private boolean deleteFromTrash(Context context, ArrayList<MediaModel> mediaModels) {
+        boolean success = true;
+        for (MediaModel mediaModel : mediaModels) {
+            if (!deleteFromTrash(context, mediaModel)) {
+                success = false;
+            }
+        }
+        notifyMediaStoreScan(context, trashPath);
+        GalleryDB.notifyTrashObservers();
+        return success;
+    }
+
+    private boolean deleteFromTrash(Context context, MediaModel mediaModel) {
+        try {
+            String mediaPath = mediaModel.localPath;
+            File sourceFile = new File(mediaPath);
+            if (sourceFile.delete()) {
+                try (GalleryDB db = new GalleryDB(context)) {
+                    db.removeFromTrashTable(mediaModel);
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("AlbumManager", "Error deleting item from trash");
+            return false;
+        }
+    }
+
+    private boolean restoreFromTrash(Context context, ArrayList<MediaModel> mediaModels) {
+        boolean success = true;
+        for (MediaModel mediaModel : mediaModels) {
+            if (!restoreFromTrash(context, mediaModel)) {
+                success = false;
+            }
+        }
+        notifyMediaStoreScan(context, Environment.DIRECTORY_DCIM);
+        GalleryDB.notifyMediaObservers();
+        GalleryDB.notifyAlbumObservers();
+        GalleryDB.notifyTrashObservers();
+        return success;
+    }
+
+    private boolean restoreFromTrash(Context context, MediaModel mediaModel) {
+        try {
+            String mediaPath = mediaModel.localPath;
+
+            File sourceFile = new File(mediaPath);
+            String destinationPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/" + sourceFile.getName();
+            File destinationFile = new File(destinationPath);
+
+            FileInputStream inputStream = new FileInputStream(sourceFile);
+            FileOutputStream outputStream = new FileOutputStream(destinationFile);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+
+            inputStream.close();
+            outputStream.close();
+
+            if (sourceFile.delete()) {
+                try (GalleryDB db = new GalleryDB(context)) {
+                    db.removeFromTrashTable(mediaModel);
+                    db.addToMediaTable(new ArrayList<>(Collections.singletonList(mediaModel)));
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d("AlbumManager", "Error restoring item");
+            return false;
+        }
     }
 
     private boolean moveToTrash(Context context, ArrayList<MediaModel> mediaModels) {

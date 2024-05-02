@@ -18,7 +18,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class ImageActivity extends AppCompatActivity {
     ArrayList<MediaModel> mediaModels;

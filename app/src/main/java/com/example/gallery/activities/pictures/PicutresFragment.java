@@ -292,6 +292,14 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     public void onItemClick(int position) {
         if (viewMode) {
             Intent intent = new Intent(mainActivity, ImageActivity.class);
+            for (MediaModel media:mediaViewModel.getMedia().getValue()) {
+                if (media.favorite) {
+                    Log.d("favorite", "true");
+                } else {
+                    Log.d("favorite", "false");
+
+                }
+            }
             intent.putParcelableArrayListExtra("mediaModels", mediaViewModel.getMedia().getValue());
             intent.putExtra("initial", position);
             mainActivity.startActivity(intent);

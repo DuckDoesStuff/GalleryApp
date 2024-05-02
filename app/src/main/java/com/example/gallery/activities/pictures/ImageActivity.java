@@ -40,14 +40,6 @@ public class ImageActivity extends AppCompatActivity {
             position = -1;
         }
 
-        for (MediaModel media:mediaModels) {
-            boolean favorite;
-            try (GalleryDB db = new GalleryDB(this)) {
-                favorite = db.getFavorite(media);
-            }
-            media.favorite = favorite;
-        }
-
         ImageButton imageButton = findViewById(R.id.back_button);
         imageButton.setOnClickListener(v -> finish());
 

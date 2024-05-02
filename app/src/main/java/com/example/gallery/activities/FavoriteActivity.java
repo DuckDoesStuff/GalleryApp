@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -24,13 +23,11 @@ import com.example.gallery.utils.database.MediaModel;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class TrashActivity extends AppCompatActivity implements ImageFrameAdapter.ImageFrameListener {
+public class FavoriteActivity extends AppCompatActivity implements ImageFrameAdapter.ImageFrameListener {
     boolean viewMode = true;
     private MediaViewModel mediaViewModel;
     private Observer<ArrayList<MediaModel>> mediaObserver;
     private Observer<ArrayList<Integer>> selectedMediaObserver;
-    private Button restoreBtn;
-    private Button deleteBtn;
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +36,11 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
 
         mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
         try (GalleryDB db = new GalleryDB(this)) {
-            ArrayList<MediaModel> trash = db.getAllTrash();
-            mediaViewModel.getMedia().setValue(trash);
-            Log.d("TrashActivity", "Trash size: " + trash.size());
+            ArrayList<MediaModel> favorite = db.getAllFavorite();
+            mediaViewModel.getMedia().setValue(favorite);
+            Log.d("FavoriteActivity", "Favorite size: " + favorite.size());
         } catch (Exception e) {
-            Log.e("TrashActivity", "Error getting trash", e);
+            Log.e("FavoriteActivity", "Error getting favorite", e);
             mediaViewModel.getMedia().setValue(new ArrayList<>());
         }
 
@@ -57,8 +54,6 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
         selectedMediaObserver = selectedMedia -> {
             // Do things
             viewMode = selectedMedia.isEmpty();
-            restoreBtn.setVisibility(viewMode ? View.INVISIBLE : View.VISIBLE);
-            deleteBtn.setVisibility(viewMode ? View.INVISIBLE : View.VISIBLE);
             Log.d("TrashActivity", "Selected media observer called with: " + selectedMedia.size() + " items");
         };
         mediaViewModel.getSelectedMedia().observe(this, selectedMediaObserver);
@@ -66,12 +61,9 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
 
         ImageButton backBtn = findViewById(R.id.back_button);
         backBtn.setOnClickListener(v -> finish());
-        restoreBtn = findViewById(R.id.restore_button);
-        deleteBtn = findViewById(R.id.delete_button);
-        restoreBtn.setVisibility(View.INVISIBLE);
-        deleteBtn.setVisibility(View.INVISIBLE);
-        TextView trashCount = findViewById(R.id.fav_count);
-        trashCount.setText(Objects.requireNonNull(mediaViewModel.getMedia().getValue()).size() + " items");
+
+        TextView favoriteCount = findViewById(R.id.fav_count);
+        favoriteCount.setText(Objects.requireNonNull(mediaViewModel.getMedia().getValue()).size() + " items");
 
 
         RecyclerView recyclerView = findViewById(R.id.fav_grid);

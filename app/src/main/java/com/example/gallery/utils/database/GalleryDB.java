@@ -190,6 +190,15 @@ public class GalleryDB extends SQLiteOpenHelper {
         return mediaModels;
     }
 
+    public ArrayList<MediaModel> getAllFavorite() {
+        SQLiteDatabase db = getReadableDatabase();
+        ArrayList<MediaModel> mediaModels = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT * FROM media WHERE favorite = 1", null);
+
+        cursor.close();
+        db.close();
+        return mediaModels;
+    }
     public void addToTrashTable(MediaModel mediaModel, String trashPath) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -401,7 +410,8 @@ public class GalleryDB extends SQLiteOpenHelper {
                 String location = cursor.getString(cursor.getColumnIndexOrThrow("location"));
                 int mediaID = cursor.getInt(cursor.getColumnIndexOrThrow("media_id"));
                 long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow("date_taken"));
-                boolean favorite = cursor.getExtras().getBoolean(String.valueOf(cursor.getColumnIndexOrThrow("favorite")));
+                boolean favorite = cursor.getInt(cursor.getColumnIndexOrThrow("favorite")) == 1;
+                Log.d("GalleryDB", "Favorite: " + favorite);
                 medialModels.add(new MediaModel()
                         .setLocalPath(localPath)
                         .setCloudPath(cloudPath)

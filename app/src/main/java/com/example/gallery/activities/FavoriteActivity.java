@@ -32,7 +32,7 @@ public class FavoriteActivity extends AppCompatActivity implements ImageFrameAda
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_trash);
+        setContentView(R.layout.activity_favorite);
 
         mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
         try (GalleryDB db = new GalleryDB(this)) {

@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
+import com.example.gallery.activities.FavoriteActivity;
 import com.example.gallery.activities.MainActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
@@ -121,8 +122,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                     Intent intent = new Intent(getContext(), TrashActivity.class);
                     mainActivity.startActivity(intent);
                     return true;
-                } else if (item.getItemId() == R.id.choice2) {
-                    Log.d("PicturesFragment", "Selected size: " + Objects.requireNonNull(mediaViewModel.getSelectedMedia().getValue()).size());
+                } else if (item.getItemId() == R.id.favorite) {
+                    Intent intent = new Intent(getContext(), FavoriteActivity.class);
+                    mainActivity.startActivity(intent);
                     return true;
                 } else if (item.getItemId() == R.id.choice3) {
                     return true;

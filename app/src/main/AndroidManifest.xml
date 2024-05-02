@@ -38,6 +38,9 @@
         <activity
             android:name=".activities.TrashActivity"
             android:exported="false" />
+        <activity
+            android:name=".activities.FavoriteActivity"
+            android:exported="false" />
         <activity android:name=".utils.TrashManager"
             android:exported="false" />
         <activity android:name=".activities.TrashViewActivity"

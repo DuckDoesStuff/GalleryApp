@@ -194,9 +194,38 @@ public class GalleryDB extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         ArrayList<MediaModel> mediaModels = new ArrayList<>();
         Cursor cursor = db.rawQuery("SELECT * FROM media WHERE favorite = 1", null);
-
-        cursor.close();
-        db.close();
+        try {
+            while (cursor.moveToNext()) {
+                String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
+                String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
+                boolean downloaded = cursor.getInt(cursor.getColumnIndexOrThrow("downloaded")) == 1;
+                String albumName = cursor.getString(cursor.getColumnIndexOrThrow("album_name"));
+                String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
+                int duration = cursor.getInt(cursor.getColumnIndexOrThrow("duration"));
+                String location = cursor.getString(cursor.getColumnIndexOrThrow("location"));
+                int mediaID = cursor.getInt(cursor.getColumnIndexOrThrow("media_id"));
+                long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow("date_taken"));
+                boolean favorite = cursor.getInt(cursor.getColumnIndexOrThrow("favorite")) == 1;
+                Log.d("GalleryDB", "Favorite: " + favorite);
+                mediaModels.add(new MediaModel()
+                        .setLocalPath(localPath)
+                        .setCloudPath(cloudPath)
+                        .setDownloaded(downloaded)
+                        .setAlbumName(albumName)
+                        .setType(type)
+                        .setDuration(duration)
+                        .setGeoLocation(location)
+                        .setMediaID(mediaID)
+                        .setDateTaken(dateTaken)
+                        .setFavorite(favorite));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("GalleryDB", "Error while fetching media from database");
+        } finally {
+            cursor.close();
+            db.close();
+        }
         return mediaModels;
     }
     public void addToTrashTable(MediaModel mediaModel, String trashPath) {

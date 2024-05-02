@@ -4,8 +4,8 @@
         android:id="@+id/trash"
         android:title="Trash" />
     <item
-        android:id="@+id/choice2"
-        android:title="Choice 2" />
+        android:id="@+id/favorite"
+        android:title="Favorite" />
     <item
         android:id="@+id/choice3"
         android:title="Choice 3" />

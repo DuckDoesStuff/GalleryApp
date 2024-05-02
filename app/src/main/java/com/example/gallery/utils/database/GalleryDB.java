@@ -57,6 +57,7 @@ public class GalleryDB extends SQLiteOpenHelper {
                     "duration INTEGER," +
                     "location TEXT," +
                     "date_taken INTEGER," +
+                    "favorite BOOLEAN," +
                     "UNIQUE (local_path, cloud_path, media_id))";
     // START observers
     static volatile ArrayList<DatabaseObserver> mediaObservers = new ArrayList<>();
@@ -150,6 +151,7 @@ public class GalleryDB extends SQLiteOpenHelper {
         values.put("location", mediaModel.geoLocation);
         values.put("media_id", mediaModel.mediaID);
         values.put("date_taken", mediaModel.dateTaken);
+        values.put("favorite", mediaModel.favorite);
         return values;
     }
 
@@ -399,6 +401,7 @@ public class GalleryDB extends SQLiteOpenHelper {
                 String location = cursor.getString(cursor.getColumnIndexOrThrow("location"));
                 int mediaID = cursor.getInt(cursor.getColumnIndexOrThrow("media_id"));
                 long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow("date_taken"));
+                boolean favorite = cursor.getExtras().getBoolean(String.valueOf(cursor.getColumnIndexOrThrow("favorite")));
                 medialModels.add(new MediaModel()
                         .setLocalPath(localPath)
                         .setCloudPath(cloudPath)
@@ -408,7 +411,8 @@ public class GalleryDB extends SQLiteOpenHelper {
                         .setDuration(duration)
                         .setGeoLocation(location)
                         .setMediaID(mediaID)
-                        .setDateTaken(dateTaken));
+                        .setDateTaken(dateTaken)
+                        .setFavorite(favorite));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -433,6 +437,26 @@ public class GalleryDB extends SQLiteOpenHelper {
         int result = db.updateWithOnConflict("media", values, "media_id = ?", new String[]{String.valueOf(mediaModel.mediaID)}, SQLiteDatabase.CONFLICT_IGNORE);
         Log.d("GalleryDB", "Media updated: " + result);
         db.close();
+    }
+
+    public boolean getFavorite(MediaModel mediaModel) {
+        SQLiteDatabase db = getWritableDatabase();
+        boolean favorite = false;
+
+        // Thực hiện truy vấn SQL để lấy giá trị favorite từ cơ sở dữ liệu
+        Cursor cursor = db.rawQuery("SELECT favorite FROM media WHERE media_id = ?", new String[]{String.valueOf(mediaModel.mediaID)});
+
+        // Kiểm tra xem có dữ liệu được trả về không
+        if (cursor != null && cursor.moveToFirst()) {
+            // Lấy giá trị favorite từ cột đầu tiên của con trỏ
+            favorite = cursor.getInt(0) == 1; // 1 nếu favorite là true, 0 nếu không
+            cursor.close(); // Đóng con trỏ sau khi sử dụng
+        }
+
+        db.close(); // Đóng kết nối đến cơ sở dữ liệu
+
+        // Trả về giá trị favorite
+        return favorite;
     }
 
     public void addToMediaTable(ArrayList<MediaModel> mediaModels) {

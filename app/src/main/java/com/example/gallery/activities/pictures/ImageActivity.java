@@ -12,11 +12,13 @@ import androidx.core.content.FileProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.gallery.R;
+import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ImageActivity extends AppCompatActivity {
     ArrayList<MediaModel> mediaModels;
@@ -37,12 +39,42 @@ public class ImageActivity extends AppCompatActivity {
             mediaModels = new ArrayList<>();
             position = -1;
         }
+
+        for (MediaModel media:mediaModels) {
+            boolean favorite;
+            try (GalleryDB db = new GalleryDB(this)) {
+                favorite = db.getFavorite(media);
+            }
+            media.favorite = favorite;
+        }
+
         ImageButton imageButton = findViewById(R.id.back_button);
         imageButton.setOnClickListener(v -> finish());
 
         ImageButton editButton = findViewById(R.id.edit_btn);
         ImageButton deleteButton = findViewById(R.id.trash_btn);
         ImageButton shareButton = findViewById(R.id.share_button);
+        ImageButton heartButton = findViewById(R.id.heart_button);
+
+
+        heartButton.setOnClickListener(v -> {
+            if (mediaModels.get(viewPager2.getCurrentItem()).favorite == true) {
+                heartButton.setImageResource(R.drawable.favorite);
+                mediaModels.get(viewPager2.getCurrentItem()).setFavorite(false);
+                try (GalleryDB db = new GalleryDB(this)) {
+                    db.updateMedia(mediaModels.get(viewPager2.getCurrentItem()));
+                }
+                Log.d("noti", "true");
+            } else {
+                heartButton.setImageResource(R.drawable.favorite_filled);
+                mediaModels.get(viewPager2.getCurrentItem()).setFavorite(true);
+                try (GalleryDB db = new GalleryDB(this)) {
+                    db.updateMedia(mediaModels.get(viewPager2.getCurrentItem()));
+                }
+                Log.d("noti", "false");
+
+            }
+        });
         shareButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,7 +140,31 @@ public class ImageActivity extends AppCompatActivity {
         viewPager2.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
         viewPager2.setOffscreenPageLimit(3);
         viewPager2.setCurrentItem(position, false);
+        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                // Kiểm tra và cập nhật trạng thái của trái tim khi trang hiện tại thay đổi
+                if (mediaModels.size() > position) {
+                    MediaModel currentMedia = mediaModels.get(position);
 
+                    if (currentMedia.favorite) {
+                        heartButton.setImageResource(R.drawable.favorite_filled);
+                    } else {
+                        heartButton.setImageResource(R.drawable.favorite);
+                    }
+                }
+            }
+        });
+
+
+        if (mediaModels.get(viewPager2.getCurrentItem()).favorite) {
+            heartButton.setImageResource(R.drawable.favorite_filled);
+            Log.d("favorite", "true");
+        } else {
+            heartButton.setImageResource(R.drawable.favorite);
+            Log.d("favorite", "false");
+        }
     }
 
     @Override

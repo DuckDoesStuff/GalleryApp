@@ -241,7 +241,7 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     public void removeFromTrashTable(MediaModel mediaModel) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("DELETE FROM trash WHERE original_path = '" + mediaModel.localPath + "'");
+        db.execSQL("DELETE FROM trash WHERE trash_path = '" + mediaModel.localPath + "'");
         db.close();
     }
 

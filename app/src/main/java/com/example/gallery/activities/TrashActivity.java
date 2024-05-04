@@ -91,6 +91,7 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
                         // Do something here on success
+                        Objects.requireNonNull(mediaViewModel.getSelectedMedia().getValue()).clear();
                     }
                 });
 

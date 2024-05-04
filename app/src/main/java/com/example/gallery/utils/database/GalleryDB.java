@@ -168,6 +168,7 @@ public class GalleryDB extends SQLiteOpenHelper {
         int duration = values.getAsInteger("duration");
         String location = values.getAsString("location");
         long dateTaken = values.getAsLong("date_taken");
+        boolean favorite = values.getAsBoolean("favorite");
 
         return new MediaModel()
                 .setLocalPath(localPath)
@@ -178,7 +179,8 @@ public class GalleryDB extends SQLiteOpenHelper {
                 .setDuration(duration)
                 .setGeoLocation(location)
                 .setMediaID(mediaID)
-                .setDateTaken(dateTaken);
+                .setDateTaken(dateTaken)
+                .setFavorite(favorite);
     }
 
     private AlbumModel getAlbumModelFromCursor(Cursor cursor) {
@@ -422,7 +424,7 @@ public class GalleryDB extends SQLiteOpenHelper {
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
-                "SELECT * FROM media WHERE local_path != NULL or cloud_path != ''",
+                "SELECT * FROM media WHERE local_path != NULL or local_path != ''",
                 null);
 
         try {

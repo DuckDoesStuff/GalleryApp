@@ -23,7 +23,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
-import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -45,7 +44,6 @@ import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -124,14 +122,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         dropdownButton.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(getContext(), v);
             popupMenu.getMenuInflater().inflate(R.menu.setting_dropdown, popupMenu.getMenu());
-            try {
-                Field mPopup = PopupMenu.class.getDeclaredField("mPopup");
-                mPopup.setAccessible(true);
-                MenuPopupHelper menuHelper = (MenuPopupHelper) mPopup.get(popupMenu);
-                menuHelper.setForceShowIcon(true);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
 
             popupMenu.setOnMenuItemClickListener(item -> {
                 // Handle menu item click
@@ -150,7 +140,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                     mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
                     Collections.reverse(mediaModels);
                     mediaViewModel.getMedia().setValue(mediaModels);
-
                     return true;
                 }
                 else if (item.getItemId() == R.id.by_album_name) {
@@ -256,7 +245,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     private void getFromDatabase() {
         try(GalleryDB db = new GalleryDB(getContext())) {
-            ArrayList<MediaModel> mediaModels = db.getAllLocalMedia();
+            mediaModels = db.getAllLocalMedia();
             mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
             mediaViewModel.getMedia().setValue(mediaModels);
             Log.d("PicturesFragment", "Pictures fragment got updated");
@@ -340,7 +329,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     public void onItemClick(int position) {
         if (viewMode) {
             Intent intent = new Intent(mainActivity, ImageActivity.class);
-            for (MediaModel media:mediaViewModel.getMedia().getValue()) {
+            ArrayList<MediaModel> mediaModels = mediaViewModel.getMedia().getValue();
+            for (MediaModel media: mediaModels) {
                 if (media.favorite) {
                     Log.d("favorite", "true");
                 } else {
@@ -348,7 +338,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
                 }
             }
-            intent.putParcelableArrayListExtra("mediaModels", mediaViewModel.getMedia().getValue());
+            intent.putParcelableArrayListExtra("mediaModels", mediaModels);
             intent.putExtra("initial", position);
             mainActivity.startActivity(intent);
         }

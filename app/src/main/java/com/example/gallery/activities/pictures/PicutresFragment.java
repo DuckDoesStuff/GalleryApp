@@ -28,9 +28,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.FavoriteActivity;
 import com.example.gallery.activities.MainActivity;
+import com.example.gallery.activities.search.SearchImageActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
-import com.example.gallery.fragments.SearchViewFragment;
 import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.database.AlbumModel;
@@ -139,9 +139,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         ImageButton searchButton = view.findViewById(R.id.search);
         searchButton.setOnClickListener(v -> {
-            if (getActivity() != null && getActivity() instanceof MainActivity) {
-                mainActivity.replaceFragment(new SearchViewFragment());
-            }
+            Intent intent = new Intent(getContext(), SearchImageActivity.class);
+            mainActivity.startActivity(intent);
         });
 
         return view;

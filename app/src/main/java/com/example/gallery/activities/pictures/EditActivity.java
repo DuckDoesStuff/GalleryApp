@@ -2,6 +2,7 @@ package com.example.gallery.activities.pictures;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -43,6 +44,7 @@ public class EditActivity extends AppCompatActivity {
         tempImagePath = imgPath;
 
         Picasso.get().load(new File(imgPath)).into(imageView);
+
 
 
         ImageButton backBtn = findViewById(R.id.back_button);
@@ -96,17 +98,17 @@ public class EditActivity extends AppCompatActivity {
                 imgPath = croppedUri.getPath();
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Picasso.get().load(new File(imgPath)).into(imageView);
-                    }
-                }, 2000);
+                                        @Override
+                                        public void run() {
+                                            Picasso.get().load(new File(imgPath)).into(imageView);
+                                        }
+                                    }, 2000);
 
 
             }
         }
 
-    }
+}
 
     private void handleBrightnessResult(Intent data) {
         if (data != null) {
@@ -122,10 +124,10 @@ public class EditActivity extends AppCompatActivity {
                 }, 1000);
 
 
+
             }
         }
     }
-
     private void saveEditedImage() {
         File editedImageFile = new File(imgPath);
 
@@ -134,6 +136,15 @@ public class EditActivity extends AppCompatActivity {
             Toast.makeText(this, "Edited image not found", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // Lấy thông tin Exif từ hình gốc
+        ExifInterface originalExif = null;
+        try {
+            originalExif = new ExifInterface(tempImagePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         // Lấy tên tệp ảnh gốc
         String originalFileName = new File(tempImagePath).getName();
@@ -156,11 +167,30 @@ public class EditActivity extends AppCompatActivity {
 
             outputStream = new FileOutputStream(savedImageFile);
 
+            // Sao chép dữ liệu từ ảnh đã chỉnh sửa sang tệp mới
             byte[] buffer = new byte[1024];
             int length;
             while ((length = inputStream.read(buffer)) > 0) {
                 outputStream.write(buffer, 0, length);
             }
+            if (outputStream != null) {
+                outputStream.close();
+            }
+
+            // Đặt thuộc tính Exif cho ảnh mới từ hình gốc
+            if (originalExif != null) {
+                ExifInterface newExif = new ExifInterface(savedImagePath);
+                String dateTime = originalExif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL);
+
+
+                if (dateTime!=null)
+                {
+                    newExif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, dateTime);
+                }
+                newExif.saveAttributes();
+            }
+
+
 
             Toast.makeText(this, "Image saved successfully", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {

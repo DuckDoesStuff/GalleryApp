@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,18 +21,27 @@ import java.io.IOException;
 import jp.co.cyberagent.android.gpuimage.GPUImage;
 import jp.co.cyberagent.android.gpuimage.GPUImageBrightnessFilter;
 import jp.co.cyberagent.android.gpuimage.GPUImageContrastFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageExposureFilter;
 import jp.co.cyberagent.android.gpuimage.GPUImageFilterGroup;
+import jp.co.cyberagent.android.gpuimage.GPUImageGammaFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageSaturationFilter;
 import jp.co.cyberagent.android.gpuimage.GPUImageView;
 
 public class ChangeBrightnessActivity extends AppCompatActivity {
 
-    private static final int DELAY_MILLIS = 300;
     private String imagePath;
     private Handler mHandler = new Handler();
+
     private SeekBar brightnessSeekBar;
     private SeekBar contrastSeekBar;
-    private GPUImage gpuImage;
+    private SeekBar exposureSeekBar;
+    private SeekBar saturationSeekBar;
+    private SeekBar gammaSeekBar;
+    private TextView funcText;
+    private  GPUImage gpuImage;
     private GPUImageView gpuImageView;
+
+    private static final int DELAY_MILLIS = 300;
     private String editedImagePath;
 
     @Override
@@ -41,20 +51,23 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
 
 
         imagePath = getIntent().getStringExtra("imagePath");
-        gpuImageView = findViewById(R.id.imageView); // Initialize GPUImageView
-        gpuImageView.setScaleType(GPUImage.ScaleType.CENTER_INSIDE);
+        gpuImageView = findViewById(R.id.imageView);
+
 
         gpuImageView.setImage(new File(imagePath));
 
         editedImagePath = imagePath;
 
-
         ImageButton backBtn = findViewById(R.id.back_button);
         backBtn.setOnClickListener(v -> finish());
 
 
+
         brightnessSeekBar = findViewById(R.id.brightness_seek_bar);
         contrastSeekBar = findViewById(R.id.contrast_seek_bar);
+        exposureSeekBar = findViewById(R.id.exposure_seek_bar);
+        gammaSeekBar = findViewById(R.id.gamma_seek_bar);
+        saturationSeekBar = findViewById(R.id.saturation_seek_bar);
 
 
         ImageButton brightnessBtn = findViewById(R.id.brightness_btn);
@@ -64,8 +77,18 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
         ImageButton contrastBtn = findViewById(R.id.contrast_btn);
         contrastBtn.setOnClickListener(v -> onContrastButtonClick());
 
+        ImageButton gammaBtn = findViewById(R.id.gamma_btn);
+        gammaBtn.setOnClickListener(v -> onGammaButtonClick());
+
+        ImageButton saturationBtn = findViewById(R.id.saturation_btn);
+        saturationBtn.setOnClickListener(v -> onSaturationButtonClick());
+
+        ImageButton exposureBtn = findViewById(R.id.exposure_btn);
+        exposureBtn.setOnClickListener(v -> onExposureButtonClick());
+
+
         ImageButton saveBtn = findViewById(R.id.save_btn);
-        saveBtn.setOnClickListener(v -> {
+        saveBtn.setOnClickListener(v->{
             sendResult(editedImagePath);
 
         });
@@ -73,12 +96,56 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
         gpuImage = new GPUImage(this);
         gpuImage.setImage(new File(imagePath));
 
-        brightnessSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            brightnessSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    float brightnessValue = (float) progress / 50 - 1;
+                    float contrastValue = (float) contrastSeekBar.getProgress() / 25;
+                    float gammaValue = (float) (gammaSeekBar.getProgress()/100);
+                    float saturationValue = (float) saturationSeekBar.getProgress()/50 ;
+                    float exposureValue = (float) exposureSeekBar.getProgress()/5 -10;
+                    applyFilterInBackground(brightnessValue, contrastValue,gammaValue,saturationValue,exposureValue);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+
+            contrastSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    float contrastValue = (float) progress / 25;
+                    float brightnessValue = (float) brightnessSeekBar.getProgress() / 50 - 1;
+                    float gammaValue = (float) (gammaSeekBar.getProgress()/100) ;
+                    float saturationValue = (float) saturationSeekBar.getProgress()/50 ;
+                    float exposureValue = (float) exposureSeekBar.getProgress()/5 -10;
+                    applyFilterInBackground(brightnessValue, contrastValue,gammaValue,saturationValue,exposureValue);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+
+
+        saturationSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float brightnessValue = (float) progress / 50 - 1;
                 float contrastValue = (float) contrastSeekBar.getProgress() / 25;
-                applyFilterInBackground(brightnessValue, contrastValue);
+                float brightnessValue = (float) brightnessSeekBar.getProgress() / 50 - 1;
+                float gammaValue = (float) (gammaSeekBar.getProgress()/100);
+                float saturationValue = (float) progress /50 ;
+                float exposureValue = (float) exposureSeekBar.getProgress()/5 -10;
+                applyFilterInBackground(brightnessValue, contrastValue,gammaValue,saturationValue,exposureValue);
             }
 
             @Override
@@ -90,12 +157,16 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
             }
         });
 
-        contrastSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+        gammaSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float contrastValue = (float) progress / 25;
+                float contrastValue = (float) contrastSeekBar.getProgress() / 25;
                 float brightnessValue = (float) brightnessSeekBar.getProgress() / 50 - 1;
-                applyFilterInBackground(brightnessValue, contrastValue);
+                float gammaValue = (float) (progress/100) ;
+                float saturationValue = (float) saturationSeekBar.getProgress() /50 ;
+                float exposureValue = (float) exposureSeekBar.getProgress()/5 -10;
+                applyFilterInBackground(brightnessValue, contrastValue,gammaValue,saturationValue,exposureValue);
             }
 
             @Override
@@ -106,22 +177,100 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-    }
+
+
+        exposureSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float contrastValue = (float) contrastSeekBar.getProgress() / 25;
+                float brightnessValue = (float) brightnessSeekBar.getProgress() / 50 - 1;
+                float gammaValue = (float) gammaSeekBar.getProgress()/100 ;
+                float saturationValue = (float) saturationSeekBar.getProgress() /50 ;
+                float exposureValue = (float) progress/5 -10;
+                applyFilterInBackground(brightnessValue, contrastValue,gammaValue,saturationValue,exposureValue);
+            }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+        }
 
 
     private void onBrightnessButtonClick() {
+        funcText.setText("Brightness");
 
-        brightnessSeekBar.setVisibility(View.VISIBLE);
+
         contrastSeekBar.setVisibility(View.INVISIBLE);
+        saturationSeekBar.setVisibility(View.INVISIBLE);
+        exposureSeekBar.setVisibility(View.INVISIBLE);
+        gammaSeekBar.setVisibility(View.INVISIBLE);
+        brightnessSeekBar.setVisibility(View.VISIBLE);
+
+
     }
 
     private void onContrastButtonClick() {
 
+
         brightnessSeekBar.setVisibility(View.INVISIBLE);
+        saturationSeekBar.setVisibility(View.INVISIBLE);
+        exposureSeekBar.setVisibility(View.INVISIBLE);
+        gammaSeekBar.setVisibility(View.INVISIBLE);
         contrastSeekBar.setVisibility(View.VISIBLE);
     }
+    private void onGammaButtonClick() {
 
-    private void applyFilterInBackground(final float brightnessValue, final float contrastValue) {
+
+
+        contrastSeekBar.setVisibility(View.INVISIBLE);
+        exposureSeekBar.setVisibility(View.INVISIBLE);
+        saturationSeekBar.setVisibility(View.INVISIBLE);
+        brightnessSeekBar.setVisibility(View.INVISIBLE);
+        gammaSeekBar.setVisibility(View.VISIBLE);
+
+
+    }
+    private void onSaturationButtonClick() {
+
+
+
+        gammaSeekBar.setVisibility(View.INVISIBLE);
+        contrastSeekBar.setVisibility(View.INVISIBLE);
+        exposureSeekBar.setVisibility(View.INVISIBLE);
+        brightnessSeekBar.setVisibility(View.INVISIBLE);
+        saturationSeekBar.setVisibility(View.VISIBLE);
+
+
+    }
+
+    private void onExposureButtonClick() {
+
+
+
+
+        gammaSeekBar.setVisibility(View.INVISIBLE);
+        contrastSeekBar.setVisibility(View.INVISIBLE);
+        brightnessSeekBar.setVisibility(View.INVISIBLE);
+        saturationSeekBar.setVisibility(View.INVISIBLE);
+        exposureSeekBar.setVisibility(View.VISIBLE);
+
+
+
+
+    }
+
+
+
+    private void applyFilterInBackground(final float brightnessValue,
+                                         final float contrastValue,
+                                         final float gammaValue,
+                                         final float saturationValue,
+                                         final float exposureValue) {
         // Hủy bỏ bất kỳ Runnable trước đó đang đợi để chạy
         mHandler.removeCallbacksAndMessages(null);
 
@@ -137,9 +286,20 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
                 GPUImageContrastFilter contrastFilter = new GPUImageContrastFilter();
                 contrastFilter.setContrast(contrastValue);
 
+                GPUImageGammaFilter gammaFilter = new GPUImageGammaFilter();
+                gammaFilter.setGamma(gammaValue);
+
+                GPUImageSaturationFilter saturationFilter = new GPUImageSaturationFilter();
+                saturationFilter.setSaturation(saturationValue);
+
+                GPUImageExposureFilter exposureFilter = new GPUImageExposureFilter();
+                exposureFilter.setExposure(exposureValue);
+
                 filterGroup.addFilter(brightnessFilter);
                 filterGroup.addFilter(contrastFilter);
-
+                filterGroup.addFilter(exposureFilter);
+                filterGroup.addFilter(saturationFilter);
+                filterGroup.addFilter(gammaFilter);
                 gpuImage.setFilter(filterGroup);
                 final Bitmap filteredBitmap = gpuImage.getBitmapWithFilterApplied();
 
@@ -158,7 +318,6 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
             }
         }, DELAY_MILLIS);
     }
-
     private String saveBitmapAndGetPath(Bitmap bitmap) {
         File editedImageFile = new File(getExternalFilesDir(null), "edited_image.jpg");
         try {
@@ -172,7 +331,6 @@ public class ChangeBrightnessActivity extends AppCompatActivity {
             return null;
         }
     }
-
     private void sendResult(String editedImagePath) {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("editedImagePath", editedImagePath);

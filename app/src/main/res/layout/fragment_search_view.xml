@@ -1,46 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".fragments.SearchViewFragment">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-    <!-- TODO: Update blank fragment layout -->
-
-
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <!-- AppBarLayout -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:theme="@style/ThemeOverlay.AppCompat"
+        android:layout_marginTop="15dp">
+        <!-- EditText for search input -->
+            <ImageButton
+                android:id="@+id/back_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@color/transparent"
+                android:layout_weight="1"
+                android:tint="@color/background_dark"
+                android:src="@drawable/back"/>
+            <EditText
 
-        <!-- NestedScrollingChild goes here (NestedScrollView, RecyclerView, etc.). -->
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
-            <!-- Screen content goes here. -->
-        </androidx.core.widget.NestedScrollView>
-
-        <com.google.android.material.appbar.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <com.google.android.material.search.SearchBar
-                android:id="@+id/search_bar"
-                android:layout_width="match_parent"
+                android:id="@+id/search_edit_text"
+                android:layout_width="wrap_content"
+                android:layout_weight="5"
                 android:layout_height="wrap_content"
-                android:hint="Search for your picture" />
+                android:hint="Search for your picture"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textColorHint="@color/background_dark" />
 
-        </com.google.android.material.appbar.AppBarLayout>
+            <!-- Search button -->
+            <ImageButton
+                android:id="@+id/search_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Search"
+                android:background="@android:color/transparent"
+                android:src="@drawable/search"
+                />
 
-        <com.google.android.material.search.SearchView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:hint="Search for your picture"
-            app:layout_anchor="@id/search_bar">
-            <!-- Search suggestions/results go here (ScrollView, RecyclerView, etc.). -->
-        </com.google.android.material.search.SearchView>
+    </LinearLayout>
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <!-- RecyclerView for search results -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/search_view"
+        android:layout_marginTop="15dp"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+         />
 
-</FrameLayout>
+</LinearLayout>

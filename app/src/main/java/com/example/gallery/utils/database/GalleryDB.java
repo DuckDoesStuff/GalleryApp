@@ -516,6 +516,56 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.close();
         Log.d("GalleryDB", "Media table updated");
     }
+    public ArrayList<MediaModel> getSearchMedia(String albumName) {
+        ArrayList<MediaModel> mediaModels = new ArrayList<>();
 
+        SQLiteDatabase db = getReadableDatabase();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String userId = (user != null) ? user.getUid() : "";
+
+        ArrayList<String> selectionArgs = new ArrayList<>();
+        selectionArgs.add(userId);
+
+        StringBuilder query = new StringBuilder("SELECT * FROM media WHERE user_id = ? OR user_id IS NULL");
+
+        if (albumName != null && !albumName.isEmpty()) {
+            query.append(" AND album_name = ?");
+            selectionArgs.add(albumName);
+        }
+
+        Cursor cursor = db.rawQuery(query.toString(), selectionArgs.toArray(new String[0]));
+
+        try {
+            while (cursor.moveToNext()) {
+                String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
+                String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
+                boolean downloaded = cursor.getInt(cursor.getColumnIndexOrThrow("downloaded")) == 1;
+                String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
+                int duration = cursor.getInt(cursor.getColumnIndexOrThrow("duration"));
+                String location = cursor.getString(cursor.getColumnIndexOrThrow("location"));
+                int mediaID = cursor.getInt(cursor.getColumnIndexOrThrow("media_id"));
+                long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow("date_taken"));
+
+                mediaModels.add(new MediaModel()
+                        .setLocalPath(localPath)
+                        .setCloudPath(cloudPath)
+                        .setDownloaded(downloaded)
+                        .setAlbumName(albumName)
+                        .setType(type)
+                        .setDuration(duration)
+                        .setGeoLocation(location)
+                        .setMediaID(mediaID)
+                        .setDateTaken(dateTaken));
+            }
+        } catch (Exception e) {
+            Log.e("GalleryDB", "Error while fetching media from database", e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+        return mediaModels;
+    }
     // END MEDIA
 }

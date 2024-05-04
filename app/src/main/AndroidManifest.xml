@@ -2,9 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
@@ -26,6 +24,10 @@
         android:theme="@style/Theme.Gallery"
         tools:targetApi="31">
         <activity
+            android:name=".activities.search.SearchImageActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".activities.firebase.AuthActivity"
             android:exported="false"
             android:label="@string/title_activity_auth" />
@@ -41,9 +43,11 @@
         <activity
             android:name=".activities.FavoriteActivity"
             android:exported="false" />
-        <activity android:name=".utils.TrashManager"
+        <activity
+            android:name=".utils.TrashManager"
             android:exported="false" />
-        <activity android:name=".activities.TrashViewActivity"
+        <activity
+            android:name=".activities.TrashViewActivity"
             android:exported="false" />
         <activity
             android:name=".activities.pictures.EditActivity"
@@ -55,7 +59,8 @@
         <activity
             android:name=".component.dialog.AlbumPickerActivity"
             android:exported="false" />
-        <activity android:name=".utils.AlbumManager"
+        <activity
+            android:name=".utils.AlbumManager"
             android:exported="false" />
         <activity
             android:name=".activities.firebase.UploadChooserActivity"
@@ -73,8 +78,8 @@
             android:screenOrientation="fullSensor"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
-
         <service android:name=".utils.MediaStoreService" />
+
         <activity
             android:name=".activities.MainActivity"
             android:exported="true">
@@ -84,16 +89,36 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+        <activity
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorStickerActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+        <activity
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorTextActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.NoActionBar"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
+        <activity
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorDrawActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
 
         <provider
-            android:authorities="com.example.gallery"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.gallery"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/paths" />
-
         </provider>
     </application>
 

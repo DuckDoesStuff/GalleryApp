@@ -53,11 +53,7 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
             mediaViewModel.getMedia().setValue(new ArrayList<>());
         }
 
-        mediaObserver = mediaModels -> {
-            // Do things
-            Log.d("TrashActivity", "Media observer called with: " + mediaModels.size() + " items");
-        };
-        mediaViewModel.getMedia().observe(this, mediaObserver);
+
 
         mediaViewModel.getSelectedMedia().setValue(new ArrayList<>());
         selectedMediaObserver = selectedMedia -> {

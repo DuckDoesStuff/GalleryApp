@@ -9,6 +9,7 @@
     android:orientation="vertical">
 
 
+
     <ImageView
         android:id="@+id/frame"
         android:layout_width="wrap_content"
@@ -19,16 +20,18 @@
         android:src="@drawable/colorful"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
     <ImageView
 
         android:id="@+id/play_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
         android:src="@drawable/play_button"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:elevation="4dp"
+        />
 
     <CheckBox
         android:id="@+id/select_box"
@@ -43,7 +46,7 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:src="@drawable/cloud_upload_icon"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

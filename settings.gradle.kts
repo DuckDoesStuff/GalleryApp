@@ -8,6 +8,7 @@ pluginManagement {
         jcenter()
         maven("https://jitpack.io")
 
+
     }
 }
 dependencyResolutionManagement {
@@ -19,6 +20,9 @@ dependencyResolutionManagement {
         jcenter()
         maven("https://jitpack.io")
         maven("https://www.jitpack.io")
+        flatDir{
+            dirs("libs")
+        }
     }
 }
 

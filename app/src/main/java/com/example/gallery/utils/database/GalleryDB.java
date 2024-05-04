@@ -229,9 +229,10 @@ public class GalleryDB extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery("SELECT * FROM trash", null);
         while (cursor.moveToNext()) {
             String cloudPath = cursor.getString(cursor.getColumnIndexOrThrow("cloud_path"));
+            String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
             String trashPath = cursor.getString(cursor.getColumnIndexOrThrow("trash_path"));
             String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
-            mediaModels.add(new MediaModel().setLocalPath(trashPath).setCloudPath(cloudPath).setType(type));
+            mediaModels.add(new MediaModel().setTrashPath(trashPath).setCloudPath(cloudPath).setType(type).setLocalPath(localPath));
         }
         cursor.close();
         db.close();
@@ -289,7 +290,7 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     public void removeFromTrashTable(MediaModel mediaModel) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("DELETE FROM trash WHERE trash_path = '" + mediaModel.localPath + "'");
+        db.execSQL("DELETE FROM trash WHERE trash_path = '" + mediaModel.trashPath + "'");
         db.close();
     }
 

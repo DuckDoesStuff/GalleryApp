@@ -22,6 +22,7 @@ public class MediaModel implements Parcelable {
     public String type = "";
     public String localPath = "";
     public String cloudPath = "";
+    public String trashPath = "";
     public String geoLocation = "";
     public int mediaID = 0;
     public long dateTaken = 0;
@@ -39,6 +40,7 @@ public class MediaModel implements Parcelable {
         type = in.readString();
         localPath = in.readString();
         cloudPath = in.readString();
+        trashPath = in.readString();
         geoLocation = in.readString();
         mediaID = in.readInt();
         dateTaken = in.readLong();
@@ -78,6 +80,11 @@ public class MediaModel implements Parcelable {
 
     public MediaModel setCloudPath(String cloudPath) {
         this.cloudPath = cloudPath;
+        return this;
+    }
+
+    public MediaModel setTrashPath(String trashPath) {
+        this.trashPath = trashPath;
         return this;
     }
 
@@ -123,6 +130,7 @@ public class MediaModel implements Parcelable {
         dest.writeString(type);
         dest.writeString(localPath);
         dest.writeString(cloudPath);
+        dest.writeString(trashPath);
         dest.writeString(geoLocation);
         dest.writeInt(mediaID);
         dest.writeLong(dateTaken);

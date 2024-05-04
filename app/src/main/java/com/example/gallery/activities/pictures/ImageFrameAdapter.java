@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.ColorDrawable;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +34,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     private final ImageFrameListener onClickCallBack;
     public boolean selectionModeEnabled = false;
     private final MediaViewModel mediaViewModel;
+
     int oldSize = 0;
 
     public ImageFrameAdapter(int imgSize, Fragment fragment, ImageFrameListener onClickCallback) {
@@ -42,7 +44,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
         Observer<ArrayList<MediaModel>> mediaObserver = mediaModels -> {
             // Do things
-            notifyItemRangeChanged(0, mediaModels.size());
+            notifyDataSetChanged();
             Log.d("ImageFrameAdapter", "Media observer called with " + mediaModels.size() + " items");
         };
         mediaViewModel.getMedia().observe(fragment.getViewLifecycleOwner(), mediaObserver);
@@ -50,6 +52,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
         Observer<ArrayList<Integer>> selectedMediaObserver = selectedMedia -> {
             // Updates UI in here
+
             selectionModeEnabled = !selectedMedia.isEmpty();
             Log.d("ImageFrameAdapter", "Selected media observer called with " + selectedMedia.size() + " items");
         };
@@ -67,7 +70,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
         Observer<ArrayList<MediaModel>> mediaObserver = mediaModels -> {
             // Do things
-            notifyItemRangeChanged(0, mediaModels.size());
+            notifyDataSetChanged();
             Log.d("ImageFrameAdapter", "Media observer called with " + mediaModels.size() + " items");
         };
         mediaViewModel.getMedia().observe(activity, mediaObserver);

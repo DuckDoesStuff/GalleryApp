@@ -21,13 +21,14 @@ import com.example.gallery.R;
 import com.example.gallery.activities.pictures.ImageFrameAdapter;
 import com.example.gallery.activities.pictures.MediaViewModel;
 import com.example.gallery.utils.TrashManager;
+import com.example.gallery.utils.database.DatabaseObserver;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class TrashActivity extends AppCompatActivity implements ImageFrameAdapter.ImageFrameListener {
+public class TrashActivity extends AppCompatActivity implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
     boolean viewMode = true;
     private MediaViewModel mediaViewModel;
     private Observer<ArrayList<MediaModel>> mediaObserver;
@@ -36,12 +37,14 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
     private Button deleteBtn;
 
     ActivityResultLauncher<Intent> trashManagerLauncher;
+    private TextView trashCount;
 
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trash);
+        GalleryDB.addMediaObserver(this);
 
         mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
         try (GalleryDB db = new GalleryDB(this)) {
@@ -52,7 +55,6 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
             Log.e("TrashActivity", "Error getting trash", e);
             mediaViewModel.getMedia().setValue(new ArrayList<>());
         }
-
 
 
         mediaViewModel.getSelectedMedia().setValue(new ArrayList<>());
@@ -72,7 +74,7 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
         deleteBtn = findViewById(R.id.delete_button);
         restoreBtn.setVisibility(View.INVISIBLE);
         deleteBtn.setVisibility(View.INVISIBLE);
-        TextView trashCount = findViewById(R.id.fav_count);
+        trashCount = findViewById(R.id.fav_count);
         trashCount.setText(Objects.requireNonNull(mediaViewModel.getMedia().getValue()).size() + " items");
 
 
@@ -91,7 +93,6 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
                         // Do something here on success
-                        Objects.requireNonNull(mediaViewModel.getSelectedMedia().getValue()).clear();
                     }
                 });
 
@@ -108,8 +109,15 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
                 intent.putExtra("action", "restore");
                 intent.putParcelableArrayListExtra("mediaModels", mediaModels);
                 trashManagerLauncher.launch(intent);
+                mediaViewModel.clearSelectedMedia();
             }
         });
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        GalleryDB.removeMediaObserver(this);
     }
 
     @Override
@@ -119,6 +127,19 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
             intent.putParcelableArrayListExtra("mediaModels", mediaViewModel.getMedia().getValue());
             intent.putExtra("initial", position);
             startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onDatabaseChanged() {
+        try (GalleryDB db = new GalleryDB(this)) {
+            ArrayList<MediaModel> trash = db.getAllTrash();
+            mediaViewModel.getMedia().setValue(trash);
+            Log.d("TrashActivity", "Trash size: " + trash.size());
+            trashCount.setText(trash.size() + " items");
+        } catch (Exception e) {
+            Log.e("TrashActivity", "Error getting trash", e);
+            mediaViewModel.getMedia().setValue(new ArrayList<>());
         }
     }
 }

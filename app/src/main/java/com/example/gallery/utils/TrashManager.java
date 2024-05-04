@@ -130,10 +130,10 @@ public class TrashManager extends AppCompatActivity {
 
     private boolean restoreFromTrash(Context context, MediaModel mediaModel) {
         try {
-            String mediaPath = mediaModel.localPath;
+            String trashPath = mediaModel.trashPath;
 
-            File sourceFile = new File(mediaPath);
-            String destinationPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/" + sourceFile.getName();
+            File sourceFile = new File(trashPath);
+            String destinationPath = mediaModel.localPath;
             File destinationFile = new File(destinationPath);
 
             FileInputStream inputStream = new FileInputStream(sourceFile);

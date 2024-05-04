@@ -36,7 +36,8 @@
                 android:layout_height="match_parent"
                 android:layout_marginHorizontal="10dp"
                 android:background="@null"
-                android:src="@drawable/setting"
+                android:src="@drawable/detailssss"
+                android:id="@+id/detail_btn"
                 app:tint="#FFFFFF" />
 
 

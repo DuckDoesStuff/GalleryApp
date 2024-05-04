@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -20,17 +21,22 @@ import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
 import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
 import com.example.gallery.R;
 import com.example.gallery.utils.database.DatabaseObserver;
+import com.example.gallery.component.detailSheet;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 ;
 
 public class ImageActivity extends AppCompatActivity implements DatabaseObserver {
     ArrayList<MediaModel> mediaModels;
+    BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
     MediaViewModel mediaViewModel;
@@ -195,6 +201,21 @@ public class ImageActivity extends AppCompatActivity implements DatabaseObserver
         } catch (Exception e) {
             e.printStackTrace();
         }
+        ImageButton detailButton = findViewById(R.id.detail_btn);
+        detailButton.setOnClickListener(v->{
+            detailSheet bottomSheet = new detailSheet();
+            Date date = new Date(mediaModels.get(viewPager2.getCurrentItem()).dateTaken);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            String formattedDate = dateFormat.format(date);
+            bottomSheet.setDetailData(
+                    mediaModels.get(viewPager2.getCurrentItem()).albumName,
+                    mediaModels.get(viewPager2.getCurrentItem()).type,
+                    mediaModels.get(viewPager2.getCurrentItem()).localPath,
+                    mediaModels.get(viewPager2.getCurrentItem()).cloudPath,
+                    formattedDate);
+            // Hiển thị BottomSheetDialogFragment
+            bottomSheet.show(getSupportFragmentManager(), "DetailSheet");
+        });
     }
 
     @Override

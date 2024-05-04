@@ -111,7 +111,7 @@ public class DatabaseQuery {
         }
 
 
-        ArrayList<MediaModel> dbAllMedia = db.getAllMedia();
+        ArrayList<MediaModel> dbAllMedia = db.getAllLocalMedia();
 
         // Check for new media
         mediaModelsToAdd = new ArrayList<>();

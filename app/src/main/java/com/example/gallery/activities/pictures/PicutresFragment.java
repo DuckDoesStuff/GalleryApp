@@ -44,7 +44,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
@@ -218,7 +217,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
     private void getFromDatabase() {
         try(GalleryDB db = new GalleryDB(getContext())) {
-            ArrayList<MediaModel> mediaModels = db.getAllMedia();
+            ArrayList<MediaModel> mediaModels = db.getAllLocalMedia();
             mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
             mediaViewModel.getMedia().setValue(mediaModels);
             Log.d("PicturesFragment", "Pictures fragment got updated");

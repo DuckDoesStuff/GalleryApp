@@ -125,10 +125,10 @@ public class ImageActivity extends AppCompatActivity {
         editButton.setOnClickListener(v -> {
             String currentImagePath = mediaModels.get(viewPager2.getCurrentItem()).localPath;
             File currentImageFile = new File(currentImagePath);
-            File currentImageDirectory = currentImageFile.getParentFile();
+            String currentImageDirectory = currentImageFile.getParent();
             Intent editIntent = new Intent(ImageActivity.this, DsPhotoEditorActivity.class);
             editIntent.setData(Uri.fromFile(new File(currentImagePath)));
-            editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, currentImageDirectory.getAbsolutePath());
+            editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, currentImageDirectory);
             editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
             // Set background color
             editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));

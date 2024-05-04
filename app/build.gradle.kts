@@ -80,6 +80,14 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity:1.8.0")
+
+    //implementation("com.google.firebase:firebase-ml-vision:24.1.0")
+
+    implementation("com.google.android.gms:play-services-vision:20.0.0")
+
+    implementation("com.google.firebase:firebase-ml-vision:24.0.3")
+    implementation("com.google.firebase:firebase-ml-vision-barcode-model:16.1.1")
+
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
@@ -116,6 +124,7 @@ dependencies {
     annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
 
 
+    //implementation("com.google.firebase:firebase-ml-vision-face-model:20.0.2")
 
 
 }

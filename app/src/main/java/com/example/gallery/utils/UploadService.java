@@ -14,7 +14,6 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.example.gallery.R;
-import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -50,6 +49,7 @@ public class UploadService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d("UploadService", "Service created");
         createNotificationChannel();
         builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher_round)
@@ -60,6 +60,7 @@ public class UploadService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("UploadService", "Service started with intent");
         user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             stopSelf();
@@ -131,6 +132,7 @@ public class UploadService extends Service {
 
                 Uri file = Uri.fromFile(new File(mediaModel.localPath));
                 UploadTask uploadTask = mediaRef.putFile(file, storageMetadata);
+                Log.d("UploadService", "Uploading media to cloud");
                 uploadTask.addOnSuccessListener(taskSnapshot -> {
                     synchronized (lock) {
                         uploading++;
@@ -140,19 +142,21 @@ public class UploadService extends Service {
                         }
                         builder.setProgress(count, uploading, false);
                         NotificationManagerCompat.from(this).notify(SERVICE_NOTIFICATION_ID, builder.build());
-                    }
-                    try {
-                        mediaRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                            mediaModel.cloudPath = uri.toString();
-                            try (GalleryDB db = new GalleryDB(this)) {
-                                db.updateMedia(mediaModel);
-                            } catch (Exception e) {
-                                Log.d("UploadService", "Failed to update media in database");
-                                e.printStackTrace();
-                            }
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        Log.d("UploadService", "Media uploaded to cloud");
+                        try {
+                            mediaRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                                Log.d("UploadService", "URI: " + uri.toString());
+//                                mediaModel.cloudPath = uri.toString();
+//                                try (GalleryDB db = new GalleryDB(this)) {
+//                                    db.updateMedia(mediaModel);
+//                                } catch (Exception e) {
+//                                    Log.d("UploadService", "Failed to update media in database");
+//                                    e.printStackTrace();
+//                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }).addOnFailureListener(e -> {
                     // Handle failed uploads

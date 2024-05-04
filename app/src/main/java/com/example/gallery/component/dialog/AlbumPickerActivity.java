@@ -15,6 +15,7 @@ import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Objects;
 
 public class AlbumPickerActivity extends AppCompatActivity implements AlbumPickerAdapter.AlbumPickerListener {
@@ -54,6 +55,7 @@ public class AlbumPickerActivity extends AppCompatActivity implements AlbumPicke
 
         db = new GalleryDB(this);
         albums = db.getAllAlbums();
+        albums.sort(Comparator.comparing(a -> a.albumName));
 
         RecyclerView recyclerView = findViewById(R.id.album_list_picker);
         AlbumPickerAdapter adapter = new AlbumPickerAdapter(albums, this);

@@ -62,6 +62,7 @@ public class UploadChooserActivity extends AppCompatActivity implements ImageFra
                 selectedMediaModels.add(mediaViewModel.getMedia(i));
             }
             uploadIntent.putParcelableArrayListExtra("selectedMedia", selectedMediaModels);
+            Log.d("UploadChooserActivity", "Starting upload activity");
             startActivity(uploadIntent);
             finish();
         });

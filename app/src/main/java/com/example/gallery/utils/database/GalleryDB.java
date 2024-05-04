@@ -58,7 +58,7 @@ public class GalleryDB extends SQLiteOpenHelper {
                     "type TEXT," +
                     "duration INTEGER," +
                     "location TEXT," +
-                    "date_taken TIMESTAMP," +
+                    "date_taken INTEGER," +
                     "favorite BOOLEAN," +
                     "UNIQUE (local_path, cloud_path, media_id))";
     // START observers

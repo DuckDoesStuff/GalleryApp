@@ -1,5 +1,6 @@
 package com.example.gallery.activities.pictures;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -22,6 +23,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
+import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -31,8 +33,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.FavoriteActivity;
 import com.example.gallery.activities.MainActivity;
-import com.example.gallery.activities.search.SearchImageActivity;
 import com.example.gallery.activities.TrashActivity;
+import com.example.gallery.activities.search.SearchImageActivity;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
 import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.TrashManager;
@@ -43,10 +45,14 @@ import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
+    ArrayList<MediaModel> mediaModels;
     LinearLayout bottomSheet;
     boolean viewMode = true;
     MainActivity mainActivity;
@@ -104,6 +110,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         GalleryDB.removeMediaObserver(this);
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_picutres, container, false);
@@ -117,6 +124,14 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         dropdownButton.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(getContext(), v);
             popupMenu.getMenuInflater().inflate(R.menu.setting_dropdown, popupMenu.getMenu());
+            try {
+                Field mPopup = PopupMenu.class.getDeclaredField("mPopup");
+                mPopup.setAccessible(true);
+                MenuPopupHelper menuHelper = (MenuPopupHelper) mPopup.get(popupMenu);
+                menuHelper.setForceShowIcon(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             popupMenu.setOnMenuItemClickListener(item -> {
                 // Handle menu item click
@@ -127,8 +142,32 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                 } else if (item.getItemId() == R.id.favorite) {
                     Intent intent = new Intent(getContext(), FavoriteActivity.class);
                     mainActivity.startActivity(intent);
+                } else if (item.getItemId() == R.id.by_latest) {
+                    mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
+                    mediaViewModel.getMedia().setValue(mediaModels);
                     return true;
-                } else if (item.getItemId() == R.id.choice3) {
+                } else if (item.getItemId() == R.id.by_oldest) {
+                    mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
+                    Collections.reverse(mediaModels);
+                    mediaViewModel.getMedia().setValue(mediaModels);
+
+                    return true;
+                }
+                else if (item.getItemId() == R.id.by_album_name) {
+                    Comparator<MediaModel> albumNameComparator = new Comparator<MediaModel>() {
+                        @Override
+                        public int compare(MediaModel o1, MediaModel o2) {
+                            return o1.albumName.compareTo(o2.albumName);  // Sắp xếp theo thứ tự bảng chữ cái
+                        }
+                    };
+
+// Sắp xếp danh sách theo tên album
+                    Collections.sort(mediaModels, albumNameComparator);
+
+// Sau khi sắp xếp, bạn có thể cập nhật ViewModel
+                    mediaViewModel.getMedia().setValue(mediaModels);
+
+
                     return true;
                 }
 
@@ -334,4 +373,5 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             mainActivity.setBottomNavigationViewVisibility(View.VISIBLE);
         });
     }
+
 }

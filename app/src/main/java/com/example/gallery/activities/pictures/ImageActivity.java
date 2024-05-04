@@ -135,6 +135,7 @@ public class ImageActivity extends AppCompatActivity {
             startActivity(editIntent); // Khởi động hoạt động
 
 
+
         });
 
         viewPager2 = findViewById(R.id.view_pager);

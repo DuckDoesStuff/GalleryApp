@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+   >
     <item
         android:id="@+id/trash"
-        android:title="Trash" />
+        android:title="Trash"
+        android:icon="@drawable/trash"
+        app:showAsAction="withText" />
     <item
         android:id="@+id/favorite"
         android:title="Favorite" />
     <item
-        android:id="@+id/choice3"
-        android:title="Choice 3" />
+        android:id="@+id/by_latest"
+        android:title="Sort By Lastest" />
+    <item
+        android:id="@+id/by_oldest"
+        android:title="Sort By Oldest" />
+    <item
+        android:id="@+id/by_album_name"
+        android:title="Sort By Album " />
+
 </menu>

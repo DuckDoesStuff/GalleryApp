@@ -3,7 +3,6 @@ package com.example.gallery.activities.pictures;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -46,22 +45,18 @@ import com.example.gallery.utils.database.DatabaseObserver;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.ArrayList;
-
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Collections;
-import java.util.Comparator;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
     BottomSheetBehavior<LinearLayout> bottomSheetBehavior;

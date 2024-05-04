@@ -20,8 +20,8 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
 import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
 import com.example.gallery.R;
-import com.example.gallery.utils.database.DatabaseObserver;
 import com.example.gallery.component.detailSheet;
+import com.example.gallery.utils.database.DatabaseObserver;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -163,6 +163,22 @@ public class ImageActivity extends AppCompatActivity implements DatabaseObserver
 
             editActivityResultLauncher.launch(editIntent);
         });
+        ImageButton detailButton = findViewById(R.id.detail_btn);
+        detailButton.setOnClickListener(v->{
+            Log.d("ImageActivity", "Detail button clicked");
+            detailSheet bottomSheet = new detailSheet();
+            Date date = new Date(mediaModels.get(viewPager2.getCurrentItem()).dateTaken);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            String formattedDate = dateFormat.format(date);
+            bottomSheet.setDetailData(
+                    mediaModels.get(viewPager2.getCurrentItem()).albumName,
+                    mediaModels.get(viewPager2.getCurrentItem()).type,
+                    mediaModels.get(viewPager2.getCurrentItem()).localPath,
+                    mediaModels.get(viewPager2.getCurrentItem()).cloudPath,
+                    formattedDate);
+            // Hiển thị BottomSheetDialogFragment
+            bottomSheet.show(getSupportFragmentManager(), "DetailSheet");
+        });
 
         viewPager2 = findViewById(R.id.view_pager);
         viewPagerAdapter = new ViewPagerAdapter(this, currentSortType);
@@ -201,21 +217,6 @@ public class ImageActivity extends AppCompatActivity implements DatabaseObserver
         } catch (Exception e) {
             e.printStackTrace();
         }
-        ImageButton detailButton = findViewById(R.id.detail_btn);
-        detailButton.setOnClickListener(v->{
-            detailSheet bottomSheet = new detailSheet();
-            Date date = new Date(mediaModels.get(viewPager2.getCurrentItem()).dateTaken);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-            String formattedDate = dateFormat.format(date);
-            bottomSheet.setDetailData(
-                    mediaModels.get(viewPager2.getCurrentItem()).albumName,
-                    mediaModels.get(viewPager2.getCurrentItem()).type,
-                    mediaModels.get(viewPager2.getCurrentItem()).localPath,
-                    mediaModels.get(viewPager2.getCurrentItem()).cloudPath,
-                    formattedDate);
-            // Hiển thị BottomSheetDialogFragment
-            bottomSheet.show(getSupportFragmentManager(), "DetailSheet");
-        });
     }
 
     @Override

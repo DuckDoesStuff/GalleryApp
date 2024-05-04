@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -52,8 +51,8 @@ public class BottomDialogDuplicateItem extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        TextView textView = view.findViewById(R.id.duplicate_item_text);
-        textView.setText(fileName);
+//        TextView textView = view.findViewById(R.id.duplicate_item_text);
+//        textView.setText(fileName);
 
         // Handle click events
         CheckBox checkBox = view.findViewById(R.id.apply_to_all);

@@ -3,8 +3,6 @@ package com.example.gallery.activities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -17,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.R;
 import com.example.gallery.activities.pictures.ImageFrameAdapter;
 import com.example.gallery.activities.pictures.MediaViewModel;
-import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 
 import java.util.ArrayList;

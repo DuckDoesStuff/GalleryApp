@@ -5,8 +5,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+
 import com.example.gallery.R;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 public class detailSheet extends BottomSheetDialogFragment {
     private String albumName;

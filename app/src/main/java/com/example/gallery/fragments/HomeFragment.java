@@ -1,6 +1,5 @@
 package com.example.gallery.fragments;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -18,10 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
-import com.example.gallery.activities.FaceActivity;
 import com.example.gallery.activities.MainActivity;
-import com.example.gallery.activities.album.AlbumActivity;
-import com.example.gallery.activities.pictures.ImageActivity;
 import com.example.gallery.activities.pictures.ImageFrameAdapter;
 import com.example.gallery.activities.pictures.MediaViewModel;
 import com.example.gallery.utils.database.DatabaseObserver;
@@ -34,14 +30,11 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
-import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 public class HomeFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
     File[] images;

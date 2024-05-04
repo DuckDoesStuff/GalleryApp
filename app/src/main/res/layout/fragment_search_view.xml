@@ -7,25 +7,36 @@
     <!-- AppBarLayout -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="68dp"
+        android:layout_marginStart="5dp"
         android:orientation="horizontal"
-        android:theme="@style/ThemeOverlay.AppCompat"
-        android:layout_marginTop="15dp">
+        android:paddingTop="15dp"
+        android:paddingBottom="5dp"
+        android:theme="@style/ThemeOverlay.AppCompat">
         <!-- EditText for search input -->
-            <ImageButton
-                android:id="@+id/back_button"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:background="@color/transparent"
-                android:layout_weight="1"
-                android:tint="@color/background_dark"
-                android:src="@drawable/back"/>
-            <EditText
+        <ImageButton
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/transparent"
+            android:src="@drawable/back"
+            android:tint="@color/background_dark" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="5"
+            android:background="@drawable/search_background"
+            android:gravity="center"
+            android:layout_marginEnd="10dp"
+            >
 
+            <EditText
                 android:id="@+id/search_edit_text"
                 android:layout_width="wrap_content"
-                android:layout_weight="5"
                 android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:background="@color/transparent"
                 android:hint="Search for your picture"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
@@ -35,14 +46,26 @@
             <ImageButton
                 android:id="@+id/search_button"
                 android:layout_width="wrap_content"
+                android:layout_marginEnd="10dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Search"
                 android:background="@android:color/transparent"
                 android:src="@drawable/search"
-                />
+                android:text="Search" />
+        </LinearLayout>
 
     </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No item found"
+        android:textSize="17dp"
+        android:layout_marginTop="5dp"
+        android:textStyle="italic"
+        android:layout_marginStart="20dp"
+        android:id="@+id/no_result_text"
+        android:visibility="invisible"
+        />
 
     <!-- RecyclerView for search results -->
     <androidx.recyclerview.widget.RecyclerView
@@ -52,5 +75,6 @@
         android:layout_height="match_parent"
         android:background="@android:color/white"
          />
+
 
 </LinearLayout>

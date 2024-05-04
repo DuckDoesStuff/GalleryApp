@@ -2,8 +2,10 @@ package com.example.gallery.activities.search;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
@@ -37,15 +39,25 @@ public class SearchImageActivity extends AppCompatActivity implements ImageFrame
         mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
 
         ImageButton searchButton = findViewById(R.id.search_button);
+        TextView noResultText = findViewById(R.id.no_result_text);
         searchButton.setOnClickListener(v->{
             String searchInputText = searchInput.getText().toString();
-            if(searchInputText==null)
-                return;
+
 
             try (GalleryDB db = new GalleryDB(this)) {
-                ArrayList<MediaModel> trash = db.getSearchMedia(searchInputText);
-                mediaViewModel.getMedia().setValue(trash);
-                Log.d("SearchActivity", "Trash size: " + trash.size());
+                ArrayList<MediaModel> searchResults = db.getSearchMedia(searchInputText);
+                if(searchResults.isEmpty()) {
+                    noResultText.setVisibility(View.VISIBLE);
+                    return;
+                }
+                else {
+                    String resultCount =  searchResults.size()+"";
+                    noResultText.setText(resultCount+" items found");
+                    noResultText.setVisibility(View.VISIBLE);
+                }
+                mediaViewModel.getMedia().setValue(searchResults);
+                mediaViewModel.clearSelectedMedia();
+                Log.d("SearchActivity", "Trash size: " + searchResults.size());
             } catch (Exception e) {
                 Log.e("SearchActivity", "Error getting trash", e);
                 mediaViewModel.getMedia().setValue(new ArrayList<>());

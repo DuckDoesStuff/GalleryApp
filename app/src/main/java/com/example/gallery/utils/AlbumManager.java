@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.gallery.component.dialog.BottomDialogDuplicateItem;
 import com.example.gallery.utils.database.AlbumModel;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
@@ -24,8 +25,73 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.Semaphore;
+
+class ReplaceFileWithItself {
+    static byte[] readFileToMemory(String filePath) throws IOException {
+        // Read file data into memory
+        File file = new File(filePath);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] fileData = new byte[(int) file.length()];
+            fis.read(fileData);
+            return fileData;
+        }
+    }
+
+    static boolean deleteFile(String filePath) {
+        // Delete the file
+        File file = new File(filePath);
+        if (file.exists()) {
+            return file.delete();
+        }
+        return false;
+    }
+
+    static void writeMemoryDataToFile(byte[] data, String filePath) throws IOException {
+        // Write the data from memory to the same file path
+        try (FileOutputStream fos = new FileOutputStream(filePath)) {
+            fos.write(data);
+        }
+    }
+}
 
 public class AlbumManager extends AppCompatActivity {
+
+    private boolean applyToAll;
+    private boolean chooseSkip;
+    private boolean chooseReplace;
+    private boolean chooseRename;
+
+    private final Semaphore semaphore = new Semaphore(1);
+
+    private BottomDialogDuplicateItem.OnDuplicateItemListener duplicateItemListener = new BottomDialogDuplicateItem.OnDuplicateItemListener() {
+        @Override
+        public void onApplyToAll(boolean applyAll) {
+            applyToAll = applyAll;
+        }
+
+        @Override
+        public void onSkip(boolean skip) {
+            chooseSkip = skip;
+        }
+
+        @Override
+        public void onReplace(boolean replace) {
+            chooseReplace = replace;
+        }
+
+        @Override
+        public void onRename(boolean rename) {
+            chooseRename = rename;
+        }
+
+        @Override
+        public void onDismiss() {
+            Log.d("AlbumManager", "Dialog dismissed");
+            semaphore.release();
+        }
+    };
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,12 +109,11 @@ public class AlbumManager extends AppCompatActivity {
                 case "add": {
                     ArrayList<MediaModel> mediaModels = intent.getParcelableArrayListExtra("mediaModels");
                     AlbumModel albumModel = intent.getParcelableExtra("albumModel");
-                    boolean result = false;
-                    if (mediaModels != null) {
-                        result = moveMedia(this, mediaModels, albumModel);
-                    }
-                    setResult(result ? RESULT_OK : RESULT_CANCELED);
-                    finish();
+                    new Thread(() -> {
+                        if (mediaModels != null) {
+                            moveMedia(this, mediaModels, albumModel);
+                        }
+                    }).start();
                     break;
                 }
                 case "create": {
@@ -72,16 +137,20 @@ public class AlbumManager extends AppCompatActivity {
         }
     }
 
-    private boolean moveMedia(Context context, ArrayList<MediaModel> mediaModels, AlbumModel albumModel) {
+    private void moveMedia(Context context, ArrayList<MediaModel> mediaModels, AlbumModel albumModel) {
         boolean success = true;
-        boolean applyToAll = false;
+        applyToAll = false;
+        chooseSkip = false;
+        chooseReplace = false;
+        chooseRename = false;
         for (MediaModel mediaModel : mediaModels) {
             if (!moveMedia(context, mediaModel, albumModel)) {
                 success = false;
             }
         }
         notifyMediaStoreScan(albumModel.localPath);
-        return success;
+        setResult(success ? RESULT_OK : RESULT_CANCELED);
+        finish();
     }
 
     private boolean moveMedia(Context context, MediaModel mediaModel, AlbumModel albumModel) {
@@ -98,10 +167,60 @@ public class AlbumManager extends AppCompatActivity {
                 return false; // AlbumModel does not have a local path
             }
             String destinationPath = albumModel.localPath + "/" + sourceFile.getName();
-            File destinationFile = new File(destinationPath);
+
+            File destinationFileCheck = new File(destinationPath);
+            // Check if there is a file with the same path
+            semaphore.acquire();
+            boolean fileExists = destinationFileCheck.exists();
+            if (fileExists && !applyToAll) {
+                BottomDialogDuplicateItem bottomDialogDuplicateItem = new BottomDialogDuplicateItem();
+                bottomDialogDuplicateItem.setOnDuplicateItemListener(duplicateItemListener);
+                bottomDialogDuplicateItem.show(getSupportFragmentManager(), "DuplicateItem");
+            }else {
+                semaphore.release();
+            }
+            semaphore.acquire();
+            if(fileExists) {
+                if (chooseSkip) {
+                    semaphore.release();
+                    return true; // Skip this file
+                } else if (chooseReplace) {
+                    // Store the current source file data
+                    byte[] fileData = ReplaceFileWithItself.readFileToMemory(sourceFilePath);
+                    // Delete the source file
+                    if (!ReplaceFileWithItself.deleteFile(sourceFilePath)) {
+                        return false; // Error occurred while deleting file
+                    }
+                    // Write the stored data to the destination file
+                    ReplaceFileWithItself.writeMemoryDataToFile(fileData, destinationPath);
+
+                    mediaModel.localPath = destinationPath;
+                    try (GalleryDB db = new GalleryDB(context)) {
+                        if(Objects.equals(albumModel.albumThumbnail, "")) {
+                            albumModel.albumThumbnail = mediaModel.localPath;
+                            db.updateAlbum(albumModel);
+                        }
+                        db.updateMedia(mediaModel);
+                    }
+                    semaphore.release();
+                    return true;
+
+                } else if (chooseRename) {
+                    Log.d("AlbumManager", "Renaming file");
+                    String fileName = sourceFile.getName();
+                    String[] split = fileName.split("\\.");
+                    String name = split[0];
+                    String extension = split[1];
+                    int i = 1;
+                    while (destinationFileCheck.exists()) {
+                        destinationFileCheck = new File(albumModel.localPath + "/" + name + "(" + i + ")." + extension);
+                        i++;
+                    }
+                }
+            }
 
             FileInputStream inputStream = new FileInputStream(sourceFile);
-            FileOutputStream outputStream = new FileOutputStream(destinationFile);
+            FileOutputStream outputStream = new FileOutputStream(destinationFileCheck);
 
             byte[] buffer = new byte[1024];
             int length;
@@ -112,7 +231,7 @@ public class AlbumManager extends AppCompatActivity {
             inputStream.close();
             outputStream.close();
 
-            mediaModel.localPath = destinationFile.getAbsolutePath();
+            mediaModel.localPath = destinationFileCheck.getAbsolutePath();
             Log.d("AlbumManager", "File: " + mediaModel.localPath);
             Log.d("AlbumManager", "Album: " + albumModel.localPath);
 
@@ -124,20 +243,26 @@ public class AlbumManager extends AppCompatActivity {
                     }
                     db.updateMedia(mediaModel);
                 }
+                semaphore.release();
                 return true;
             } else {
+                semaphore.release();
                 return false;
             }
         } catch (IOException e) {
             e.printStackTrace();
             Log.d("AlbumManager", "Error moving file");
             return false; // Error occurred while moving file
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Log.d("AlbumManager", "Error acquiring semaphore");
+            return false;
         }
     }
 
     private AlbumModel createNewAlbum(@NonNull Context context, String albumName) {
         File album = new File(android.os.Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DCIM), albumName);
+                Environment.DIRECTORY_PICTURES), albumName);
 
         if (!album.exists()) {
             if (album.mkdirs()) {

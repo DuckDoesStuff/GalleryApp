@@ -21,8 +21,8 @@
         android:hint="@string/lorem_ipsum_short"
         android:textSize="20dp" />
 
-    <RadioButton
-        android:id="@+id/rb_apply_to_all"
+    <CheckBox
+        android:id="@+id/apply_to_all"
         android:layout_marginHorizontal="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -66,14 +66,14 @@
             android:layout_width="1dp"
             android:layout_height="20dp" />
 
-        <Button
-            android:id="@+id/btn_rename"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="15dp"
-            android:layout_weight="1"
-            android:text="Rename"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+<!--        <Button-->
+<!--            android:id="@+id/btn_rename"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginHorizontal="15dp"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="Rename"-->
+<!--            android:textSize="15sp"-->
+<!--            android:textStyle="bold" />-->
     </LinearLayout>
 </LinearLayout>

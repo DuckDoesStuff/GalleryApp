@@ -97,7 +97,7 @@ public class TrashManager extends AppCompatActivity {
 
     private boolean deleteFromTrash(Context context, MediaModel mediaModel) {
         try {
-            String mediaPath = mediaModel.localPath;
+            String mediaPath = mediaModel.trashPath;
             File sourceFile = new File(mediaPath);
             if (sourceFile.delete()) {
                 try (GalleryDB db = new GalleryDB(context)) {

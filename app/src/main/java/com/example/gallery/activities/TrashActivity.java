@@ -44,7 +44,7 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trash);
-        GalleryDB.addMediaObserver(this);
+        GalleryDB.addTrashObservers(this);
 
         mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
         try (GalleryDB db = new GalleryDB(this)) {
@@ -112,12 +112,29 @@ public class TrashActivity extends AppCompatActivity implements ImageFrameAdapte
                 mediaViewModel.clearSelectedMedia();
             }
         });
+
+        deleteBtn.setOnClickListener(v -> {
+            ArrayList<Integer> selectedMedia = mediaViewModel.getSelectedMedia().getValue();
+            if (selectedMedia != null) {
+                // Get MediaModels from selectedMedia
+                ArrayList<MediaModel> mediaModels = new ArrayList<>();
+                for (int i : selectedMedia) {
+                    mediaModels.add(mediaViewModel.getMedia(i));
+                }
+                // Start TrashManager with action "delete"
+                Intent intent = new Intent(this, TrashManager.class);
+                intent.putExtra("action", "delete");
+                intent.putParcelableArrayListExtra("mediaModels", mediaModels);
+                trashManagerLauncher.launch(intent);
+                mediaViewModel.clearSelectedMedia();
+            }
+        });
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        GalleryDB.removeMediaObserver(this);
+        GalleryDB.removeTrashObservers(this);
     }
 
     @Override

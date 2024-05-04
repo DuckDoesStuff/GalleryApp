@@ -145,14 +145,15 @@ public class ImageActivity extends AppCompatActivity implements DatabaseObserver
         editButton.setOnClickListener(v -> {
             String currentImagePath = mediaModels.get(viewPager2.getCurrentItem()).localPath;
             File currentImageFile = new File(currentImagePath);
-            String currentImageDirectory = currentImageFile.getParent();
+            File currentImageDirectory = currentImageFile.getParentFile();
             Intent editIntent = new Intent(ImageActivity.this, DsPhotoEditorActivity.class);
+
+            String directoryName = currentImageDirectory.getName().equals("Pictures") ? "Edited Pictures" : currentImageDirectory.getName();
             editIntent.setData(Uri.fromFile(new File(currentImagePath)));
-            editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, currentImageDirectory);
+            editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, directoryName);
             editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
             // Set background color
             editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
-
 
             editActivityResultLauncher.launch(editIntent);
         });

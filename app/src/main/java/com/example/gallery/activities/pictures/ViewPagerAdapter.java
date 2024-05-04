@@ -14,6 +14,8 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
@@ -29,15 +31,42 @@ import com.ortiz.touchview.TouchImageView;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.ViewPagerViewHolder> {
     AppCompatActivity activity;
     ArrayList<MediaModel> images;
+    MediaViewModel mediaViewModel;
 
     public ViewPagerAdapter(ArrayList<MediaModel> images, AppCompatActivity activity) {
         this.images = images;
         this.activity = activity;
+    }
+
+    public ViewPagerAdapter(AppCompatActivity activity, int sortType) {
+        this.activity = activity;
+        mediaViewModel = new ViewModelProvider(activity).get(MediaViewModel.class);
+        this.images = mediaViewModel.getMedia().getValue();
+
+        Observer<ArrayList<MediaModel>> mediaObserver = mediaModels -> {
+            switch (sortType) {
+                case PicutresFragment.SORT_LATEST:
+                    mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
+                    break;
+                case PicutresFragment.SORT_OLDEST:
+                    mediaModels.sort(Comparator.comparingLong(o -> o.dateTaken));
+                    break;
+                case PicutresFragment.SORT_ALBUM_NAME:
+                    mediaModels.sort(Comparator.comparing(o -> o.albumName));
+                    break;
+
+            }
+            this.images = mediaModels;
+            Log.d("ViewPagerAdapter", "Media observer called with " + mediaModels.size() + " items");
+            notifyDataSetChanged();
+        };
+        mediaViewModel.getMedia().observe(activity, mediaObserver);
     }
 
     @NonNull
@@ -62,28 +91,28 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
     @Override
     public void onViewRecycled(@NonNull ViewPagerViewHolder holder) {
         super.onViewRecycled(holder);
-        if (holder.player != null) {
-            holder.player.release();
-            Log.d("Player", "View recycled and player released");
-        }
+//        if (holder.player != null) {
+//            holder.player.release();
+//            Log.d("Player", "View recycled and player released");
+//        }
     }
 
     @Override
     public void onViewAttachedToWindow(@NonNull ViewPagerViewHolder holder) {
         super.onViewAttachedToWindow(holder);
-        if (holder.player != null) {
-            holder.setupPlayerView();
-            Log.d("Player", "View attached and player prepared");
-        }
+//        if (holder.player != null) {
+//            holder.setupPlayerView();
+//            Log.d("Player", "View attached and player prepared");
+//        }
     }
 
     @Override
     public void onViewDetachedFromWindow(@NonNull ViewPagerViewHolder holder) {
         super.onViewDetachedFromWindow(holder);
-        if (holder.player != null) {
-            holder.player.release();
-            Log.d("Player", "View detached and player released");
-        }
+//        if (holder.player != null) {
+//            holder.player.release();
+//            Log.d("Player", "View detached and player released");
+//        }
     }
 
     public class ViewPagerViewHolder extends RecyclerView.ViewHolder {
@@ -145,6 +174,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.View
                 });
 
             } else {
+                Log.d("ViewPagerAdapter", "Media type is video local path: " + mediaModel.localPath);
                 setupPlayerView();
             }
         }

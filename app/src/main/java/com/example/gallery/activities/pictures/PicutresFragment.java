@@ -45,7 +45,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
@@ -60,8 +59,13 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     ActivityResultLauncher<Intent> albumManagerLauncher;
     ActivityResultLauncher<Intent> albumPickerLauncher;
     ActivityResultLauncher<Intent> trashManagerLauncher;
-
     private MediaViewModel mediaViewModel;
+
+    public static final int SORT_LATEST = 1;
+    public static final int SORT_OLDEST = 2;
+    public static final int SORT_ALBUM_NAME = 3;
+
+    private int currentSortType = PicutresFragment.SORT_LATEST;
 
     public PicutresFragment() {
         // Required empty public constructor
@@ -135,28 +139,18 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                 } else if (item.getItemId() == R.id.by_latest) {
                     mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
                     mediaViewModel.getMedia().setValue(mediaModels);
+                    currentSortType = PicutresFragment.SORT_LATEST;
                     return true;
                 } else if (item.getItemId() == R.id.by_oldest) {
-                    mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
-                    Collections.reverse(mediaModels);
+                    mediaModels.sort(Comparator.comparingLong(o -> o.dateTaken));
                     mediaViewModel.getMedia().setValue(mediaModels);
+                    currentSortType = PicutresFragment.SORT_OLDEST;
                     return true;
                 }
                 else if (item.getItemId() == R.id.by_album_name) {
-                    Comparator<MediaModel> albumNameComparator = new Comparator<MediaModel>() {
-                        @Override
-                        public int compare(MediaModel o1, MediaModel o2) {
-                            return o1.albumName.compareTo(o2.albumName);  // Sắp xếp theo thứ tự bảng chữ cái
-                        }
-                    };
-
-// Sắp xếp danh sách theo tên album
-                    Collections.sort(mediaModels, albumNameComparator);
-
-// Sau khi sắp xếp, bạn có thể cập nhật ViewModel
+                    mediaModels.sort(Comparator.comparing(o -> o.albumName));
                     mediaViewModel.getMedia().setValue(mediaModels);
-
-
+                    currentSortType = PicutresFragment.SORT_ALBUM_NAME;
                     return true;
                 }
 
@@ -330,16 +324,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         if (viewMode) {
             Intent intent = new Intent(mainActivity, ImageActivity.class);
             ArrayList<MediaModel> mediaModels = mediaViewModel.getMedia().getValue();
-            for (MediaModel media: mediaModels) {
-                if (media.favorite) {
-                    Log.d("favorite", "true");
-                } else {
-                    Log.d("favorite", "false");
-
-                }
-            }
             intent.putParcelableArrayListExtra("mediaModels", mediaModels);
             intent.putExtra("initial", position);
+            intent.putExtra("sortType", currentSortType);
             mainActivity.startActivity(intent);
         }
     }

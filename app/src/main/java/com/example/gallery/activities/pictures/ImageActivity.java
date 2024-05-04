@@ -8,13 +8,18 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
 import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
 import com.example.gallery.R;
+import com.example.gallery.utils.database.DatabaseObserver;
 import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -24,25 +29,43 @@ import java.util.ArrayList;
 
 ;
 
-public class ImageActivity extends AppCompatActivity {
+public class ImageActivity extends AppCompatActivity implements DatabaseObserver {
     ArrayList<MediaModel> mediaModels;
     ViewPager2 viewPager2;
     ViewPagerAdapter viewPagerAdapter;
-
+    MediaViewModel mediaViewModel;
+    ActivityResultLauncher<Intent> editActivityResultLauncher;
+    private int currentSortType = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_image);
+        GalleryDB.addMediaObserver(this);
 
+        setContentView(R.layout.activity_image);
         Intent intent = getIntent();
-        final int position;
+        int position = 0;
         if (intent != null) {
             mediaModels = intent.getParcelableArrayListExtra("mediaModels");
+            currentSortType = intent.getIntExtra("sortType", PicutresFragment.SORT_LATEST);
             position = intent.getIntExtra("initial", 0);
         } else {
-            mediaModels = new ArrayList<>();
-            position = -1;
+            finish();
         }
+
+        mediaViewModel = new ViewModelProvider(this).get(MediaViewModel.class);
+        mediaViewModel.getMedia().setValue(mediaModels);
+
+        Observer<ArrayList<MediaModel>> mediaObserver = mediaModels -> {
+          // DO somethings in here pls
+        };
+        mediaViewModel.getMedia().observe(this, mediaObserver);
+
+        editActivityResultLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                    }
+                });
 
         ImageButton imageButton = findViewById(R.id.back_button);
         imageButton.setOnClickListener(v -> finish());
@@ -54,7 +77,7 @@ public class ImageActivity extends AppCompatActivity {
 
 
         heartButton.setOnClickListener(v -> {
-            if (mediaModels.get(viewPager2.getCurrentItem()).favorite == true) {
+            if (mediaModels.get(viewPager2.getCurrentItem()).favorite) {
                 heartButton.setImageResource(R.drawable.favorite);
                 mediaModels.get(viewPager2.getCurrentItem()).setFavorite(false);
                 try (GalleryDB db = new GalleryDB(this)) {
@@ -71,27 +94,24 @@ public class ImageActivity extends AppCompatActivity {
 
             }
         });
-        shareButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Lấy đường dẫn của hình ảnh đang hiển thị trong ViewPager2
-                String currentImagePath = mediaModels.get(viewPager2.getCurrentItem()).localPath;
+        shareButton.setOnClickListener(v -> {
+            // Lấy đường dẫn của hình ảnh đang hiển thị trong ViewPager2
+            String currentImagePath = mediaModels.get(viewPager2.getCurrentItem()).localPath;
 
-                // Tạo một Uri từ đường dẫn của hình ảnh
-                Uri imageUri = FileProvider.getUriForFile(com.example.gallery.activities.pictures.ImageActivity.this,
-                        "com.example.gallery", new File(currentImagePath));
+            // Tạo một Uri từ đường dẫn của hình ảnh
+            Uri imageUri = FileProvider.getUriForFile(ImageActivity.this,
+                    "com.example.gallery", new File(currentImagePath));
 
-                // Tạo Intent để chia sẻ hình ảnh
-                Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("image/*");
-                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+            // Tạo Intent để chia sẻ hình ảnh
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("image/*");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
 
-                // Cho phép các ứng dụng khác đọc dữ liệu từ FileProvider của bạn
-                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            // Cho phép các ứng dụng khác đọc dữ liệu từ FileProvider của bạn
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                // Mở Activity chia sẻ và chọn ứng dụng để chia sẻ hình ảnh
-                startActivity(Intent.createChooser(shareIntent, "Share Image"));
-            }
+            // Mở Activity chia sẻ và chọn ứng dụng để chia sẻ hình ảnh
+            startActivity(Intent.createChooser(shareIntent, "Share Image"));
         });
         deleteButton.setOnClickListener(v -> {
             new MaterialAlertDialogBuilder(this)
@@ -112,8 +132,8 @@ public class ImageActivity extends AppCompatActivity {
                             }
                         }
 
-//                    String currentImagePath = mediaModels.get(currentPosition).localPath;
-//                    TrashManager.moveToTrash(ImageActivity.this, currentImagePath);
+                        //                    String currentImagePath = mediaModels.get(currentPosition).localPath;
+                        //                    TrashManager.moveToTrash(ImageActivity.this, currentImagePath);
 
                     })
                     .setNegativeButton("Cancel", (dialog, which) -> {
@@ -132,14 +152,13 @@ public class ImageActivity extends AppCompatActivity {
             editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
             // Set background color
             editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
-            startActivity(editIntent); // Khởi động hoạt động
 
 
-
+            editActivityResultLauncher.launch(editIntent);
         });
 
         viewPager2 = findViewById(R.id.view_pager);
-        viewPagerAdapter = new ViewPagerAdapter(mediaModels, this);
+        viewPagerAdapter = new ViewPagerAdapter(this, currentSortType);
         viewPager2.setAdapter(viewPagerAdapter);
         viewPager2.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
         viewPager2.setOffscreenPageLimit(3);
@@ -152,11 +171,8 @@ public class ImageActivity extends AppCompatActivity {
                 if (mediaModels.size() > position) {
                     MediaModel currentMedia = mediaModels.get(position);
 
-                    if (currentMedia.favorite) {
-                        heartButton.setImageResource(R.drawable.favorite_filled);
-                    } else {
-                        heartButton.setImageResource(R.drawable.favorite);
-                    }
+                    heartButton.setImageResource(
+                            currentMedia.favorite ? R.drawable.favorite_filled : R.drawable.favorite);
                 }
             }
         });
@@ -164,17 +180,27 @@ public class ImageActivity extends AppCompatActivity {
 
         if (mediaModels.get(viewPager2.getCurrentItem()).favorite) {
             heartButton.setImageResource(R.drawable.favorite_filled);
-            Log.d("favorite", "true");
         } else {
             heartButton.setImageResource(R.drawable.favorite);
-            Log.d("favorite", "false");
+        }
+    }
+
+    @Override
+    public void onDatabaseChanged() {
+        try(GalleryDB db = new GalleryDB(this)) {
+            mediaModels = db.getAllLocalMedia();
+            mediaViewModel.getMedia().setValue(mediaModels);
+            Log.d("ImageActivity", "ImageActivity updated media list");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("Debug", "Image activity gone");
+        GalleryDB.removeMediaObserver(this);
+        Log.d("ImageActivity", "Image activity gone");
     }
 
 }

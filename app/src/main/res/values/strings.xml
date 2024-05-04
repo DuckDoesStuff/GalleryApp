@@ -53,5 +53,6 @@
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
     <string name="title_activity_auth">AuthActivity</string>
+    <string name="title_activity_face">FaceActivity</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

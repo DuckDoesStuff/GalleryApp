@@ -21,6 +21,10 @@ import java.util.List;
 public class GalleryDB extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "gallery_app.db";
     private static final int DATABASE_VERSION = 1;
+    private static final String SQL_CREATE_FACE_TABLE =
+            "CREATE TABLE IF NOT EXISTS face (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "media_id TEXT)";
     private static final String SQL_CREATE_TRASH_TABLE =
             "CREATE TABLE IF NOT EXISTS trash (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -65,6 +69,10 @@ public class GalleryDB extends SQLiteOpenHelper {
     static volatile ArrayList<DatabaseObserver> mediaObservers = new ArrayList<>();
     static volatile ArrayList<DatabaseObserver> albumObservers = new ArrayList<>();
     static volatile ArrayList<DatabaseObserver> trashObservers = new ArrayList<>();
+
+    static volatile ArrayList<DatabaseObserver> faceObservers = new ArrayList<>();
+
+
 
     // END observers
 
@@ -210,6 +218,7 @@ public class GalleryDB extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        db.execSQL(SQL_CREATE_FACE_TABLE);
         db.execSQL(SQL_CREATE_TRASH_TABLE);
         db.execSQL(SQL_CREATE_ALBUM_TABLE);
         db.execSQL(SQL_CREATE_TO_UPLOAD_TABLE);
@@ -222,6 +231,8 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS albums");
         db.execSQL("DROP TABLE IF EXISTS to_upload");
         db.execSQL("DROP TABLE IF EXISTS media");
+        db.execSQL("DROP TABLE IF EXISTS face");
+
         onCreate(db);
     }
 
@@ -279,6 +290,30 @@ public class GalleryDB extends SQLiteOpenHelper {
             db.close();
         }
         return mediaModels;
+    }
+    public ArrayList<MediaModel> getAllFace() {
+        SQLiteDatabase db = getReadableDatabase();
+        ArrayList<MediaModel> mediaModels = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT * FROM face", null);
+        while (cursor.moveToNext()) {
+            String localPath = cursor.getString(cursor.getColumnIndexOrThrow("local_path"));
+            mediaModels.add(new MediaModel().setLocalPath(localPath));
+        }
+        cursor.close();
+        db.close();
+        return mediaModels;
+    }
+    public void clearFaceTable() {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete("face", null, null);
+        db.close();
+    }
+    public void addToFaceTable(String localPath) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("local_path", localPath);
+        db.insertWithOnConflict("face", null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        db.close();
     }
     public void addToTrashTable(MediaModel mediaModel, String trashPath) {
         SQLiteDatabase db = getWritableDatabase();

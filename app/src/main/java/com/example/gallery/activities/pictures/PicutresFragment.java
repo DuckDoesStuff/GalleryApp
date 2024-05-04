@@ -130,7 +130,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         Log.d("PicturesFragment", "Initialized");
     }
     private void detectFacesInMediaModels(ArrayList<MediaModel> mediaModels) {
-        initProcessedFace();
+        //initProcessedFace();
         for (MediaModel mediaModel : mediaModels) {
             try {
                 Log.d("face", "co face1");

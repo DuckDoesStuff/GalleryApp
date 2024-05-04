@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
@@ -66,6 +67,7 @@ public class UploadActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
         }else {
+            Log.d("UploadActivity", "Starting upload service");
             Intent serviceIntent = new Intent(this, UploadService.class);
             serviceIntent.putParcelableArrayListExtra("selectedMedia", mediaModels);
             startForegroundService(serviceIntent);

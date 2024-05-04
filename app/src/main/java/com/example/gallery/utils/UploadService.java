@@ -50,6 +50,7 @@ public class UploadService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d("UploadService", "Service created");
         createNotificationChannel();
         builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher_round)
@@ -60,6 +61,7 @@ public class UploadService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("UploadService", "Service started with intent");
         user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             stopSelf();
@@ -105,6 +107,7 @@ public class UploadService extends Service {
         NotificationManagerCompat.from(this).notify(SERVICE_NOTIFICATION_ID, builder.build());
         stopForeground(false);
         count = 0;
+        failed = 0;
         uploading = 0;
     }
 
@@ -130,19 +133,19 @@ public class UploadService extends Service {
                         .build();
 
                 Uri file = Uri.fromFile(new File(mediaModel.localPath));
+                Log.d("UploadService", "Uploading media to cloud");
                 UploadTask uploadTask = mediaRef.putFile(file, storageMetadata);
                 uploadTask.addOnSuccessListener(taskSnapshot -> {
+                    Log.d("UploadService", "Media uploaded to cloud");
                     synchronized (lock) {
                         uploading++;
-                        if(uploading == count) {
-                            finishUpload();
-                            return;
-                        }
                         builder.setProgress(count, uploading, false);
                         NotificationManagerCompat.from(this).notify(SERVICE_NOTIFICATION_ID, builder.build());
                     }
+
                     try {
                         mediaRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            Log.d("UploadService", "URI: " + uri.toString());
                             mediaModel.cloudPath = uri.toString();
                             try (GalleryDB db = new GalleryDB(this)) {
                                 db.updateMedia(mediaModel);
@@ -153,6 +156,10 @@ public class UploadService extends Service {
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
+                    }
+
+                    if(uploading == count) {
+                        finishUpload();
                     }
                 }).addOnFailureListener(e -> {
                     // Handle failed uploads

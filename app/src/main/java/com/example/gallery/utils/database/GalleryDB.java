@@ -58,7 +58,7 @@ public class GalleryDB extends SQLiteOpenHelper {
                     "type TEXT," +
                     "duration INTEGER," +
                     "location TEXT," +
-                    "date_taken TIMESTAMP," +
+                    "date_taken INTEGER," +
                     "favorite BOOLEAN," +
                     "UNIQUE (local_path, cloud_path, media_id))";
     // START observers
@@ -168,6 +168,7 @@ public class GalleryDB extends SQLiteOpenHelper {
         int duration = values.getAsInteger("duration");
         String location = values.getAsString("location");
         long dateTaken = values.getAsLong("date_taken");
+        boolean favorite = values.getAsBoolean("favorite");
 
         return new MediaModel()
                 .setLocalPath(localPath)
@@ -178,7 +179,8 @@ public class GalleryDB extends SQLiteOpenHelper {
                 .setDuration(duration)
                 .setGeoLocation(location)
                 .setMediaID(mediaID)
-                .setDateTaken(dateTaken);
+                .setDateTaken(dateTaken)
+                .setFavorite(favorite);
     }
 
     private AlbumModel getAlbumModelFromCursor(Cursor cursor) {
@@ -417,12 +419,12 @@ public class GalleryDB extends SQLiteOpenHelper {
     // END UPLOAD
 
     // START MEDIA
-    public ArrayList<MediaModel> getAllMedia() {
+    public ArrayList<MediaModel> getAllLocalMedia() {
         ArrayList<MediaModel> medialModels = new ArrayList<>();
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(
-                "SELECT * FROM media WHERE user_id = '' OR user_id = NULL",
+                "SELECT * FROM media WHERE local_path != NULL or local_path != ''",
                 null);
 
         try {
@@ -439,32 +441,33 @@ public class GalleryDB extends SQLiteOpenHelper {
         return medialModels;
     }
 
+    public ArrayList<MediaModel> getAllCloudOnlyMedia() {
+        ArrayList<MediaModel> medialModels = new ArrayList<>();
+
+        SQLiteDatabase db = getReadableDatabase();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            return medialModels;
+        }
+        String userID = user.getUid();
+        Cursor cursor = db.rawQuery(
+                "SELECT * FROM media WHERE (cloud_path != NULL or cloud_path != '') " +
+                    "AND (local_path = NULL or local_path = '') AND user_id = ?",
+                new String[]{userID});
+
+        while(cursor.moveToNext()) {
+            medialModels.add(getMediaModelFromCursor(cursor));
+        }
+
+        return medialModels;
+    }
+
     public void updateMedia(MediaModel mediaModel) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = getMediaValue(mediaModel);
         int result = db.updateWithOnConflict("media", values, "media_id = ?", new String[]{String.valueOf(mediaModel.mediaID)}, SQLiteDatabase.CONFLICT_IGNORE);
         Log.d("GalleryDB", "Media updated: " + result);
         db.close();
-    }
-
-    public boolean getFavorite(MediaModel mediaModel) {
-        SQLiteDatabase db = getWritableDatabase();
-        boolean favorite = false;
-
-        // Thực hiện truy vấn SQL để lấy giá trị favorite từ cơ sở dữ liệu
-        Cursor cursor = db.rawQuery("SELECT favorite FROM media WHERE media_id = ?", new String[]{String.valueOf(mediaModel.mediaID)});
-
-        // Kiểm tra xem có dữ liệu được trả về không
-        if (cursor != null && cursor.moveToFirst()) {
-            // Lấy giá trị favorite từ cột đầu tiên của con trỏ
-            favorite = cursor.getInt(0) == 1; // 1 nếu favorite là true, 0 nếu không
-            cursor.close(); // Đóng con trỏ sau khi sử dụng
-        }
-
-        db.close(); // Đóng kết nối đến cơ sở dữ liệu
-
-        // Trả về giá trị favorite
-        return favorite;
     }
 
     public void addToMediaTable(ArrayList<MediaModel> mediaModels) {

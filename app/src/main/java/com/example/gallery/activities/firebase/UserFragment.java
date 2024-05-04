@@ -62,6 +62,7 @@ public class UserFragment extends Fragment {
             Intent intent = new Intent(mainActivity, UploadChooserActivity.class);
 
             ArrayList<MediaModel> mediaModels;
+            Log.d("UserFragment", "Fetching local only media from database");
             try(GalleryDB db = new GalleryDB(getContext())) {
                 mediaModels = db.getNotSynced();
                 mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));

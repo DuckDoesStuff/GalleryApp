@@ -5,37 +5,52 @@
     android:orientation="vertical">
 
     <!-- AppBarLayout -->
-    <com.google.android.material.appbar.AppBarLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat">
-
+        android:orientation="horizontal"
+        android:theme="@style/ThemeOverlay.AppCompat"
+        android:layout_marginTop="15dp">
         <!-- EditText for search input -->
-        <EditText
-            android:id="@+id/search_edit_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Search for your picture"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textColorHint="@color/background_dark" />
+            <ImageButton
+                android:id="@+id/back_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@color/transparent"
+                android:layout_weight="1"
+                android:tint="@color/background_dark"
+                android:src="@drawable/back"/>
+            <EditText
 
-        <!-- Search button -->
-        <Button
-            android:id="@+id/search_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:text="Search" />
+                android:id="@+id/search_edit_text"
+                android:layout_width="wrap_content"
+                android:layout_weight="5"
+                android:layout_height="wrap_content"
+                android:hint="Search for your picture"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textColorHint="@color/background_dark" />
 
-    </com.google.android.material.appbar.AppBarLayout>
+            <!-- Search button -->
+            <ImageButton
+                android:id="@+id/search_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Search"
+                android:background="@android:color/transparent"
+                android:src="@drawable/search"
+                />
+
+    </LinearLayout>
 
     <!-- RecyclerView for search results -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_width="match_parent"
+        android:id="@+id/search_view"
+        android:layout_marginTop="15dp"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:background="@android:color/white"
-        android:visibility="gone" />
+         />
 
 </LinearLayout>

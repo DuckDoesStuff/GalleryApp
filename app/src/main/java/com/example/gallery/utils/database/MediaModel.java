@@ -27,6 +27,7 @@ public class MediaModel implements Parcelable {
     public long dateTaken = 0;
     public int duration = 0;
     public boolean downloaded = false;
+    public boolean favorite = false;
 
     public MediaModel() {
     }
@@ -43,6 +44,7 @@ public class MediaModel implements Parcelable {
         dateTaken = in.readLong();
         duration = in.readInt();
         downloaded = in.readByte() != 0;
+        favorite = in.readBoolean();
     }
 
     @Override
@@ -104,6 +106,11 @@ public class MediaModel implements Parcelable {
         return this;
     }
 
+    public MediaModel setFavorite(boolean favorite) {
+        this.favorite = favorite;
+        return this;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -121,6 +128,6 @@ public class MediaModel implements Parcelable {
         dest.writeLong(dateTaken);
         dest.writeInt(duration);
         dest.writeByte((byte) (downloaded ? 1 : 0));
+        dest.writeBoolean(favorite);
     }
-
 }

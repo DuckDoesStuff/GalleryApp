@@ -33,6 +33,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
     private final ImageFrameListener onClickCallBack;
     public boolean selectionModeEnabled = false;
     private final MediaViewModel mediaViewModel;
+    int oldSize = 0;
 
     public ImageFrameAdapter(int imgSize, Fragment fragment, ImageFrameListener onClickCallback) {
         this.imgSize = imgSize;
@@ -41,7 +42,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
         Observer<ArrayList<MediaModel>> mediaObserver = mediaModels -> {
             // Do things
-            notifyItemRangeChanged(0, mediaModels.size());
+            notifyItemRangeChanged(0, oldSize);
             Log.d("ImageFrameAdapter", "Media observer called with " + mediaModels.size() + " items");
         };
         mediaViewModel.getMedia().observe(fragment.getViewLifecycleOwner(), mediaObserver);
@@ -53,6 +54,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             Log.d("ImageFrameAdapter", "Selected media observer called with " + selectedMedia.size() + " items");
         };
         mediaViewModel.getSelectedMedia().observe(fragment.getViewLifecycleOwner(), selectedMediaObserver);
+
 
         Log.d("ImageFrameAdapter", "Initialized");
     }
@@ -76,6 +78,8 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
             Log.d("ImageFrameAdapter", "Selected media observer called with " + selectedMedia.size() + " items");
         };
         mediaViewModel.getSelectedMedia().observe(activity, selectedMediaObserver);
+
+        oldSize = Objects.requireNonNull(mediaViewModel.getMedia().getValue()).size();
     }
 
     @NonNull

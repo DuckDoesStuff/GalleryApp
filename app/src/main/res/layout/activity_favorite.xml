@@ -37,7 +37,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Trash"
+                        android:text="Favorite"
                         android:textColor="#000000"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -55,24 +55,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginEnd="10dp"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/restore_button"
-                        android:text="Restore"
-                        android:textStyle="bold"
-                        android:textSize="15sp"
-                        android:layout_marginHorizontal="10dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"/>
-                    <Button
-                        android:id="@+id/delete_button"
-                        android:text="Delete"
-                        android:textStyle="bold"
-                        android:textSize="15sp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"/>
-                </LinearLayout>
+                    android:orientation="horizontal"/>
 
             </LinearLayout>
 

@@ -2,6 +2,7 @@ package com.example.gallery.activities.pictures;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.transition.Slide;
 import android.transition.TransitionManager;
@@ -20,6 +21,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -27,10 +29,11 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.R;
+import com.example.gallery.activities.FavoriteActivity;
 import com.example.gallery.activities.MainActivity;
+import com.example.gallery.activities.search.SearchImageActivity;
 import com.example.gallery.activities.TrashActivity;
 import com.example.gallery.component.dialog.AlbumPickerActivity;
-import com.example.gallery.fragments.SearchViewFragment;
 import com.example.gallery.utils.AlbumManager;
 import com.example.gallery.utils.TrashManager;
 import com.example.gallery.utils.database.AlbumModel;
@@ -39,6 +42,7 @@ import com.example.gallery.utils.database.GalleryDB;
 import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -121,8 +125,9 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
                     Intent intent = new Intent(getContext(), TrashActivity.class);
                     mainActivity.startActivity(intent);
                     return true;
-                } else if (item.getItemId() == R.id.choice2) {
-                    Log.d("PicturesFragment", "Selected size: " + Objects.requireNonNull(mediaViewModel.getSelectedMedia().getValue()).size());
+                } else if (item.getItemId() == R.id.favorite) {
+                    Intent intent = new Intent(getContext(), FavoriteActivity.class);
+                    mainActivity.startActivity(intent);
                     return true;
                 } else if (item.getItemId() == R.id.choice3) {
                     return true;
@@ -137,9 +142,8 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
 
         ImageButton searchButton = view.findViewById(R.id.search);
         searchButton.setOnClickListener(v -> {
-            if (getActivity() != null && getActivity() instanceof MainActivity) {
-                mainActivity.replaceFragment(new SearchViewFragment());
-            }
+            Intent intent = new Intent(getContext(), SearchImageActivity.class);
+            mainActivity.startActivity(intent);
         });
 
         return view;
@@ -264,12 +268,48 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             intent.putParcelableArrayListExtra("mediaModels", selectedImages);
             albumPickerLauncher.launch(intent);
         });
+        Button shareBtn = bottomSheet.findViewById(R.id.shareBtn);
+        shareBtn.setOnClickListener(v -> {
+            ArrayList<Integer> selectedPositions = mediaViewModel.getSelectedMedia().getValue();
+            if (selectedPositions != null) {
+                ArrayList<Uri> imageUris = new ArrayList<>();
+                selectedImages.clear();
+                Log.d("hii","share");
+                for (int position : selectedPositions) {
+                    // Use position to retrieve MediaModel from selectedImages list
+                    selectedImages.add(mediaViewModel.getMedia(position));
+                    MediaModel mediaModel = mediaViewModel.getMedia(position);
+                    String imagePath = mediaModel.localPath;
+                    File imageFile = new File(imagePath);
+                    Uri imageUri = FileProvider.getUriForFile(requireContext(),
+                            "com.example.gallery", imageFile);
+                    imageUris.add(imageUri);
+                }
+
+                Intent shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                shareIntent.setType("image/*");
+                shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, imageUris);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                startActivity(Intent.createChooser(shareIntent, "Share Images"));
+                mediaViewModel.clearSelectedMedia();
+            }
+        });
+
     }
 
     @Override
     public void onItemClick(int position) {
         if (viewMode) {
             Intent intent = new Intent(mainActivity, ImageActivity.class);
+            for (MediaModel media:mediaViewModel.getMedia().getValue()) {
+                if (media.favorite) {
+                    Log.d("favorite", "true");
+                } else {
+                    Log.d("favorite", "false");
+
+                }
+            }
             intent.putParcelableArrayListExtra("mediaModels", mediaViewModel.getMedia().getValue());
             intent.putExtra("initial", position);
             mainActivity.startActivity(intent);

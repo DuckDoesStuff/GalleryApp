@@ -30,12 +30,6 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
 
-                <Button
-                    android:id="@+id/doneButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="15dp"
-                    android:text="Done" />
             </LinearLayout>
         </androidx.appcompat.widget.Toolbar>
 
@@ -51,7 +45,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="10dp"
-                android:text="Uploading image"
+                android:text="Your upload has been started!"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
@@ -60,14 +54,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="complete"
+                android:text="Check your notification for upload status"
                 android:textSize="16sp" />
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/progressIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:indeterminate="false" />
         </LinearLayout>
 
     </LinearLayout>

@@ -42,7 +42,7 @@ public class ImageFrameAdapter extends RecyclerView.Adapter<ImageFrameAdapter.Fr
 
         Observer<ArrayList<MediaModel>> mediaObserver = mediaModels -> {
             // Do things
-            notifyItemRangeChanged(0, oldSize);
+            notifyItemRangeChanged(0, mediaModels.size());
             Log.d("ImageFrameAdapter", "Media observer called with " + mediaModels.size() + " items");
         };
         mediaViewModel.getMedia().observe(fragment.getViewLifecycleOwner(), mediaObserver);

@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 
@@ -397,33 +398,10 @@ public class GalleryDB extends SQLiteOpenHelper {
         // Not sure how to handle this yet
     }
 
-    // START UPLOAD
-    //delete
-    public void onNewImageToUpload(String imagePath) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("INSERT OR IGNORE INTO to_upload (image_path) VALUES ('" + imagePath + "')");
-        db.close();
-    }
-    //delete
-    public ArrayList<MediaModel> getMediaToUpload() {
-        SQLiteDatabase db = getReadableDatabase();
-        ArrayList<MediaModel> mediaModels = new ArrayList<>();
-        Cursor cursor = db.rawQuery("SELECT * FROM to_upload", null);
-        while (cursor.moveToNext()) {
-            String path = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
-            mediaModels.add(new MediaModel().setLocalPath(path));
-        }
-        cursor.close();
-        db.close();
-        return mediaModels;
-    }
-    //delete
-    public void onRemoveImageToUpload(String imagePath) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("DELETE FROM to_upload WHERE image_path = ?", new String[]{imagePath});
-        db.close();
-    }
+    // END ALBUM
 
+
+    // START UPLOAD
     public ArrayList<MediaModel> getNotSynced() {
         ArrayList<MediaModel> mediaModels = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
@@ -457,13 +435,6 @@ public class GalleryDB extends SQLiteOpenHelper {
             db.close();
         }
         return medialModels;
-    }
-
-    // Pending for removal
-    public void onNewMedia(String cloudPath) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("INSERT INTO media (user_id, cloud_path) VALUES ('" + FirebaseAuth.getInstance().getCurrentUser().getUid() + "', '" + cloudPath + "')");
-        db.close();
     }
 
     public void updateMedia(MediaModel mediaModel) {

@@ -22,10 +22,7 @@ import java.util.ArrayList;
 
 public class UploadChooserActivity extends AppCompatActivity implements ImageFrameAdapter.ImageFrameListener {
     private Button uploadBtn;
-
     private MediaViewModel mediaViewModel;
-
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

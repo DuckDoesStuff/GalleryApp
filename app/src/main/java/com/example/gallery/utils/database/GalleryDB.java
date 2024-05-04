@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class GalleryDB extends SQLiteOpenHelper {
@@ -56,7 +57,7 @@ public class GalleryDB extends SQLiteOpenHelper {
                     "type TEXT," +
                     "duration INTEGER," +
                     "location TEXT," +
-                    "date_taken INTEGER," +
+                    "date_taken TIMESTAMP," +
                     "UNIQUE (local_path, cloud_path, media_id))";
     // START observers
     static volatile ArrayList<DatabaseObserver> mediaObservers = new ArrayList<>();
@@ -453,22 +454,19 @@ public class GalleryDB extends SQLiteOpenHelper {
         db.close();
         Log.d("GalleryDB", "Media table updated");
     }
-    public ArrayList<MediaModel> getSearchMedia(String albumName) {
+    public ArrayList<MediaModel> getSearchMedia(String searchInputText) {
         ArrayList<MediaModel> mediaModels = new ArrayList<>();
-
+        if(searchInputText.isEmpty())
+            return mediaModels;
         SQLiteDatabase db = getReadableDatabase();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String userId = (user != null) ? user.getUid() : "";
 
-        ArrayList<String> selectionArgs = new ArrayList<>();
-        selectionArgs.add(userId);
 
-        StringBuilder query = new StringBuilder("SELECT * FROM media WHERE user_id = ? OR user_id IS NULL");
+        List<String> selectionArgs = new ArrayList<>();
+        StringBuilder query = new StringBuilder("SELECT * FROM media WHERE album_name LIKE ?");
 
-        if (albumName != null && !albumName.isEmpty()) {
-            query.append(" AND album_name = ?");
-            selectionArgs.add(albumName);
-        }
+        selectionArgs.add("%" + searchInputText + "%");
+
+
 
         Cursor cursor = db.rawQuery(query.toString(), selectionArgs.toArray(new String[0]));
 
@@ -487,7 +485,7 @@ public class GalleryDB extends SQLiteOpenHelper {
                         .setLocalPath(localPath)
                         .setCloudPath(cloudPath)
                         .setDownloaded(downloaded)
-                        .setAlbumName(albumName)
+                        .setAlbumName(cursor.getString(cursor.getColumnIndexOrThrow("album_name")))
                         .setType(type)
                         .setDuration(duration)
                         .setGeoLocation(location)

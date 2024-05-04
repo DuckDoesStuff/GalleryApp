@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".activities.pictures.PicutresFragment">
 
 
@@ -47,7 +48,8 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/setting" />
+                android:src="@drawable/setting"
+                app:showAsAction="always"/>
 
         </LinearLayout>
 

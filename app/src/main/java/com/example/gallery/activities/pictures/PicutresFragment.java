@@ -2,8 +2,12 @@ package com.example.gallery.activities.pictures;
 
 import android.app.Activity;
 import android.content.Intent;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.transition.Slide;
 import android.transition.TransitionManager;
 import android.transition.TransitionSet;
@@ -43,7 +47,18 @@ import com.example.gallery.utils.database.MediaModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
+
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
+
+
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 
 public class PicutresFragment extends Fragment implements ImageFrameAdapter.ImageFrameListener, DatabaseObserver {
@@ -58,7 +73,10 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
     ActivityResultLauncher<Intent> albumPickerLauncher;
     ActivityResultLauncher<Intent> trashManagerLauncher;
 
+    private FirebaseVisionFaceDetector detector;
     private MediaViewModel mediaViewModel;
+
+    String facePath;
 
     public PicutresFragment() {
         // Required empty public constructor
@@ -95,9 +113,122 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
         };
         mediaViewModel.getSelectedMedia().observe(this, selectedMediaObserver);
 
+        FirebaseVisionFaceDetectorOptions options =
+                new FirebaseVisionFaceDetectorOptions.Builder()
+                        .setPerformanceMode(FirebaseVisionFaceDetectorOptions.FAST)
+                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.NO_LANDMARKS)
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.NO_CLASSIFICATIONS)
+                        .setMinFaceSize(0.15f)
+                        .enableTracking()
+                        .build();
+
+        detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
+
         Log.d("PicturesFragment", "Initialized");
     }
+    private void detectFacesInMediaModels(ArrayList<MediaModel> mediaModels) {
+        initProcessedFace();
+        for (MediaModel mediaModel : mediaModels) {
+            try {
+                Log.d("face", "co face1");
 
+                File file = new File(mediaModel.localPath);
+                Log.d("path",file.getAbsolutePath());
+
+                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+
+                FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
+
+                detector.detectInImage(image)
+                        .addOnSuccessListener(faces -> {
+                            // Xử lý các khuôn mặt được phát hiện ở đây
+                            processDetectedFaces(file, faces);
+                            Log.d("facesed", "co face1");
+
+                        })
+                        .addOnFailureListener(e -> {
+                            // Xử lý lỗi khi detect khuôn mặt
+                            e.printStackTrace();
+                        });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    private HashSet<FirebaseVisionFace> processedFaces = new HashSet<>();
+    private  void initProcessedFace() {
+        File faceDirectory = new File(android.os.Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM), ".face");
+        if (faceDirectory.exists()) {
+            File[] imageFiles = faceDirectory.listFiles();
+            if (imageFiles != null && imageFiles.length > 0) {
+                // Duyệt qua mỗi tệp trong danh sách và xử lý nó
+                for (File imageFile : imageFiles) {
+                    // Làm cái gì đó với mỗi tệp ảnh, ví dụ: hiển thị tên tệp, đường dẫn, v.v.
+                    Bitmap bitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
+
+                    FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
+                    detector.detectInImage(image)
+                            .addOnSuccessListener(faceProcesseds -> {
+                                // Xử lý các khuôn mặt được phát hiện
+                                for (FirebaseVisionFace face : faceProcesseds) {
+                                    // Thêm khuôn mặt vào processedFaces
+                                    if (!processedFaces.contains(face)) {
+                                        processedFaces.add(face);
+                                    }
+                                }
+                            });
+                }
+            }
+        }
+    }
+    private void processDetectedFaces(File file, List<FirebaseVisionFace> faces) {
+        // Xử lý các khuôn mặt được phát hiện trong mediaModel ở đây
+        // Ví dụ: lưu các khuôn mặt vào thư mục ẩn .face
+        Log.d("facdo", "co face");
+
+        for (FirebaseVisionFace face : faces) {
+            if (!processedFaces.contains(face)) {
+                processedFaces.add(face);
+                Log.d("face", "co face");
+                saveFaceImage(face, file);
+            }
+
+        }
+    }
+
+    private void saveFaceImage(FirebaseVisionFace face, File mediaModel) {
+        Bitmap originalBitmap = BitmapFactory.decodeFile(mediaModel.getAbsolutePath());
+        // Đảm bảo rằng bạn có quyền ghi vào thư mục này
+        File faceDir = new File(android.os.Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM), ".face");
+        if (!faceDir.exists()) {
+            faceDir.mkdirs();
+            facePath = faceDir.getPath();
+        }
+
+        int faceWidth = face.getBoundingBox().width();
+        int faceHeight = face.getBoundingBox().height();
+        int faceX = face.getBoundingBox().left;
+        int faceY = face.getBoundingBox().top;
+
+        // Cắt ảnh của khuôn mặt từ ảnh gốc
+        Bitmap faceBitmap = Bitmap.createBitmap(originalBitmap, faceX, faceY, faceWidth, faceHeight);
+
+        // Lưu ảnh khuôn mặt vào thư mục ẩn
+        String faceFileName = "face_" + System.currentTimeMillis() + ".jpg";
+        File faceFile = new File(faceDir, faceFileName);
+        try {
+            FileOutputStream outputStream = new FileOutputStream(faceFile);
+            faceBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+            outputStream.flush();
+            outputStream.close();
+            Log.d("PicturesFragment", "Saved face image: " + faceFile.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("PicturesFragment", "Failed to save face image");
+        }
+    }
 
     @Override
     public void onDestroy() {
@@ -221,6 +352,7 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             ArrayList<MediaModel> mediaModels = db.getAllMedia();
             mediaModels.sort((o1, o2) -> Long.compare(o2.dateTaken, o1.dateTaken));
             mediaViewModel.getMedia().setValue(mediaModels);
+            detectFacesInMediaModels(mediaModels);
             Log.d("PicturesFragment", "Pictures fragment got updated");
         } catch (Exception e) {
             Log.d("PicturesFragment", "Error getting media from database");
@@ -335,4 +467,6 @@ public class PicutresFragment extends Fragment implements ImageFrameAdapter.Imag
             mainActivity.setBottomNavigationViewVisibility(View.VISIBLE);
         });
     }
+
+
 }

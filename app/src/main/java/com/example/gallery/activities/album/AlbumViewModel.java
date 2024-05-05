@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class AlbumViewModel extends ViewModel {
     private MutableLiveData<ArrayList<AlbumModel>> albumModels;
-    private MutableLiveData<ArrayList<AlbumModel>> selectedAlbums;
+    private MutableLiveData<ArrayList<Integer>> selectedAlbums;
 
     public MutableLiveData<ArrayList<AlbumModel>> getAlbums() {
         if (albumModels == null) {
@@ -25,10 +25,25 @@ public class AlbumViewModel extends ViewModel {
         return albumModels.getValue().get(index);
     }
 
-    public MutableLiveData<ArrayList<AlbumModel>> getSelectedAlbums() {
+    public MutableLiveData<ArrayList<Integer>> getSelectedAlbums() {
         if (selectedAlbums == null) {
             selectedAlbums = new MutableLiveData<>();
         }
         return selectedAlbums;
+    }
+    public void setSelectedAlbum(Integer index) {
+        if (selectedAlbums == null) {
+            selectedAlbums = new MutableLiveData<>();
+        }
+        ArrayList<Integer> selected = selectedAlbums.getValue();
+        if (selected == null) {
+            selected = new ArrayList<>();
+        }
+        if (selected.contains(index)) {
+            selected.remove(index);
+        } else {
+            selected.add(index);
+        }
+        selectedAlbums.setValue(selected);
     }
 }

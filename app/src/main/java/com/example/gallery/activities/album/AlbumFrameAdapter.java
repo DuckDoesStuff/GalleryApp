@@ -28,6 +28,8 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
     private final AlbumFrameAdapter.AlbumFrameListener onClickCallBack;
     private final AlbumViewModel albumViewModel;
 
+    public boolean selectionModeEnabled = false;
+
     public AlbumFrameAdapter(Fragment fragment, AlbumFrameListener onClickCallBack) {
         this.onClickCallBack = onClickCallBack;
 
@@ -41,8 +43,9 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
         albumViewModel.getAlbums().observe(fragment.getViewLifecycleOwner(), albumObserver);
 
         // Do things
-        Observer<ArrayList<AlbumModel>> selectedAlbumObserver = selectedAlbums -> {
+        Observer<ArrayList<Integer>> selectedAlbumObserver = selectedAlbums -> {
             // Do things
+            selectionModeEnabled = !selectedAlbums.isEmpty();
             Log.d("AlbumFrameAdapter", "Selected album observer called with " + selectedAlbums.size() + " items");
         };
         albumViewModel.getSelectedAlbums().observe(fragment.getViewLifecycleOwner(), selectedAlbumObserver);
@@ -61,10 +64,21 @@ public class AlbumFrameAdapter extends RecyclerView.Adapter<AlbumFrameAdapter.Al
         AlbumModel albumModel = albumViewModel.getAlbum(position);
         holder.bind(albumModel);
         holder.itemView.setOnClickListener(v -> {
-            if (albumModel.mediaCount != 0)
-                onClickCallBack.onItemClick(position);
-            else
-                Toast.makeText(v.getContext(), "This album is empty!", Toast.LENGTH_SHORT).show();
+            if (selectionModeEnabled) {
+                albumViewModel.setSelectedAlbum(position);
+            } else {
+                if (albumModel.mediaCount != 0)
+                    onClickCallBack.onItemClick(position);
+                else
+                    Toast.makeText(v.getContext(), "This album is empty!", Toast.LENGTH_SHORT).show();
+            }
+
+        });
+        holder.itemView.setOnLongClickListener(v -> {
+            albumViewModel.setSelectedAlbum(position);
+            if (onClickCallBack != null)
+                onClickCallBack.onItemLongClick(position);
+            return true;
         });
     }
 

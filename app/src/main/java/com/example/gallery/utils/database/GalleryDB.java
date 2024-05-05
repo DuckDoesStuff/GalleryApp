@@ -24,7 +24,8 @@ public class GalleryDB extends SQLiteOpenHelper {
     private static final String SQL_CREATE_FACE_TABLE =
             "CREATE TABLE IF NOT EXISTS face (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "media_id TEXT)";
+                    "local_path TEXT)";
+
     private static final String SQL_CREATE_TRASH_TABLE =
             "CREATE TABLE IF NOT EXISTS trash (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -418,6 +419,34 @@ public class GalleryDB extends SQLiteOpenHelper {
         ContentValues values = getAlbumValues(albumModel);
         int result = db.updateWithOnConflict("albums", values, "local_path = ?", new String[]{albumModel.localPath}, SQLiteDatabase.CONFLICT_IGNORE);
         Log.d("GalleryDB", "Album updated: " + result);
+        db.close();
+    }
+    public void updateAlbumNameAndLocalPath(String oldName, String newName, String newLocalPath) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("album_name", newName);
+        values.put("local_path", newLocalPath);
+
+        int rowsAffected = db.update("albums", values, "album_name = ?", new String[]{oldName});
+        Log.d("GalleryDB", rowsAffected + " rows updated");
+
+        // Thông báo cho các quan sát viên (observers) biết về sự thay đổi trong cơ sở dữ liệu
+        notifyAlbumObservers();
+
+        db.close();
+    }
+    public void updateMediaNameAndLocalPath(String oldLocalPath, String newLocalPath, String newAlbumName) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("local_path", newLocalPath);
+        values.put("album_name", newAlbumName);
+
+        int rowsAffected = db.update("media", values, "local_path = ?", new String[]{oldLocalPath});
+        Log.d("GalleryDB", rowsAffected + " rows updated");
+
+        // Thông báo cho các quan sát viên (observers) biết về sự thay đổi trong cơ sở dữ liệu
+        notifyMediaObservers();
+
         db.close();
     }
 

@@ -129,6 +129,13 @@ public class AlbumManager extends AppCompatActivity {
                     finish();
                     break;
                 }
+                case "rename": {
+                    String albumName = intent.getStringExtra("albumName");
+                    AlbumModel albumModel = intent.getParcelableExtra("album_model");
+                    renameAlbum(this, albumName, albumModel);
+                    finish();
+                    break;
+                }
             }
 
         }
@@ -303,6 +310,39 @@ public class AlbumManager extends AppCompatActivity {
             return albumModel;
         }
         return null; // Error occurred while creating album
+    }
+    private void renameAlbum(@NonNull Context context, String newAlbumName, AlbumModel albumModel) {
+        File sourceFolder = new File(albumModel.localPath);
+        String parentFolder = sourceFolder.getParent();
+        File newAlbumFolder = new File(parentFolder, newAlbumName);
+        String oldName = albumModel.albumName;
+
+        if (sourceFolder.renameTo(newAlbumFolder)) {
+            // Nếu di chuyển thư mục thành công, cập nhật đường dẫn của albumModel
+            // Cập nhật đường dẫn của albumModel trong cơ sở dữ liệu
+            try (GalleryDB db = new GalleryDB(context)) {
+                ArrayList<MediaModel> mediaModels = db.getMediaInAlbum(albumModel);
+                albumModel.localPath = newAlbumFolder.getAbsolutePath();
+                albumModel.albumName = newAlbumName;
+                db.updateAlbumNameAndLocalPath(oldName, newAlbumName, newAlbumFolder.getAbsolutePath());
+                if (mediaModels != null) {
+                    for (MediaModel mediaModel : mediaModels) {
+                        // Cập nhật đường dẫn mới dựa trên tên mới của album
+                        String oldPath = mediaModel.localPath;
+                        String newPath = oldPath.replace(oldName, newAlbumName);
+
+                        // Cập nhật MediaModel trong cơ sở dữ liệu
+                        db.updateMediaNameAndLocalPath(mediaModel.localPath, newPath, newAlbumName);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.d("AlbumManager", "Error updating album in database");
+            }
+        } else {
+            Log.d("AlbumManager", "Error renaming album folder");
+        }
+
     }
 
     private void notifyMediaStoreScan(String filePath) {
